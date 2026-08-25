@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Velha</title>
+  <link rel="stylesheet" href="jogo-velha.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>❌⭕ Jogo da Velha Premium</h1>
+    <p id="status">Vez do jogador X</p>
+
+    <div class="tabuleiro" id="tabuleiro">
+      <div class="celula" data-index="0"></div>
+      <div class="celula" data-index="1"></div>
+      <div class="celula" data-index="2"></div>
+      <div class="celula" data-index="3"></div>
+      <div class="celula" data-index="4"></div>
+      <div class="celula" data-index="5"></div>
+      <div class="celula" data-index="6"></div>
+      <div class="celula" data-index="7"></div>
+      <div class="celula" data-index="8"></div>
+    </div>
+
+    <div class="acoes">
+      <button onclick="reiniciarJogo()">Reiniciar</button>
+      <a href="index.html" class="voltar">⬅ Voltar</a>
+    </div>
+  </div>
+
+  <script src="jogo-velha.js"></script>
+</body>
+
+</html>
+
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top, #1b1b3a, #0a0a16 70%);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 550px;
+    margin: auto;
+  }
+
+  h1 {
+    color: #00e5ff;
+    font-size: 2.4rem;
+  }
+
+  #status {
+    margin-top: 12px;
+    color: #c9c9ff;
+    font-size: 1.1rem;
+  }
+
+  .tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    gap: 10px;
+    justify-content: center;
+    margin: 30px 0;
+  }
+
+  .celula {
+    width: 110px;
+    height: 110px;
+    background: rgba(31, 31, 53, 0.95);
+    border-radius: 14px;
+    font-size: 2.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid rgba(0, 229, 255, 0.08);
+    transition: 0.3s;
+  }
+
+  .celula:hover {
+    transform: scale(1.04);
+    border-color: rgba(0, 229, 255, 0.25);
+  }
+
+  .acoes {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #8a2be2, #00e5ff);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .voltar {
+    text-decoration: none;
+    background: #1f1f35;
+    color: #00e5ff;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+  }
+</style>
+<SCript>
+  const celulas = document.querySelectorAll(".celula");
+  const statusTexto = document.getElementById("status");
+
+  let jogadorAtual = "X";
+  let jogoAtivo = true;
+  let estadoJogo = ["", "", "", "", "", "", "", "", ""];
+
+  // Combinações vencedoras
+  const combinacoesVitoria = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+  ];
+
+  // Função para verificar vencedor
+  function verificarVencedor() {
+    let venceu = false;
+
+    for (let i = 0; i < combinacoesVitoria.length; i++) {
+      const [a, b, c] = combinacoesVitoria[i];
+
+      if (
+        estadoJogo[a] !== "" &&
+        estadoJogo[a] === estadoJogo[b] &&
+        estadoJogo[a] === estadoJogo[c]
+      ) {
+        venceu = true;
+        break;
+      }
+    }
+
+    if (venceu) {
+      statusTexto.textContent = `🎉 Jogador ${jogadorAtual} venceu!`;
+      jogoAtivo = false;
+      return;
+    }
+
+    // Verifica empate
+    if (!estadoJogo.includes("")) {
+      statusTexto.textContent = "🤝 Empate!";
+      jogoAtivo = false;
+      return;
+    }
+
+    // Troca de jogador
+    jogadorAtual = jogadorAtual === "X" ? "O" : "X";
+    statusTexto.textContent = `Vez do jogador ${jogadorAtual}`;
+  }
+
+  // Função ao clicar em uma célula
+  function clicarCelula(event) {
+    const celula = event.target;
+    const index = celula.getAttribute("data-index");
+
+    if (estadoJogo[index] !== "" || !jogoAtivo) {
+      return;
+    }
+
+    estadoJogo[index] = jogadorAtual;
+    celula.textContent = jogadorAtual;
+
+    verificarVencedor();
+  }
+
+  // Adiciona evento de clique em cada célula
+  celulas.forEach((celula) => {
+    celula.addEventListener("click", clicarCelula);
+  });
+
+  // Função para reiniciar o jogo
+  function reiniciarJogo() {
+    jogadorAtual = "X";
+    jogoAtivo = true;
+    estadoJogo = ["", "", "", "", "", "", "", "", ""];
+
+    statusTexto.textContent = "Vez do jogador X";
+
+    celulas.forEach((celula) => {
+      celula.textContent = "";
+    });
+  }
+</SCript>

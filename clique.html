@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desafio do Clique - ArcadeX</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: radial-gradient(circle at top, #1b1b3a, #0a0a16);
+  color: white;
+  text-align: center;
+  overflow: hidden;
+}
+
+h1 {
+  color: #00e5ff;
+  margin-top: 15px;
+  text-shadow: 0 0 10px rgba(0,229,255,0.4);
+}
+
+.info {
+  margin: 10px;
+  font-size: 18px;
+}
+
+.botoes {
+  margin-top: 10px;
+}
+
+button {
+  background: linear-gradient(90deg, #00e5ff, #8a2be2);
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  margin: 5px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* 🎯 ARENA PREMIUM */
+#areaJogo {
+  width: 80vw;
+  height: 70vh;
+  margin: 20px auto;
+  position: relative;
+
+  background: radial-gradient(circle at top, rgba(0,229,255,0.08), rgba(10,10,22,0.9));
+
+  border: 2px solid rgba(0, 229, 255, 0.4);
+  border-radius: 20px;
+
+  box-shadow: 
+    0 0 15px rgba(0, 229, 255, 0.2),
+    inset 0 0 30px rgba(0, 229, 255, 0.08);
+
+  overflow: hidden;
+
+  backdrop-filter: blur(6px);
+}
+
+/* efeito scan futurista */
+#areaJogo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.05), transparent);
+  animation: scan 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 🎯 ALVO */
+#alvo {
+  width: 80px;
+  height: 80px;
+  background: #00e5ff;
+  border-radius: 50%;
+  position: absolute;
+  display: none;
+  cursor: pointer;
+  box-shadow: 0 0 25px #00e5ff;
+  transition: 0.1s;
+}
+
+#alvo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 35px #00e5ff;
+}
+
+.mensagem {
+  margin-top: 10px;
+  font-size: 20px;
+  color: #8a2be2;
+  text-shadow: 0 0 10px rgba(138,43,226,0.4);
+}
+</style>
+
+</head>
+<body>
+
+<h1>🎯 Desafio do Clique Rápido</h1>
+
+<div class="info">
+  Pontos: <span id="pontos">0</span> |
+  Tempo: <span id="tempo">0</span> ms
+</div>
+
+<div class="botoes">
+  <button onclick="iniciar()">▶ Iniciar</button>
+  <button onclick="reiniciar()">🔄 Reiniciar</button>
+  <button onclick="voltar()">🏠 Voltar</button>
+</div>
+
+<div id="areaJogo">
+  <div id="alvo"></div>
+</div>
+
+<div class="mensagem" id="mensagem"></div>
+
+<script>
+let pontos = 0;
+let inicioTempo;
+let ativo = false;
+
+const alvo = document.getElementById("alvo");
+const pontosEl = document.getElementById("pontos");
+const tempoEl = document.getElementById("tempo");
+const mensagem = document.getElementById("mensagem");
+const area = document.getElementById("areaJogo");
+
+function aparecerAlvo() {
+  const maxX = area.clientWidth - 80;
+  const maxY = area.clientHeight - 80;
+
+  const x = Math.random() * maxX;
+  const y = Math.random() * maxY;
+
+  alvo.style.left = x + "px";
+  alvo.style.top = y + "px";
+  alvo.style.display = "block";
+
+  inicioTempo = Date.now();
+}
+
+alvo.onclick = () => {
+  if (!ativo) return;
+
+  const tempoResposta = Date.now() - inicioTempo;
+
+  pontos++;
+  pontosEl.textContent = pontos;
+  tempoEl.textContent = tempoResposta;
+
+  alvo.style.display = "none";
+
+  setTimeout(aparecerAlvo, 500);
+};
+
+function iniciar() {
+  if (ativo) return;
+
+  ativo = true;
+  pontos = 0;
+  pontosEl.textContent = 0;
+  mensagem.textContent = "";
+
+  aparecerAlvo();
+}
+
+function reiniciar() {
+  ativo = false;
+  pontos = 0;
+  pontosEl.textContent = 0;
+  tempoEl.textContent = 0;
+  alvo.style.display = "none";
+  mensagem.textContent = "";
+}
+
+function voltar() {
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

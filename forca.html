@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo da Forca - ArcadeX</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: radial-gradient(circle at top, #1b1b3a, #0a0a16);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  color: #00e5ff;
+  margin-top: 20px;
+}
+
+.info {
+  margin: 10px;
+  font-size: 18px;
+}
+
+.palavra {
+  font-size: 30px;
+  letter-spacing: 10px;
+  margin: 20px;
+}
+
+.letras {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 600px;
+  margin: auto;
+  gap: 8px;
+}
+
+.letra {
+  width: 40px;
+  height: 40px;
+  background: #22223a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.letra:hover {
+  background: #00e5ff;
+  color: black;
+  transform: scale(1.1);
+}
+
+.letra.usada {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.botoes {
+  margin-top: 15px;
+}
+
+button {
+  background: linear-gradient(90deg, #00e5ff, #8a2be2);
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  margin: 5px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.mensagem {
+  margin-top: 15px;
+  font-size: 22px;
+  color: #8a2be2;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🔤 Jogo da Forca</h1>
+
+<div class="info">
+  Vidas: <span id="vidas">6</span>
+</div>
+
+<div class="palavra" id="palavra"></div>
+
+<div class="letras" id="letras"></div>
+
+<div class="botoes">
+  <button onclick="reiniciar()">🔄 Reiniciar</button>
+  <button onclick="voltar()">Voltar</button>
+</div>
+
+<div class="mensagem" id="mensagem"></div>
+
+<script>
+const palavras = [
+  "PROGRAMACAO", "JAVASCRIPT", "HTML", "CSS", "COMPUTADOR",
+  "DESENVOLVIMENTO", "MODEL", "FRAMEWORK", "MONGODB", "TYPESCRIPT",
+  "VUE", "EXPRESS", "VSCODE", "TEMPLATE", "SCRIPT", "REACT",
+  "BOOTSTRAP", "PYTHON", "SOFTWARE", "PRISMA", "ORACLE",
+  "THUNDERCLIENT", "MYSQL", "ALGORITMOS", "VARIAVEIS",
+  "FUNCOES", "LOOPS", "CONDICIONAIS", "API", "BANCO DE DADOS",
+  "DEBUG", "GIT", "GITHUB", "POO", "ESTRUTURA DE DADOS",
+  "INTELIGENCIA ARTIFICIAL", "MACHINE LEARNING", "DEEP LEARNING",
+  "BACKEND", "FRONTEND", "FULLSTACK", "RESPONSIVIDADE",
+  "WEB", "MOBILE", "ANDROID", "IOS", "DEPLOY",
+  "SERVIDOR", "HTTP", "HTTPS", "JSON", "AJAX",
+  "FETCH", "ASYNC", "PROMISE", "EVENTOS", "DOM",
+  "COMPILADOR", "INTERPRETADOR", "LINUX", "WINDOWS",
+  "API REST", "GRAPHQL", "MICROSERVICOS", "AUTENTICACAO",
+  "SEGURANCA", "CRIPTOGRAFIA", "TESTES", "UNIT TEST",
+  "CLOUD", "AWS", "FIREBASE", "DOCKER", "KUBERNETES"
+];
+
+let palavra, exibida, vidas, jogoAtivo;
+
+const palavraEl = document.getElementById("palavra");
+const letrasEl = document.getElementById("letras");
+const vidasEl = document.getElementById("vidas");
+const mensagem = document.getElementById("mensagem");
+
+const alfabeto = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function novaRodada() {
+  palavra = palavras[Math.floor(Math.random() * palavras.length)];
+  exibida = Array(palavra.length).fill("_");
+  vidas = 6;
+  jogoAtivo = true;
+  mensagem.textContent = "";
+  iniciar();
+}
+
+function iniciar() {
+  palavraEl.textContent = exibida.join(" ");
+  vidasEl.textContent = vidas;
+  letrasEl.innerHTML = "";
+
+  alfabeto.split("").forEach(letra => {
+    const div = document.createElement("div");
+    div.classList.add("letra");
+    div.textContent = letra;
+
+    div.onclick = () => tentarLetra(letra, div);
+
+    letrasEl.appendChild(div);
+  });
+}
+
+function tentarLetra(letra, elemento = null) {
+  if (!jogoAtivo) return;
+
+  // marcar botão clicado
+  if (elemento) {
+    if (elemento.classList.contains("usada")) return;
+    elemento.classList.add("usada");
+  } else {
+    // marcar tecla pressionada
+    document.querySelectorAll(".letra").forEach(el => {
+      if (el.textContent === letra) el.classList.add("usada");
+    });
+  }
+
+  if (palavra.includes(letra)) {
+    for (let i = 0; i < palavra.length; i++) {
+      if (palavra[i] === letra) {
+        exibida[i] = letra;
+      }
+    }
+  } else {
+    vidas--;
+    vidasEl.textContent = vidas;
+  }
+
+  palavraEl.textContent = exibida.join(" ");
+  verificar();
+}
+
+function verificar() {
+  if (!exibida.includes("_")) {
+    mensagem.textContent = "🔥 Você venceu!";
+    jogoAtivo = false;
+
+    setTimeout(() => {
+      novaRodada(); // nova palavra automática
+    }, 1500);
+  }
+
+  if (vidas <= 0) {
+    mensagem.textContent = `💀 Você perdeu! Palavra: ${palavra}`;
+    jogoAtivo = false;
+  }
+}
+
+function reiniciar() {
+  novaRodada();
+}
+
+function voltar() {
+  window.location.href = "index.html";
+}
+
+// 🎯 DIGITAÇÃO PELO TECLADO
+document.addEventListener("keydown", (e) => {
+  const letra = e.key.toUpperCase();
+
+  if (alfabeto.includes(letra)) {
+    tentarLetra(letra);
+  }
+});
+
+// iniciar jogo
+novaRodada();
+</script>
+
+
+</body>
+</html>

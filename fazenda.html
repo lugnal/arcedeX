@@ -1,0 +1,1934 @@
+cat > /mnt/user-data/outputs/mini-fazenda.html << 'GAMEEOF'
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🌾 Mini Fazenda Deluxe</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --gold:#f5c842;--gold2:#d4a017;
+  --green:#22c55e;--green2:#16a34a;
+  --blue:#38bdf8;--purple:#7c3aed;
+  --orange:#f97316;--red:#ef4444;
+  --soil1:#7a4a1e;--soil2:#4a2808;
+  --fn:'Baloo 2',sans-serif;
+  --fb:'Nunito',sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:#111827;}
+body{font-family:var(--fb);}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+
+/* SKY */
+#sky{position:fixed;inset:0;z-index:0;transition:background 4s;}
+.sky-day{background:linear-gradient(180deg,#4fa3d4 0%,#87ceeb 45%,#c8e6c9 100%);}
+.sky-eve{background:linear-gradient(180deg,#c2410c 0%,#ea580c 30%,#fbbf24 70%,#fef3c7 100%);}
+.sky-night{background:linear-gradient(180deg,#0f172a 0%,#1e1b4b 60%,#14532d 100%);}
+#sunmoon{position:fixed;font-size:48px;z-index:1;pointer-events:none;transition:all 4s;filter:drop-shadow(0 0 18px rgba(255,220,0,.7));}
+.stars{position:fixed;inset:0;z-index:1;pointer-events:none;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle 3s infinite;}
+@keyframes twinkle{0%,100%{opacity:.1;}50%{opacity:.9;}}
+.clouds{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+.cld{position:absolute;background:rgba(255,255,255,.8);border-radius:50px;animation:drift linear infinite;}
+@keyframes drift{from{transform:translateX(-220px);}to{transform:translateX(calc(100vw+220px));}}
+
+/* ===== MENU ===== */
+#menu-screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;}
+.menu-wrap{text-align:center;padding:28px 24px;max-width:420px;width:92%;}
+.gtitle{font-family:var(--fn);font-size:clamp(42px,11vw,74px);font-weight:800;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 50px rgba(80,255,120,.4);line-height:1;margin-bottom:4px;}
+.gsub{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:26px;}
+.msave{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 18px;margin-bottom:22px;display:flex;justify-content:center;gap:18px;flex-wrap:wrap;}
+.msave-item{color:#fff;font-size:14px;font-weight:700;}
+.msave-item b{color:var(--gold);font-family:var(--fn);}
+.mbtn{display:block;width:100%;max-width:270px;padding:14px 22px;margin:9px auto;border:none;border-radius:50px;font-family:var(--fn);font-size:20px;font-weight:700;cursor:pointer;transition:.2s;box-shadow:0 6px 0 rgba(0,0,0,.28);}
+.mbtn:hover{transform:translateY(-4px);box-shadow:0 10px 0 rgba(0,0,0,.28);}
+.mbtn:active{transform:translateY(1px);box-shadow:0 3px 0 rgba(0,0,0,.28);}
+.mbtn-play{background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;}
+.mbtn-sec{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.18);color:#fff;font-size:16px;}
+.mbtn-sec:hover{background:rgba(255,255,255,.2);}
+.mdeco{margin-top:18px;font-size:26px;opacity:.35;letter-spacing:7px;}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;}
+#game-screen.active{display:flex;}
+
+/* TOP BAR */
+.topbar{
+  background:rgba(0,8,4,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  padding:7px 10px;display:flex;align-items:center;gap:5px;flex-wrap:nowrap;
+  border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;z-index:30;
+}
+.backbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;padding:5px 11px;border-radius:50px;cursor:pointer;font-weight:800;font-size:12px;transition:.2s;flex-shrink:0;}
+.backbtn:hover{background:rgba(255,255,255,.2);}
+.pill{display:flex;align-items:center;gap:3px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);padding:4px 9px;border-radius:50px;font-size:13px;color:#fff;font-weight:800;white-space:nowrap;flex-shrink:0;}
+.pill .pv{color:var(--gold);font-family:var(--fn);}
+.pill.xp-pill .pv{color:#86efac;}
+.spacer{flex:1;}
+.wx-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.13);border-radius:50px;padding:4px 9px;font-size:12px;color:#fff;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.ibt{border:none;color:#fff;width:33px;height:33px;border-radius:10px;cursor:pointer;font-size:15px;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ibt:hover{transform:scale(1.12);}
+.ibt.s1{background:linear-gradient(135deg,#7c3aed,#a855f7);}
+.ibt.s2{background:linear-gradient(135deg,#059669,#10b981);}
+.ibt.s3{background:linear-gradient(135deg,#d97706,#f59e0b);}
+.ibt.s4{background:linear-gradient(135deg,#0369a1,#0ea5e9);}
+
+/* ===== BOTTOM PANEL (slider) ===== */
+.bottom-panel{
+  background:rgba(0,8,4,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;z-index:30;
+  display:flex;flex-direction:column;
+}
+/* TABS */
+.bp-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);}
+.bp-tab{flex:1;padding:6px 4px;background:transparent;border:none;color:rgba(255,255,255,.4);font-family:var(--fb);font-size:11px;font-weight:800;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:1px;}
+.bp-tab.active{color:#fff;border-bottom:2px solid var(--gold);}
+.bp-tab:hover{color:rgba(255,255,255,.7);}
+
+/* SLIDER TRACK */
+.bp-slider{
+  padding:7px 10px;
+  display:none;
+  overflow-x:auto;
+  overflow-y:hidden;
+  flex-direction:row;
+  align-items:stretch;
+  gap:6px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.2) transparent;
+  min-height:74px;
+  scroll-snap-type:x mandatory;
+}
+.bp-slider::-webkit-scrollbar{height:3px;}
+.bp-slider::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px;}
+.bp-slider.active{display:flex;}
+
+/* SEED CARD (slider item) */
+.seed-card{
+  flex-shrink:0;
+  background:rgba(255,255,255,.07);
+  border:2px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:6px 10px;
+  cursor:pointer;
+  transition:.15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;
+  min-width:68px;
+  scroll-snap-align:start;
+  user-select:none;
+}
+.seed-card:hover{background:rgba(255,255,255,.14);}
+.seed-card.active{border-color:var(--gold);background:rgba(245,200,66,.15);}
+.seed-card.locked-card{opacity:.4;cursor:default;}
+.sc-em{font-size:24px;line-height:1;}
+.sc-nm{font-size:10px;font-weight:800;color:#fff;white-space:nowrap;}
+.sc-cnt{font-size:10px;color:var(--gold);font-weight:700;}
+.sc-cost{font-size:9px;color:rgba(255,255,255,.5);}
+
+/* TOOL CARD */
+.tool-card{
+  flex-shrink:0;
+  background:rgba(255,255,255,.07);
+  border:2px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:6px 10px;
+  cursor:pointer;
+  transition:.15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;
+  min-width:72px;
+  scroll-snap-align:start;
+  user-select:none;position:relative;
+}
+.tool-card:hover{background:rgba(255,255,255,.14);}
+.tool-card.active{border-color:#60a5fa;background:rgba(96,165,250,.15);}
+.tool-card.locked-card{opacity:.38;cursor:default;}
+.tc-em{font-size:22px;line-height:1;}
+.tc-nm{font-size:10px;font-weight:800;color:#fff;white-space:nowrap;text-align:center;}
+.tc-sub{font-size:9px;color:rgba(255,255,255,.45);text-align:center;}
+.tc-cost{font-size:9px;color:#f87171;font-weight:700;}
+.tc-owned{position:absolute;top:3px;right:4px;background:var(--gold);color:#000;font-size:8px;font-weight:900;padding:1px 4px;border-radius:50px;}
+
+/* FARM AREA */
+.farm-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:9px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;z-index:10;}
+.farm-area::-webkit-scrollbar{width:3px;}
+.farm-area::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px;}
+.farm-grid{display:grid;gap:7px;justify-content:center;}
+
+/* PLOT */
+.plot{
+  width:72px;height:72px;
+  background:radial-gradient(circle at 35% 35%,#8a5020,#4a2808);
+  border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;border:2px solid rgba(0,0,0,.4);
+  transition:transform .15s,box-shadow .15s;
+  position:relative;overflow:hidden;
+  box-shadow:0 5px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.07);
+  user-select:none;
+}
+.plot:hover{transform:translateY(-5px);box-shadow:0 10px 0 rgba(0,0,0,.4);}
+.plot:active{transform:translateY(0);}
+.plot .pe{font-size:28px;line-height:1;z-index:2;transition:.2s;}
+.plot .pl{font-size:8px;color:rgba(255,255,255,.6);font-weight:700;margin-top:1px;z-index:2;}
+.plot .pbar{position:absolute;bottom:5px;left:6px;right:6px;height:5px;background:rgba(0,0,0,.4);border-radius:5px;overflow:hidden;}
+.plot .pfill{height:100%;border-radius:5px;transition:.35s;background:linear-gradient(90deg,#22c55e,#86efac);}
+.plot .wb{position:absolute;top:3px;right:3px;font-size:11px;z-index:3;}
+.plot .fb{position:absolute;top:3px;left:3px;font-size:11px;z-index:3;}
+.plot .pb2{position:absolute;top:18px;right:3px;font-size:10px;z-index:3;}
+.plot.ready{animation:plbounce .8s ease-in-out infinite;}
+.plot.ready .pe{filter:drop-shadow(0 0 10px rgba(255,215,0,.9));}
+.plot.watered .pfill{background:linear-gradient(90deg,#38bdf8,#7dd3fc);}
+.plot.fertilized{border-color:rgba(163,230,53,.4);}
+.plot.mulched{background:radial-gradient(circle at 35% 35%,#5a3010,#2a1205);}
+.plot.enchanted{border-color:rgba(168,85,247,.5);}
+.plot.locked-plot{background:rgba(0,0,0,.3);cursor:default;border-color:rgba(255,255,255,.08);}
+.plot.locked-plot .pe{filter:grayscale(1);opacity:.35;}
+.plot.locked-plot:hover{transform:none;box-shadow:0 5px 0 rgba(0,0,0,.4);}
+@keyframes plbound{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-7px) scale(1.06);}}
+@keyframes plbounce{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-7px) scale(1.06);}}
+
+/* ANIMAL section */
+.animal-zone{margin-top:10px;background:rgba(0,0,0,.22);border-radius:14px;padding:10px;}
+.az-title{color:rgba(255,255,255,.45);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+.az-row{display:flex;gap:7px;flex-wrap:wrap;}
+.aslot{
+  width:62px;height:62px;background:rgba(255,255,255,.05);
+  border:2px solid rgba(255,255,255,.09);border-radius:13px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:.2s;position:relative;overflow:hidden;
+}
+.aslot:hover{background:rgba(255,255,255,.12);transform:translateY(-3px);}
+.aslot .ae{font-size:24px;}
+.aslot .at{font-size:9px;color:rgba(255,255,255,.5);font-weight:700;margin-top:2px;}
+.aslot .ar{position:absolute;top:2px;right:2px;background:var(--gold);color:#000;font-size:7px;font-weight:900;padding:1px 3px;border-radius:50px;}
+
+/* ===== MODALS ===== */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{width:100%;max-height:91%;border-radius:24px 24px 0 0;overflow:hidden;display:flex;flex-direction:column;animation:sup .3s ease;}
+@keyframes sup{from{transform:translateY(70px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.mhead{padding:15px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mhead.h-shop{background:linear-gradient(135deg,#4c1d95,#7c3aed);}
+.mhead.h-mkt{background:linear-gradient(135deg,#064e3b,#059669);}
+.mhead.h-anim{background:linear-gradient(135deg,#78350f,#d97706);}
+.mhead.h-stats{background:linear-gradient(135deg,#1e3a5f,#0369a1);}
+.mtitle{font-family:var(--fn);font-size:22px;font-weight:700;}
+.mclose{background:rgba(255,255,255,.15);border:none;color:#fff;width:33px;height:33px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.mclose:hover{background:rgba(255,255,255,.3);}
+.mbody{overflow-y:auto;padding:14px;flex:1;background:#f8f9fa;scrollbar-width:thin;}
+.mbody::-webkit-scrollbar{width:3px;}
+.mbody::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+
+/* shop tabs */
+.stabs{display:flex;gap:4px;background:#e8e9ec;border-radius:50px;padding:3px;margin-bottom:13px;}
+.stab{flex:1;padding:7px 6px;border-radius:50px;border:none;cursor:pointer;font-family:var(--fb);font-weight:700;font-size:11px;background:transparent;color:#777;transition:.2s;}
+.stab.active{background:#fff;color:#1a1a2e;box-shadow:0 2px 6px rgba(0,0,0,.1);}
+
+/* shop seed grid */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.scat{grid-column:1/-1;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#bbb;padding:9px 0 3px;border-top:1px solid #e5e7eb;margin-top:2px;}
+.scat:first-child{border-top:none;margin-top:0;padding-top:0;}
+.scard{background:#fff;border-radius:14px;padding:12px 10px;border:2px solid #eee;transition:.2s;cursor:default;}
+.scard:not(.slock):hover{border-color:#7c3aed;transform:translateY(-2px);box-shadow:0 5px 14px rgba(124,77,255,.1);}
+.scard.slock{opacity:.5;}
+.scard-top{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px;}
+.scard-em{font-size:26px;flex-shrink:0;}
+.scard-nm{font-weight:800;font-size:13px;color:#1a1a2e;margin-bottom:1px;}
+.scard-tm{font-size:10px;color:#aaa;}
+.scard-stats{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.ss-buy{color:#e76f51;font-size:11px;font-weight:700;}
+.ss-sell{color:#22c55e;font-size:11px;font-weight:700;}
+.ss-prof{background:#f0ebff;color:#7c3aed;font-size:10px;font-weight:700;padding:1px 6px;border-radius:50px;}
+.scard-bot{display:flex;align-items:center;justify-content:space-between;gap:5px;}
+.sinv{background:#fffbeb;border:1px solid #f5c842;color:#92610a;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;}
+.buybtn{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:6px 12px;border-radius:9px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;transition:.2s;white-space:nowrap;}
+.buybtn:hover:not(:disabled){transform:scale(1.06);}
+.buybtn:disabled{background:#ddd;color:#bbb;cursor:default;}
+.slockl{background:#f0f0f0;color:#bbb;font-size:10px;font-weight:700;padding:5px 9px;border-radius:9px;}
+
+/* upgrades */
+.ulist{display:flex;flex-direction:column;gap:9px;}
+.ucard{background:#fff;border-radius:14px;padding:12px 14px;border:2px solid #eee;display:flex;align-items:center;gap:12px;transition:.2s;}
+.ucard:not(.udone):hover{border-color:#f59e0b;box-shadow:0 4px 12px rgba(245,158,11,.12);}
+.ucard.udone{opacity:.55;}
+.ui{font-size:30px;flex-shrink:0;}
+.unm{font-weight:800;font-size:13px;color:#1a1a2e;margin-bottom:2px;}
+.uds{font-size:11px;color:#888;line-height:1.4;}
+.ubtn{flex-shrink:0;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;padding:8px 12px;border-radius:11px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:12px;transition:.2s;white-space:nowrap;}
+.ubtn:hover:not(:disabled){transform:scale(1.05);}
+.ubtn:disabled{background:#ccc;cursor:default;}
+.udonebdg{background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;padding:7px 12px;border-radius:11px;white-space:nowrap;}
+
+/* tools shop */
+.tlist{display:flex;flex-direction:column;gap:9px;}
+.tcard{background:#fff;border-radius:14px;padding:12px 14px;border:2px solid #eee;display:flex;align-items:center;gap:12px;transition:.2s;}
+.tcard:hover{border-color:#0ea5e9;box-shadow:0 4px 12px rgba(14,165,233,.1);}
+.tcard.towned{border-color:#22c55e;}
+.ti2{font-size:30px;flex-shrink:0;}
+.tnm{font-weight:800;font-size:13px;color:#1a1a2e;margin-bottom:2px;}
+.tds{font-size:11px;color:#888;line-height:1.4;}
+.tbuybtn{flex-shrink:0;background:linear-gradient(135deg,#0ea5e9,#0369a1);border:none;color:#fff;padding:8px 12px;border-radius:11px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:12px;transition:.2s;white-space:nowrap;}
+.tbuybtn:hover:not(:disabled){transform:scale(1.05);}
+.tbuybtn:disabled{background:#ccc;cursor:default;}
+.townbdg{background:#d1fae5;color:#065f46;font-size:11px;font-weight:800;padding:7px 12px;border-radius:11px;white-space:nowrap;}
+
+/* market */
+.mksum{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #bbf7d0;border-radius:14px;padding:12px 14px;margin-bottom:12px;text-align:center;}
+.mkttl{font-family:var(--fn);font-size:28px;font-weight:800;color:#065f46;}
+.mklbl{font-size:11px;color:#64748b;font-weight:700;}
+.mkallbtn{width:100%;background:linear-gradient(135deg,#059669,#065f46);border:none;color:#fff;padding:13px;border-radius:13px;font-family:var(--fn);font-weight:700;font-size:17px;cursor:pointer;transition:.2s;margin-top:3px;}
+.mkallbtn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(5,150,105,.3);}
+.mkallbtn:disabled{background:#ccc;cursor:default;transform:none;}
+.mkrows{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
+.mkrow{background:#fff;border-radius:13px;padding:10px 12px;border:2px solid #eee;display:flex;align-items:center;gap:10px;}
+.mkem{font-size:24px;flex-shrink:0;}
+.mknm{font-weight:800;font-size:13px;color:#1a1a2e;}
+.mkpr{font-size:12px;color:#22c55e;font-weight:700;}
+.mkstk{font-size:11px;color:#aaa;}
+.mkbtn1,.mkbtnA{border:none;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:var(--fb);font-weight:800;font-size:11px;transition:.2s;}
+.mkbtn1{background:#d1fae5;color:#065f46;}
+.mkbtn1:hover:not(:disabled){background:#a7f3d0;}
+.mkbtnA{background:linear-gradient(135deg,#059669,#10b981);color:#fff;margin-left:3px;}
+.mkbtnA:hover:not(:disabled){transform:scale(1.05);}
+.mkbtn1:disabled,.mkbtnA:disabled{background:#f0f0f0;color:#ccc;cursor:default;}
+
+/* animals modal */
+.amcards{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.amcard{background:#fff;border-radius:14px;padding:12px 10px;border:2px solid #eee;text-align:center;transition:.2s;}
+.amcard:not(.amlocked):hover{border-color:#d97706;transform:translateY(-2px);}
+.amcard.amlocked{opacity:.48;}
+.amem{font-size:32px;display:block;margin-bottom:5px;}
+.amnm{font-weight:800;font-size:13px;color:#1a1a2e;margin-bottom:3px;}
+.amds{font-size:10px;color:#888;margin-bottom:9px;line-height:1.4;}
+.ambtn{width:100%;background:linear-gradient(135deg,#d97706,#f59e0b);border:none;color:#fff;padding:8px;border-radius:11px;font-family:var(--fb);font-weight:800;font-size:12px;cursor:pointer;transition:.2s;}
+.ambtn:hover:not(:disabled){transform:scale(1.03);}
+.ambtn:disabled{background:#ddd;color:#aaa;cursor:default;}
+.amownbdg{background:#fef3c7;border:1px solid #f5c842;color:#92400e;font-size:10px;font-weight:800;padding:4px 10px;border-radius:50px;margin-bottom:6px;display:inline-block;}
+
+/* stats */
+.stgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px;}
+.stcard{background:#fff;border-radius:13px;padding:11px 8px;border:2px solid #eee;text-align:center;}
+.sti{font-size:20px;display:block;margin-bottom:3px;}
+.stv{font-family:var(--fn);font-size:19px;font-weight:700;color:#1a1a2e;}
+.stl{font-size:9px;color:#bbb;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.xpbar-wrap{background:#fff;border-radius:13px;padding:12px 14px;border:2px solid #eee;margin-bottom:11px;}
+.xpbar-lbl{font-weight:800;font-size:12px;color:#555;margin-bottom:7px;}
+.xpbar-bg{background:#e5e7eb;border-radius:50px;height:9px;overflow:hidden;}
+.xpbar-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:50px;transition:.4s;}
+.xpbar-sub{font-size:11px;color:#aaa;margin-top:4px;font-weight:700;}
+.achgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.achcard{background:#fff;border-radius:13px;padding:10px 7px;border:2px solid #eee;text-align:center;transition:.2s;}
+.achcard.aunlocked{border-color:#f5c842;background:linear-gradient(135deg,#fffbeb,#fef3c7);}
+.achcard.alocked{opacity:.35;}
+.ache{font-size:22px;display:block;margin-bottom:4px;}
+.achn{font-size:10px;font-weight:800;color:#1a1a2e;line-height:1.2;}
+.achd{font-size:9px;color:#aaa;margin-top:1px;}
+
+/* toast */
+.toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(0,15,5,.95);border:1px solid rgba(255,255,255,.14);color:#fff;padding:9px 20px;border-radius:50px;font-weight:800;font-size:13px;z-index:500;transition:.3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* tutorial */
+.tover{position:absolute;inset:0;background:rgba(0,0,0,.72);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.tover.show{display:flex;}
+.tbox{background:#fff;border-radius:22px;padding:28px 24px;max-width:310px;width:90%;text-align:center;animation:popin .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.35);}
+@keyframes popin{from{transform:scale(.6);opacity:0;}to{transform:scale(1);opacity:1;}}
+.tem{font-size:50px;display:block;margin-bottom:10px;}
+.ttl{font-family:var(--fn);font-size:24px;font-weight:700;margin-bottom:8px;color:#1a1a2e;}
+.ttxt{font-size:13px;color:#555;line-height:1.7;margin-bottom:18px;}
+.tdots{display:flex;justify-content:center;gap:5px;margin-bottom:16px;}
+.tdot{width:8px;height:8px;border-radius:50%;background:#e5e7eb;transition:.2s;}
+.tdot.active{background:#f59e0b;transform:scale(1.3);}
+.tbtn{background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;padding:13px 30px;border-radius:50px;font-family:var(--fn);font-size:19px;font-weight:700;cursor:pointer;transition:.2s;box-shadow:0 4px 0 rgba(20,100,45,.4);}
+.tbtn:hover{transform:translateY(-3px);box-shadow:0 7px 0 rgba(20,100,45,.4);}
+
+/* harvest pop */
+.hpop{position:absolute;pointer-events:none;font-size:19px;font-weight:900;color:#ffd700;text-shadow:0 2px 8px rgba(0,0,0,.5);z-index:80;animation:hanim 1s ease forwards;white-space:nowrap;}
+@keyframes hanim{0%{transform:translate(-50%,-50%) scale(.5);opacity:0;}25%{transform:translate(-50%,-70%) scale(1.3);opacity:1;}70%{transform:translate(-50%,-150%) scale(1);opacity:1;}100%{transform:translate(-50%,-210%) scale(.8);opacity:0;}}
+
+/* section label inside bottom slider */
+.slider-sep{flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.slider-sep-line{width:1px;height:40px;background:rgba(255,255,255,.12);}
+
+@media(max-width:380px){
+  .plot{width:65px;height:65px;}
+  .plot .pe{font-size:25px;}
+  .topbar{padding:5px 7px;gap:4px;}
+  .ibt{width:29px;height:29px;font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<div id="sky" class="sky-day"></div>
+<div id="sunmoon">☀️</div>
+<div class="stars" id="stars"></div>
+<div class="clouds" id="clouds"></div>
+
+<div id="app">
+
+  <!-- MENU -->
+  <div id="menu-screen">
+    <div class="menu-wrap">
+      <div class="gtitle">🌾 Mini Fazenda</div>
+      <div class="gsub">Edição Deluxe</div>
+      <div class="msave">
+        <div class="msave-item">🪙 <b id="mc">0</b></div>
+        <div class="msave-item">📅 Dia <b id="md">1</b></div>
+        <div class="msave-item">⭐ Nv.<b id="mlv">1</b></div>
+      </div>
+      <button class="mbtn mbtn-play" onclick="startGame()">🎮 Jogar</button>
+      <button class="mbtn mbtn-play" onclick="Voltar()">Voltar</button>
+      <button class="mbtn mbtn-sec" onclick="doTutorial()">📖 Como Jogar</button>
+      <button class="mbtn mbtn-sec" onclick="resetGame()">🗑️ Novo Jogo</button>
+      <div class="mdeco">🌱 🥕 🌽 🍅 🍓</div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game-screen">
+    <div class="topbar">
+      <button class="backbtn" onclick="goMenu()">◀ Menu</button>
+      <div class="pill">🪙 <span class="pv" id="g-coins">0</span></div>
+      <div class="pill xp-pill">⭐ <span class="pv" id="g-lv">Lv.1</span></div>
+      <div class="wx-badge" id="wx">☀️ Sol</div>
+      <div class="spacer"></div>
+      <div style="color:rgba(255,255,255,.35);font-size:10px;font-weight:700;white-space:nowrap;" id="g-day">Dia 1</div>
+      <div style="display:flex;gap:4px;">
+        <button class="ibt s1" onclick="openShop()" title="Loja">🏪</button>
+        <button class="ibt s2" onclick="openMarket()" title="Mercado">💰</button>
+        <button class="ibt s3" onclick="openAnimals()" title="Animais">🐾</button>
+        <button class="ibt s4" onclick="openStats()" title="Stats">📊</button>
+      </div>
+    </div>
+
+    <div class="farm-area">
+      <div class="farm-grid" id="farm-grid"></div>
+      <div class="animal-zone" id="animal-zone" style="display:none;">
+        <div class="az-title">🐾 Animais da Fazenda</div>
+        <div class="az-row" id="az-row"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PANEL -->
+    <div class="bottom-panel">
+      <div class="bp-tabs">
+        <button class="bp-tab active" onclick="switchBPTab('seeds',this)">🌱 Sementes</button>
+        <button class="bp-tab" onclick="switchBPTab('tools',this)">🛠️ Ferramentas</button>
+      </div>
+      <div class="bp-slider active" id="bp-seeds"></div>
+      <div class="bp-slider" id="bp-tools"></div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="overlay" id="ov-shop" onclick="closeOverlay(event,'ov-shop')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="mhead h-shop">
+        <span class="mtitle">🏪 Loja da Fazenda</span>
+        <button class="mclose" onclick="closeModal('ov-shop')">✕</button>
+      </div>
+      <div class="mbody">
+        <div class="stabs">
+          <button class="stab active" onclick="switchShopTab(this,'sh-seeds')">🌱 Sementes</button>
+          <button class="stab" onclick="switchShopTab(this,'sh-upg')">⚡ Melhorias</button>
+          <button class="stab" onclick="switchShopTab(this,'sh-tools')">🛠️ Ferramentas</button>
+        </div>
+        <div id="sh-seeds"></div>
+        <div id="sh-upg" style="display:none;"></div>
+        <div id="sh-tools" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-mkt" onclick="closeOverlay(event,'ov-mkt')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="mhead h-mkt">
+        <span class="mtitle">💰 Mercado</span>
+        <button class="mclose" onclick="closeModal('ov-mkt')">✕</button>
+      </div>
+      <div class="mbody" id="mkt-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-anim" onclick="closeOverlay(event,'ov-anim')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="mhead h-anim">
+        <span class="mtitle">🐾 Animais</span>
+        <button class="mclose" onclick="closeModal('ov-anim')">✕</button>
+      </div>
+      <div class="mbody" id="anim-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-stats" onclick="closeOverlay(event,'ov-stats')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="mhead h-stats">
+        <span class="mtitle">📊 Estatísticas</span>
+        <button class="mclose" onclick="closeModal('ov-stats')">✕</button>
+      </div>
+      <div class="mbody" id="stats-body"></div>
+    </div>
+  </div>
+
+  <div class="tover" id="tover">
+    <div class="tbox">
+      <span class="tem" id="t-em"></span>
+      <div class="ttl" id="t-ttl"></div>
+      <p class="ttxt" id="t-txt"></p>
+      <div class="tdots" id="t-dots"></div>
+      <button class="tbtn" id="t-btn" onclick="nextTut()">Próximo →</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA TABLES
+// ═══════════════════════════════════════════
+
+const CROPS = {
+  wheat:      {emoji:'🌾',name:'Trigo',    grow:8000,  buy:5,   sell:14,  xp:2,  cat:'grain'},
+  corn:       {emoji:'🌽',name:'Milho',    grow:13000, buy:18,  sell:44,  xp:5,  cat:'grain'},
+  rice:       {emoji:'🍚',name:'Arroz',    grow:11000, buy:14,  sell:35,  xp:4,  cat:'grain', unlock:120},
+  oat:        {emoji:'🌰',name:'Aveia',    grow:9000,  buy:10,  sell:24,  xp:3,  cat:'grain', unlock:80},
+
+  carrot:     {emoji:'🥕',name:'Cenoura',  grow:10000, buy:12,  sell:28,  xp:4,  cat:'veggie'},
+  potato:     {emoji:'🥔',name:'Batata',   grow:12000, buy:18,  sell:40,  xp:5,  cat:'veggie', unlock:180},
+  pumpkin:    {emoji:'🎃',name:'Abóbora',  grow:18000, buy:35,  sell:82,  xp:8,  cat:'veggie', unlock:600},
+  spinach:    {emoji:'🥬',name:'Espinafre',grow:8500,  buy:10,  sell:22,  xp:3,  cat:'veggie', unlock:60},
+  pepper:     {emoji:'🫑',name:'Pimentão', grow:15000, buy:28,  sell:65,  xp:7,  cat:'veggie', unlock:400},
+
+  tomato:     {emoji:'🍅',name:'Tomate',   grow:14000, buy:36,  sell:84,  xp:8,  cat:'fruit',  unlock:350},
+  strawberry: {emoji:'🍓',name:'Morango',  grow:19000, buy:55,  sell:130, xp:12, cat:'fruit',  unlock:900},
+  watermelon: {emoji:'🍉',name:'Melancia', grow:24000, buy:80,  sell:190, xp:16, cat:'fruit',  unlock:1800},
+  cherry:     {emoji:'🍒',name:'Cereja',   grow:20000, buy:65,  sell:155, xp:14, cat:'fruit',  unlock:1200},
+  blueberry:  {emoji:'🫐',name:'Mirtilo',  grow:22000, buy:75,  sell:175, xp:15, cat:'fruit',  unlock:2000},
+
+  mushroom:   {emoji:'🍄',name:'Cogumelo', grow:17000, buy:50,  sell:118, xp:10, cat:'special',unlock:700},
+  chili:      {emoji:'🌶️',name:'Pimenta',  grow:22000, buy:90,  sell:215, xp:18, cat:'special',unlock:1400},
+  truffle:    {emoji:'🧅',name:'Trufa',    grow:30000, buy:200, sell:480, xp:30, cat:'special',unlock:3500},
+  ginseng:    {emoji:'🌿',name:'Erva Medicinal',  grow:35000, buy:350, sell:820, xp:40, cat:'special',unlock:6000},
+};
+
+const CAT_LABELS = {grain:'🌾 Grãos',veggie:'🥕 Vegetais',fruit:'🍑 Frutas',special:'✨ Especiais'};
+
+// FERRAMENTAS (compráveis individualmente, uso no slot)
+const TOOLS_DATA = [
+  {id:'water',    emoji:'💧', name:'Regador',        desc:'Rega o lote selecionado → crescimento 2× mais rápido. Custo: 5🪙/uso.',          cost:80,  useCost:5,   effect:'water'},
+  {id:'fert',     emoji:'🧪', name:'Fertilizante',   desc:'Fertiliza o lote → +3 itens na colheita. Custo: 10🪙/uso.',                     cost:120, useCost:10,  effect:'fert'},
+  {id:'mulch',    emoji:'🪵', name:'Cobertura Morta', desc:'Aplica cobertura → lote fica fértil por 3 colheitas, sem precisar fertilizar.', cost:200, useCost:18,  effect:'mulch'},
+  {id:'pesticide',emoji:'🧴', name:'Pesticida',      desc:'Protege uma planta por 1 ciclo: colheita rende +2 itens bônus.',                cost:180, useCost:14,  effect:'pest'},
+  {id:'magic',    emoji:'🪄', name:'Poção Mágica',   desc:'Faz qualquer planta crescer instantaneamente. Custo: 50🪙/uso.',                cost:500, useCost:50,  effect:'magic'},
+  {id:'harvest',  emoji:'🌀', name:'Colheita em Massa','desc':'Colhe TODOS os lotes prontos de uma vez!',                                  cost:800, useCost:30,  effect:'massHarvest'},
+  {id:'plow',     emoji:'⛏️', name:'Arado Dourado',  desc:'Limpa lotes vazios e os prepara → próxima semente rende +1 item.',              cost:300, useCost:12,  effect:'plow'},
+  {id:'sprinkler', emoji:'🚿', name:'Aspersor',        desc:'Rega automaticamente os 4 lotes ao redor.',                                  cost:450,  useCost:20,  effect:'sprinkler'},
+  {id:'seedboost', emoji:'🌾', name:'Sementes Turbo',  desc:'A próxima plantação cresce instantaneamente.',                               cost:350,  useCost:15,  effect:'seedboost'},
+  {id:'music',     emoji:'🎵', name:'Música Rural',    desc:'Animais produzem 2× mais rápido por 2 minutos.',                            cost:900,  useCost:35,  effect:'music'},
+  {id:'milk',      emoji:'🥛', name:'Vitamina Animal', desc:'Aumenta rendimento de produtos animais.',                                    cost:700,  useCost:25,  effect:'milk'},
+  {id:'bees',      emoji:'🐝', name:'Colmeia',         desc:'Acelera crescimento das flores e frutas próximas.',                         cost:1200, useCost:45,  effect:'bees'},
+  {id:'freeze',    emoji:'🧊', name:'Congelador',      desc:'Pausa o tempo de crescimento dos lotes por 30 segundos.',                   cost:1000, useCost:30,  effect:'freeze'},
+  {id:'fire',      emoji:'🔥', name:'Tocha Agrícola',  desc:'Aumenta crescimento durante a noite.',                                       cost:650,  useCost:18,  effect:'fire'},
+  {id:'moon',      emoji:'🌙', name:'Luz Lunar',       desc:'Plantas raras têm maior chance de aparecer.',                               cost:1800, useCost:60,  effect:'moon'},
+  {id:'wind',      emoji:'🌪️', name:'Vento Forte',     desc:'Espalha fertilizante para lotes próximos.',                                 cost:1400, useCost:50,  effect:'wind'},
+  {id:'scanner',   emoji:'📡', name:'Scanner Rural',   desc:'Mostra quais lotes terão colheita rara.',                                   cost:2200, useCost:75,  effect:'scanner'},
+  {id:'miner',     emoji:'⛏️', name:'Broca de Solo',   desc:'Chance de encontrar gemas ao arar a terra.',                                cost:2600, useCost:90,  effect:'miner'},
+  {id:'totem',     emoji:'🗿', name:'Totem da Natureza',desc:'Todas plantações recebem pequeno bônus.',                                   cost:3200, useCost:100, effect:'totem'},
+  {id:'butterfly', emoji:'🦋', name:'Jardim de Borboletas',desc:'Flores rendem mais moedas.',                                             cost:1500, useCost:55,  effect:'butterfly'},
+  {id:'chef',      emoji:'👨‍🍳', name:'Chef Rural',    desc:'Produtos culinários vendem por mais moedas.',                              cost:2800, useCost:85,  effect:'chef'},
+  {id:'vault',     emoji:'🏦', name:'Cofre Agrícola',  desc:'Protege 25% das moedas ao perder dinheiro.',                                cost:4000, useCost:120, effect:'vault'},
+  {id:'radio',     emoji:'📻', name:'Rádio da Fazenda',desc:'Todos trabalhadores ficam mais rápidos.',                                   cost:2100, useCost:70,  effect:'radio'},
+  {id:'meteor',    emoji:'☄️', name:'Meteoro Verde',   desc:'Chance de criar plantações mutantes.',                                      cost:7000, useCost:220, effect:'meteor'},
+  {id:'portal',    emoji:'🌀', name:'Portal Natural',  desc:'Invoca recursos raros aleatórios.',                                         cost:8500, useCost:260, effect:'portal'},
+  {id:'phoenix',   emoji:'🐦‍🔥', name:'Cinzas da Fênix',desc:'Revive automaticamente plantações perdidas.',                              cost:5000, useCost:150, effect:'phoenix'},
+  {id:'crown',     emoji:'👑', name:'Coroa Rural',     desc:'Todas colheitas rendem moedas bônus.',                                      cost:12000,useCost:400, effect:'crown'},
+];
+
+// MELHORIAS
+const UPGRADES = [
+  // Velocidade
+  {id:'spd1', icon:'⚡',  name:'Irrigação Básica',      desc:'Culturas crescem 20% mais rápido.',           cost:200,  cat:'speed', effect:s=>{s.speedMult=0.8;}},
+  {id:'spd2', icon:'⚡⚡', name:'Irrigação Avançada',    desc:'Culturas crescem 40% mais rápido.',           cost:700,  cat:'speed', effect:s=>{s.speedMult=0.6;}, req:'spd1'},
+  {id:'spd3', icon:'🌀',  name:'Hidroponia',             desc:'Culturas crescem 60% mais rápido.',           cost:2000, cat:'speed', effect:s=>{s.speedMult=0.4;}, req:'spd2'},
+  {id:'spd4', icon:'🚀',  name:'Fertilizante Turbo',    desc:'Culturas crescem 75% mais rápido.',           cost:5000, cat:'speed', effect:s=>{s.speedMult=0.25;}, req:'spd3'},
+  {id:'spd5', icon:'☢️',  name:'Mutação Genética',      desc:'Culturas crescem instantaneamente às vezes.', cost:12000,cat:'speed', effect:s=>{s.instantGrowChance=0.2;}, req:'spd4'},
+
+  // Rendimento
+  {id:'yld1', icon:'🌱',  name:'Adubo Natural',          desc:'+1 item por colheita.',                       cost:300,  cat:'yield', effect:s=>{s.yieldBonus+=1;}},
+  {id:'yld2', icon:'🌿',  name:'Super Adubo',            desc:'+2 itens por colheita.',                      cost:900,  cat:'yield', effect:s=>{s.yieldBonus+=2;}, req:'yld1'},
+  {id:'yld3', icon:'💎',  name:'Solo Diamante',          desc:'+3 itens por colheita.',                      cost:2500, cat:'yield', effect:s=>{s.yieldBonus+=3;}, req:'yld2'},
+  {id:'yld4', icon:'🪙',  name:'Solo Rico',              desc:'+5 itens por colheita.',                      cost:7000, cat:'yield', effect:s=>{s.yieldBonus+=5;}, req:'yld3'},
+  {id:'yld5', icon:'🌈',  name:'Colheita Mágica',        desc:'Chance de colher o dobro.',                   cost:15000,cat:'yield', effect:s=>{s.doubleHarvest=0.25;}, req:'yld4'},
+  // Expansão
+  {id:'plt1', icon:'🟫',  name:'Expansão P',             desc:'Adiciona 6 novos lotes.',                     cost:400,  cat:'expand', effect:s=>expandPlots(6)},
+  {id:'plt2', icon:'🏡',  name:'Expansão M',             desc:'Adiciona 12 novos lotes.',                    cost:1400, cat:'expand', effect:s=>expandPlots(12), req:'plt1'},
+  {id:'plt3', icon:'🏰',  name:'Fazenda Gigante',        desc:'Adiciona 20 novos lotes.',                    cost:4000, cat:'expand', effect:s=>expandPlots(20), req:'plt2'},
+  {id:'plt4', icon:'🌍',  name:'Mega Fazenda',           desc:'Adiciona 30 novos lotes.',                    cost:9000, cat:'expand', effect:s=>expandPlots(30), req:'plt3'},
+  {id:'plt5', icon:'🛰️', name:'Império Agrícola',        desc:'Adiciona 50 novos lotes.',                    cost:20000,cat:'expand', effect:s=>expandPlots(50), req:'plt4'},
+
+  // Barn / animais
+  {id:'barn', icon:'🏚️',  name:'Celeiro',               desc:'Desbloqueia espaço para animais.',            cost:600,  cat:'animal', effect:s=>{s.hasBarn=true;}},
+  {id:'barn2',icon:'🏠',  name:'Celeiro Grande',         desc:'Até 8 animais ao mesmo tempo.',               cost:2000, cat:'animal', effect:s=>{s.barnCap=8;}, req:'barn'},
+  {id:'barn3',icon:'🏟️', name:'Fazenda Animal',         desc:'Até 16 animais e produção 20% mais rápida.', cost:5000, cat:'animal', effect:s=>{s.barnCap=16;s.animalSpeedBonus=0.8;}, req:'barn2'},
+  {id:'barn4',icon:'🐄', name:'Rancho Premium',          desc:'Animais produzem o dobro.',                   cost:9000, cat:'animal', effect:s=>{s.animalYield=2;}, req:'barn3'},
+  {id:'barn5',icon:'🦄', name:'Animais Lendários',       desc:'Chance de produção rara.',                    cost:18000,cat:'animal', effect:s=>{s.legendaryAnimalChance=0.15;}, req:'barn4'},
+  // Mercado
+  {id:'mkt1', icon:'🛒',  name:'Mercado Premium',        desc:'Venda 15% mais caro.',                        cost:1800, cat:'market', effect:s=>{s.marketBonus=1.15;}},
+  {id:'mkt2', icon:'🏦',  name:'Exportação',             desc:'Venda 30% mais caro.',                        cost:5000, cat:'market', effect:s=>{s.marketBonus=1.3;}, req:'mkt1'},
+  {id:'mkt3', icon:'💹',  name:'Bolsa Rural',            desc:'Venda 50% mais caro.',                        cost:12000,cat:'market', effect:s=>{s.marketBonus=1.5;}, req:'mkt2'},
+  {id:'mkt4', icon:'👑',  name:'Marca Internacional',    desc:'Produtos lendários valem muito mais.',        cost:25000,cat:'market', effect:s=>{s.legendaryPrice=3;}, req:'mkt3'},
+  // Clima
+  {id:'rain', icon:'🌧️', name:'Drenagem',               desc:'Chuva não penaliza mais crescimento.',        cost:500,  cat:'weather', effect:s=>{s.rainProof=true;}},
+  {id:'grnhs',icon:'🌡️', name:'Estufa',                 desc:'Estação não afeta crescimento.',              cost:3000, cat:'weather', effect:s=>{s.greenhouse=true;}, req:'rain'},
+  {id:'sun1', icon:'☀️', name:'Painéis Solares',         desc:'Gera dinheiro automaticamente.',              cost:7000, cat:'weather', effect:s=>{s.passiveIncome=5;}, req:'grnhs'},
+  {id:'storm',icon:'⛈️', name:'Para-raios',             desc:'Tempestades não destroem plantações.',        cost:4000, cat:'weather', effect:s=>{s.stormProof=true;}, req:'rain'},
+
+  // XP
+  {id:'xpb1', icon:'📚',  name:'Escola Agrícola',        desc:'Ganhe 2× mais XP em tudo.',                   cost:1200, cat:'xp', effect:s=>{s.xpMult=2;}},
+  {id:'xpb2', icon:'🎓',  name:'Mestrado Rural',         desc:'Ganhe 3× mais XP.',                           cost:4000, cat:'xp', effect:s=>{s.xpMult=3;}, req:'xpb1'},
+  {id:'xpb3', icon:'🧠',  name:'IA Agrícola',            desc:'Ganhe 5× mais XP.',                           cost:10000,cat:'xp', effect:s=>{s.xpMult=5;}, req:'xpb2'},
+  // Automação
+  {id:'auto1', icon:'🤖',  name:'Robô Fazendeiro',       desc:'Colhe plantações automaticamente.',              cost:6000,  cat:'auto', effect:s=>{s.autoHarvest=true;}},
+  {id:'auto2', icon:'🚜',  name:'Trator Inteligente',    desc:'Planta sementes automaticamente.',               cost:12000, cat:'auto', effect:s=>{s.autoPlant=true;}, req:'auto1'},
+  {id:'auto3', icon:'🛰️', name:'Drone Agrícola',         desc:'Rega automaticamente todas plantações.',         cost:20000, cat:'auto', effect:s=>{s.autoWater=true;}, req:'auto2'},
+  {id:'auto4', icon:'🏭',  name:'Fábrica Rural',         desc:'Processa produtos automaticamente.',              cost:35000, cat:'auto', effect:s=>{s.autoProcess=true;}, req:'auto3'},
+
+  // Energia
+  {id:'eng1', icon:'🔋',  name:'Gerador Rural',          desc:'Ferramentas gastam 30% menos energia.',          cost:4500,  cat:'energy', effect:s=>{s.energyCost=0.7;}},
+  {id:'eng2', icon:'⚛️', name:'Reator Verde',            desc:'Ferramentas gastam 60% menos energia.',          cost:14000, cat:'energy', effect:s=>{s.energyCost=0.4;}, req:'eng1'},
+  {id:'eng3', icon:'☢️', name:'Núcleo Infinito',         desc:'Energia ilimitada.',                             cost:40000, cat:'energy', effect:s=>{s.unlimitedEnergy=true;}, req:'eng2'},
+
+  // Sorte
+  {id:'luck1', icon:'🍀', name:'Trevo da Sorte',         desc:'Chance de itens raros.',                         cost:2500,  cat:'luck', effect:s=>{s.rareChance=0.1;}},
+  {id:'luck2', icon:'🌟', name:'Benção Lunar',           desc:'Chance maior de itens lendários.',               cost:9000,  cat:'luck', effect:s=>{s.legendaryChance=0.05;}, req:'luck1'},
+  {id:'luck3', icon:'🎰', name:'Fortuna Suprema',        desc:'Dobro de chance de eventos raros.',              cost:22000, cat:'luck', effect:s=>{s.rareChance=0.2;s.legendaryChance=0.1;}, req:'luck2'},
+  {id:'luck4', icon:'👑', name:'Destino Dourado',        desc:'Chance pequena de ganhar moedas extras.',        cost:50000, cat:'luck', effect:s=>{s.coinLuck=0.15;}, req:'luck3'},
+
+  // Pesca
+  {id:'fish1', icon:'🎣', name:'Lago Artificial',        desc:'Desbloqueia sistema de pesca.',                  cost:3000,  cat:'fish', effect:s=>{s.hasFishing=true;}},
+  {id:'fish2', icon:'🐟', name:'Pesca Avançada',         desc:'Peixes aparecem 2× mais rápido.',               cost:9000,  cat:'fish', effect:s=>{s.fishSpeed=0.5;}, req:'fish1'},
+  {id:'fish3', icon:'🦈', name:'Aquário Gigante',        desc:'Chance de peixes lendários.',                    cost:25000, cat:'fish', effect:s=>{s.legendaryFish=0.08;}, req:'fish2'},
+
+  // Construções
+  {id:'build1', icon:'🏠', name:'Casa Rural',            desc:'Aumenta limite máximo de energia.',              cost:2500,  cat:'build', effect:s=>{s.maxEnergy+=50;}},
+  {id:'build2', icon:'🏡', name:'Mansão da Fazenda',     desc:'Aumenta limite máximo de energia em +100.',     cost:12000, cat:'build', effect:s=>{s.maxEnergy+=100;}, req:'build1'},
+  {id:'build3', icon:'🏰', name:'Castelo Rural',         desc:'Desbloqueia bônus globais.',                     cost:50000, cat:'build', effect:s=>{s.globalBoost=true;}, req:'build2'},
+
+  // Produção
+  {id:'prod1', icon:'🏭', name:'Máquinas Agrícolas',     desc:'Produção animal 20% mais rápida.',               cost:5000,  cat:'prod', effect:s=>{s.animalSpeedBonus=0.8;}},
+  {id:'prod2', icon:'⚙️', name:'Linha Industrial',       desc:'Produtos valem 25% mais.',                       cost:15000, cat:'prod', effect:s=>{s.marketBonus*=1.25;}, req:'prod1'},
+  {id:'prod3', icon:'💠', name:'Nano Produção',          desc:'Todos produtos rendem +1 item.',                 cost:35000, cat:'prod', effect:s=>{s.globalYield+=1;}, req:'prod2'},
+
+  // Magia
+  {id:'magic1', icon:'🪄', name:'Runas da Natureza',     desc:'Chance de crescimento instantâneo.',             cost:6000,  cat:'magic', effect:s=>{s.magicGrowChance=0.1;}},
+  {id:'magic2', icon:'🔮', name:'Cristal Arcano',        desc:'Plantas mágicas rendem mais.',                   cost:18000, cat:'magic', effect:s=>{s.magicYield=2;}, req:'magic1'},
+  {id:'magic3', icon:'🐉', name:'Benção do Dragão',      desc:'Todas plantações ficam extremamente rápidas.',   cost:60000, cat:'magic', effect:s=>{s.speedMult*=0.5;}, req:'magic2'},
+
+  // Clima extremo
+  {id:'weather1', icon:'🌪️', name:'Controle Climático', desc:'Eventos climáticos positivos mais frequentes.',  cost:8000,  cat:'weather2', effect:s=>{s.goodWeather=0.2;}},
+  {id:'weather2', icon:'🌈', name:'Arco-Íris Eterno',    desc:'Chance de colheita arco-íris.',                  cost:24000, cat:'weather2', effect:s=>{s.rainbowHarvest=0.08;}, req:'weather1'},
+  {id:'weather3', icon:'☄️', name:'Meteorologia Suprema',desc:'Desastres naturais nunca acontecem.',            cost:55000, cat:'weather2', effect:s=>{s.noDisasters=true;}, req:'weather2'},
+];
+
+// ANIMAIS
+const ANIMALS_DATA = [
+  {id:'chicken', emoji:'🐔', name:'Galinha',     desc:'Produz 🥚 Ovos a cada 90s. Vende por 18🪙.',        cost:280,  prod:'🥚', pname:'Ovo',      psell:18,  cd:90000,  req:'barn'},
+  {id:'rabbit',  emoji:'🐰', name:'Coelho',      desc:'Produz 🫙 Mel a cada 2min. Vende por 30🪙.',        cost:450,  prod:'🫙', pname:'Mel',      psell:30,  cd:120000, req:'barn'},
+  {id:'goat',    emoji:'🐐', name:'Cabra',       desc:'Produz 🧃 Suco a cada 3min. Vende por 42🪙.',       cost:650,  prod:'🧃', pname:'Suco',     psell:42,  cd:180000, req:'barn'},
+  {id:'cow',     emoji:'🐄', name:'Vaca',        desc:'Produz 🥛 Leite a cada 4min. Vende por 58🪙.',      cost:900,  prod:'🥛', pname:'Leite',    psell:58,  cd:240000, req:'barn'},
+  {id:'sheep',   emoji:'🐑', name:'Ovelha',      desc:'Produz 🧶 Lã a cada 5min. Vende por 72🪙.',         cost:1200, prod:'🧶', pname:'Lã',       psell:72,  cd:300000, req:'barn'},
+  {id:'pig',     emoji:'🐷', name:'Porco',       desc:'Produz 🥓 Presunto a cada 7min. Vende por 105🪙.',  cost:2000, prod:'🥓', pname:'Presunto', psell:105, cd:420000, req:'barn'},
+  {id:'duck',    emoji:'🦆', name:'Pato',        desc:'Produz 🪶 Penas a cada 6min. Vende por 88🪙.',      cost:1600, prod:'🪶', pname:'Penas',    psell:88,  cd:360000, req:'barn'},
+  {id:'horse',   emoji:'🐎', name:'Cavalo',      desc:'Produz 🎠 Couro a cada 10min. Vende por 160🪙.',    cost:3500, prod:'🎠', pname:'Couro',    psell:160, cd:600000, req:'barn2'},
+  {id:'llama',   emoji:'🦙', name:'Lhama',       desc:'Produz 🎀 Fibra a cada 12min. Vende por 200🪙.',    cost:4500, prod:'🎀', pname:'Fibra',    psell:200, cd:720000, req:'barn2'},
+  {id:'peacock', emoji:'🦚', name:'Pavão',       desc:'Produz 💎 Cristal a cada 15min. Vende por 280🪙.',  cost:7000, prod:'💎', pname:'Cristal',  psell:280, cd:900000, req:'barn3'},
+  {id:'bee',     emoji:'🐝', name:'Abelha',      desc:'Produz 🍯 Mel Puro a cada 8min. Vende por 130🪙.',  cost:2800, prod:'🍯', pname:'Mel Puro', psell:130, cd:480000, req:'barn'},
+  {id:'deer',    emoji:'🦌', name:'Cervo',       desc:'Produz 🌿 Erva Rara a cada 20min. Vende por 380🪙.',cost:9000, prod:'🌿', pname:'Erva Rara',psell:380, cd:1200000,req:'barn3'},
+  {id:'turkey',   emoji:'🦃', name:'Peru',         desc:'Produz 🍗 Carne a cada 9min. Vende por 145🪙.',        cost:3200,  prod:'🍗', pname:'Carne',       psell:145, cd:540000,  req:'barn2'},
+  {id:'cat',      emoji:'🐈', name:'Gato',         desc:'Produz 🐾 Sorte a cada 11min. Vende por 180🪙.',       cost:4200,  prod:'🐾', pname:'Sorte',       psell:180, cd:660000,  req:'barn2'},
+  {id:'dog',      emoji:'🐕', name:'Cachorro',     desc:'Produz 🦴 Ossos a cada 10min. Vende por 165🪙.',       cost:3900,  prod:'🦴', pname:'Osso',        psell:165, cd:600000,  req:'barn2'},
+  {id:'alpaca',   emoji:'🦙', name:'Alpaca',       desc:'Produz 🧵 Tecido Fino a cada 14min. Vende por 240🪙.', cost:5200,  prod:'🧵', pname:'Tecido',      psell:240, cd:840000,  req:'barn2'},
+  {id:'buffalo',  emoji:'🐃', name:'Búfalo',       desc:'Produz 🥛 Leite Forte a cada 16min. Vende por 290🪙.', cost:7600,  prod:'🥛', pname:'Leite Forte', psell:290, cd:960000,  req:'barn3'},
+  {id:'yak',      emoji:'🐂', name:'Yak',          desc:'Produz 🧈 Manteiga a cada 18min. Vende por 340🪙.',    cost:8800,  prod:'🧈', pname:'Manteiga',    psell:340, cd:1080000, req:'barn3'},
+  {id:'owl',      emoji:'🦉', name:'Coruja',       desc:'Produz 📜 Pergaminho a cada 13min. Vende por 220🪙.', cost:5600,  prod:'📜', pname:'Pergaminho', psell:220, cd:780000,  req:'barn2'},
+  {id:'fox',      emoji:'🦊', name:'Raposa',       desc:'Produz 🪶 Pena Rara a cada 17min. Vende por 310🪙.',  cost:8200,  prod:'🪶', pname:'Pena Rara',  psell:310, cd:1020000, req:'barn3'},
+  {id:'frog',     emoji:'🐸', name:'Sapo',         desc:'Produz 💧 Gota Mística a cada 7min. Vende por 120🪙.',cost:2400,  prod:'💧', pname:'Gota',       psell:120, cd:420000,  req:'barn'},
+  {id:'parrot',   emoji:'🦜', name:'Papagaio',     desc:'Produz 🪙 Moeda Antiga a cada 19min. Vende por 360🪙.',cost:9500, prod:'🪙', pname:'Moeda Antiga',psell:360, cd:1140000, req:'barn3'},
+  {id:'penguin',  emoji:'🐧', name:'Pinguim',      desc:'Produz ❄️ Gelo Puro a cada 15min. Vende por 275🪙.',  cost:6800,  prod:'❄️', pname:'Gelo Puro',  psell:275, cd:900000,  req:'barn3'},
+  {id:'bat',      emoji:'🦇', name:'Morcego',      desc:'Produz 🌑 Essência Sombria a cada 22min. Vende por 420🪙.',cost:12000,prod:'🌑', pname:'Essência',psell:420, cd:1320000, req:'barn3'},
+  {id:'dragon',   emoji:'🐉', name:'Dragão',       desc:'Produz 🔥 Escama Flamejante a cada 30min. Vende por 900🪙.',cost:30000,prod:'🔥', pname:'Escama',psell:900, cd:1800000, req:'barn3'},
+  {id:'unicorn',  emoji:'🦄', name:'Unicórnio',    desc:'Produz ✨ Poeira Mágica a cada 35min. Vende por 1200🪙.',cost:50000,prod:'✨', pname:'Poeira',psell:1200,cd:2100000, req:'barn3'},
+  {id:'phoenix',  emoji:'🐦‍🔥',name:'Fênix',       desc:'Produz 🔥 Cinzas Eternas a cada 40min. Vende por 1500🪙.',cost:70000,prod:'🔥', pname:'Cinzas',psell:1500,cd:2400000, req:'barn3'},
+  {id:'shark',    emoji:'🦈', name:'Tubarão',      desc:'Produz 🦷 Dente Raro a cada 28min. Vende por 760🪙.', cost:24000, prod:'🦷', pname:'Dente',      psell:760, cd:1680000, req:'barn3'},
+  {id:'octopus',  emoji:'🐙', name:'Polvo',        desc:'Produz 🫧 Pérola a cada 25min. Vende por 620🪙.',     cost:18000, prod:'🫧', pname:'Pérola',     psell:620, cd:1500000, req:'barn3'},
+  {id:'tiger',    emoji:'🐅', name:'Tigre',        desc:'Produz 🐾 Garra a cada 32min. Vende por 980🪙.',      cost:35000, prod:'🐾', pname:'Garra',      psell:980, cd:1920000, req:'barn3'},
+  {id:'panda',    emoji:'🐼', name:'Panda',        desc:'Produz 🎋 Bambu Raro a cada 21min. Vende por 470🪙.', cost:13000, prod:'🎋', pname:'Bambu',      psell:470, cd:1260000, req:'barn3'},
+  {id:'lion',     emoji:'🦁', name:'Leão',         desc:'Produz 👑 Juba Real a cada 38min. Vende por 1350🪙.',cost:60000, prod:'👑', pname:'Juba',       psell:1350,cd:2280000, req:'barn3'},
+];
+
+const ACHIEVEMENTS = [
+  {id:'first',     emoji:'🌱', name:'Primeiros Passos',   desc:'1ª colheita',           chk:s=>s.totalHarvests>=1},
+  {id:'c100',      emoji:'💰', name:'Primeiros 100',      desc:'100 moedas',            chk:s=>s.coins>=100},
+  {id:'c1k',       emoji:'🤑', name:'Milhar',             desc:'1.000 moedas',          chk:s=>s.coins>=1000},
+  {id:'c10k',      emoji:'👑', name:'Magnata',            desc:'10.000 moedas',         chk:s=>s.coins>=10000},
+  {id:'c50k',      emoji:'💎', name:'Bilionário',         desc:'50.000 moedas',         chk:s=>s.coins>=50000},
+  {id:'h50',       emoji:'🌾', name:'Agricultor',         desc:'50 colheitas',          chk:s=>s.totalHarvests>=50},
+  {id:'h200',      emoji:'🏆', name:'Mestre Colhedor',   desc:'200 colheitas',         chk:s=>s.totalHarvests>=200},
+  {id:'h1000',     emoji:'🌟', name:'Lenda da Lavoura',  desc:'1.000 colheitas',       chk:s=>s.totalHarvests>=1000},
+  {id:'anim3',     emoji:'🐾', name:'Fazendeiro Animal', desc:'3 animais',             chk:s=>(s.animals||[]).length>=3},
+  {id:'anim6',     emoji:'🐅', name:'Zoo Particular',    desc:'6 animais',             chk:s=>(s.animals||[]).length>=6},
+  {id:'lv10',      emoji:'⭐', name:'Nível 10',           desc:'Alcance o nível 10',    chk:s=>getLevel()>=10},
+  {id:'lv25',      emoji:'🌠', name:'Nível 25',           desc:'Alcance o nível 25',    chk:s=>getLevel()>=25},
+  {id:'allseeds',  emoji:'🌈', name:'Colecionador',       desc:'Desbloqueie tudo',      chk:s=>Object.keys(CROPS).every(id=>isUnlocked(id))},
+  {id:'norain',    emoji:'🌧️',  name:'Resistente',        desc:'Sobreviva a 5 chuvas',  chk:s=>(s.rainCount||0)>=5},
+  {id:'bigfarm',   emoji:'🏰', name:'Grande Fazenda',    desc:'48+ lotes',             chk:s=>s.plots.length>=48},
+];
+
+const WEATHERS = [
+  {id:'sunny',  emoji:'☀️',  name:'Sol',       mod:1.0},
+  {id:'cloudy', emoji:'⛅', name:'Nublado',   mod:0.9},
+  {id:'rainy',  emoji:'🌧️', name:'Chuva',     mod:0.7},
+  {id:'windy',  emoji:'💨',  name:'Vento',     mod:1.15},
+  {id:'storm',  emoji:'⛈️', name:'Tempestade',mod:0.5},
+  {id:'foggy',  emoji:'🌫️', name:'Névoa',     mod:0.85},
+];
+
+// =========================
+// EFEITOS DAS FERRAMENTAS
+// =========================
+
+const TOOL_EFFECTS = {
+
+  sprinkler(plotIndex){
+
+    const around = [
+      plotIndex,
+      plotIndex - 1,
+      plotIndex + 1,
+      plotIndex - GRID_COLS,
+      plotIndex + GRID_COLS
+    ];
+
+    around.forEach(i=>{
+
+      const p = state.plots[i];
+
+      if(p && p.seed){
+
+        p.watered = true;
+        p.growBoost = 2;
+      }
+    });
+
+    toast('🚿 Aspersor ativado!');
+  },
+
+  seedboost(plot){
+
+    if(!plot.seed) return;
+
+    plot.growth = plot.maxGrowth;
+
+    toast('🌾 Crescimento instantâneo!');
+  },
+
+  music(){
+
+    state.musicBoost = true;
+
+    setTimeout(()=>{
+
+      state.musicBoost = false;
+
+    },120000);
+
+    toast('🎵 Animais motivados!');
+  },
+
+  milk(){
+
+    state.animalBonus = (state.animalBonus || 0) + 2;
+
+    toast('🥛 Produção animal aumentada!');
+  },
+
+  bees(plotIndex){
+
+    const around = [
+      plotIndex,
+      plotIndex - 1,
+      plotIndex + 1,
+      plotIndex - GRID_COLS,
+      plotIndex + GRID_COLS
+    ];
+
+    around.forEach(i=>{
+
+      const p = state.plots[i];
+
+      if(p && p.seed){
+
+        p.growBoost = 1.5;
+      }
+    });
+
+    toast('🐝 Abelhas trabalhando!');
+  },
+
+  freeze(){
+
+    state.timeFrozen = true;
+
+    setTimeout(()=>{
+
+      state.timeFrozen = false;
+
+    },30000);
+
+    toast('🧊 Tempo congelado!');
+  },
+
+  fire(){
+
+    state.nightBoost = true;
+
+    setTimeout(()=>{
+
+      state.nightBoost = false;
+
+    },120000);
+
+    toast('🔥 Crescimento noturno aumentado!');
+  },
+
+  moon(){
+
+    state.rareBoost = true;
+
+    setTimeout(()=>{
+
+      state.rareBoost = false;
+
+    },180000);
+
+    toast('🌙 Sorte rara ativada!');
+  },
+
+  wind(plotIndex){
+
+    const around = [
+      plotIndex,
+      plotIndex - 1,
+      plotIndex + 1,
+      plotIndex - GRID_COLS,
+      plotIndex + GRID_COLS
+    ];
+
+    around.forEach(i=>{
+
+      const p = state.plots[i];
+
+      if(p){
+
+        p.fertilized = true;
+      }
+    });
+
+    toast('🌪️ Fertilizante espalhado!');
+  },
+
+  scanner(){
+
+    state.plots.forEach(p=>{
+
+      if(p.seed && Math.random() < 0.25){
+
+        p.rareGlow = true;
+      }
+    });
+
+    toast('📡 Lotes raros detectados!');
+  },
+
+  miner(plot){
+
+    if(Math.random() < 0.3){
+
+      const gems = rand(1,5);
+
+      state.gems += gems;
+
+      toast(`💎 +${gems} gemas encontradas!`);
+    }
+  },
+
+  totem(){
+
+    state.globalHarvestBonus = (state.globalHarvestBonus || 0) + 1;
+
+    toast('🗿 Natureza fortalecida!');
+  },
+
+  butterfly(){
+
+    state.flowerValueBoost = true;
+
+    toast('🦋 Flores mais valiosas!');
+  },
+
+  chef(){
+
+    state.foodValueBoost = true;
+
+    toast('👨‍🍳 Produtos culinários valorizados!');
+  },
+
+  vault(){
+
+    state.moneyProtection = 0.25;
+
+    toast('🏦 Cofre ativado!');
+  },
+
+  radio(){
+
+    state.workerSpeed = 0.5;
+
+    setTimeout(()=>{
+
+      state.workerSpeed = 1;
+
+    },180000);
+
+    toast('📻 Trabalhadores acelerados!');
+  },
+
+  meteor(){
+
+    state.plots.forEach(p=>{
+
+      if(p.seed && Math.random() < 0.15){
+
+        p.mutant = true;
+      }
+    });
+
+    toast('☄️ Plantações mutantes apareceram!');
+  },
+
+  portal(){
+
+    const rewards = [
+      '💎 Gema rara',
+      '🪙 Moedas',
+      '🌱 Semente lendária',
+      '⚡ Boost raro'
+    ];
+
+    const reward = rewards[rand(0,rewards.length-1)];
+
+    toast(`🌀 Portal trouxe: ${reward}`);
+  },
+
+  phoenix(){
+
+    state.plots.forEach(p=>{
+
+      if(p.dead){
+
+        p.dead = false;
+        p.growth = p.maxGrowth;
+      }
+    });
+
+    toast('🐦‍🔥 Plantações revividas!');
+  },
+
+  crown(){
+
+    state.coinMultiplier = 2;
+
+    setTimeout(()=>{
+
+      state.coinMultiplier = 1;
+
+    },300000);
+
+    toast('👑 Moedas dobradas!');
+  }
+
+};
+
+// =========================
+// FUNÇÕES AUXILIARES
+// =========================
+
+function rand(min,max){
+
+  return Math.floor(Math.random() * (max-min+1)) + min;
+}
+
+function toast(msg){
+
+  console.log(msg);
+
+  // opcional:
+  // mostrar popup na tela
+}
+
+const SEASONS = ['🌸 Primavera','☀️ Verão','🍂 Outono','❄️ Inverno'];
+
+const TUTS = [
+  {em:'🌾',ttl:'Bem-vindo!',txt:'Plante, regue, colha e fique rico!\nClique nos lotes marrons para plantar.'},
+  {em:'🌱',ttl:'Sementes',txt:'Escolha uma semente na barra inferior (aba Sementes) e clique num lote vazio para plantar.'},
+  {em:'⏱️',ttl:'Crescimento',txt:'Acompanhe a barrinha de progresso. Quando pronto, o emoji aparece e fica pulsando!'},
+  {em:'💧',ttl:'Ferramentas',txt:'Na aba Ferramentas da barra inferior: selecione uma e clique num lote para aplicar. Cada uso tem um custo em moedas.'},
+  {em:'💰',ttl:'Mercado',txt:'Toque no botão 💰 para vender sua colheita. Venda tudo de uma vez ou por item!'},
+  {em:'🏪',ttl:'Loja',txt:'Na loja 🏪 compre sementes, melhorias e novas ferramentas para acelerar sua fazenda.'},
+  {em:'🐔',ttl:'Animais',txt:'Compre o Celeiro e depois animais. Eles produzem itens passivamente — clique para coletar!'},
+  {em:'⭐',ttl:'Nível & XP',txt:'Cada colheita dá XP. Suba de nível para ganhar bônus de moedas e desbloquear receitas raras!'},
+];
+
+const XP_PER_LVL = 60;
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+
+function defaultState(){
+  return {
+    coins:150,xp:0,day:1,
+    plots:Array.from({length:24},()=>({crop:null,plantedAt:null,ready:false,watered:false,fertilized:false,mulch:0,plow:false,pest:false})),
+    inv:{wheat:3,carrot:2},
+    animals:[],
+    upgrades:[],
+    tools:[],       // owned tool ids
+    achievements:[],
+    totalEarned:0,totalHarvests:0,
+    speedMult:1,yieldBonus:0,
+    hasBarn:false,barnCap:4,animalSpeedBonus:1,
+    marketBonus:1,rainProof:false,greenhouse:false,
+    xpMult:1,
+    weather:'sunny',rainCount:0,
+    season:0,
+    lastSave:Date.now(),
+    tutDone:false,
+  };
+}
+
+let state;
+let selectedSeed = 'wheat';
+let selectedTool = null;  // null = plant mode, string = tool mode
+let gLoop = null, wxLoop = null;
+
+// ═══════════════════════════════════════════
+//  SAVE / LOAD
+// ═══════════════════════════════════════════
+
+function load(){try{const s=localStorage.getItem('mfd6');return s?JSON.parse(s):defaultState();}catch{return defaultState();}}
+function save(){localStorage.setItem('mfd6',JSON.stringify(state));}
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+
+function getLevel(){return Math.floor((state.xp||0)/XP_PER_LVL)+1;}
+function getXPPct(){return ((state.xp||0)%XP_PER_LVL)/XP_PER_LVL*100;}
+function addXP(n){
+  const prev=getLevel();
+  state.xp=(state.xp||0)+n*(state.xpMult||1);
+  if(getLevel()>prev){
+    const bonus=getLevel()*8;state.coins+=bonus;
+    toast(`🎉 Nível ${getLevel()}! +${bonus}🪙 bônus!`);
+  }
+}
+function isUnlocked(id){
+  const c=CROPS[id];if(!c.unlock) return true;
+  return state.coins>=c.unlock||state.totalEarned>=c.unlock;
+}
+function hasTool(id){return (state.tools||[]).includes(id);}
+function getWeather(){return WEATHERS.find(w=>w.id===state.weather)||WEATHERS[0];}
+function getWxMod(){
+  const w=getWeather();
+  if(state.greenhouse) return 1;
+  if(state.rainProof&&(w.id==='rainy'||w.id==='storm')) return 1;
+  return w.mod;
+}
+function fmtTime(ms){const s=Math.ceil(ms/1000);return s<60?s+'s':Math.ceil(s/60)+'m';}
+
+// ═══════════════════════════════════════════
+//  MENU
+// ═══════════════════════════════════════════
+
+function initMenu(){
+  const s=load();
+  const el=id=>document.getElementById(id);
+  if(el('mc')) el('mc').textContent=s.coins||0;
+  if(el('md')) el('md').textContent=s.day||1;
+  if(el('mlv')) el('mlv').textContent=Math.floor((s.xp||0)/XP_PER_LVL)+1;
+  setupDecorations();
+}
+
+function startGame(){
+  state=load();
+  // ensure new fields exist
+  if(!state.animals) state.animals=[];
+  if(!state.tools) state.tools=[];
+  if(!state.barnCap) state.barnCap=4;
+  if(!state.animalSpeedBonus) state.animalSpeedBonus=1;
+  if(!state.xpMult) state.xpMult=1;
+  state.plots.forEach(p=>{
+    if(!p.mulch) p.mulch=0;
+    if(!p.plow) p.plow=false;
+    if(!p.pest) p.pest=false;
+  });
+
+
+  document.getElementById('menu-screen').style.display='none';
+  document.getElementById('game-screen').classList.add('active');
+  renderBPSlider();
+  renderFarm();
+  renderAnimals();
+  updateHUD();
+  updateWX();
+  startLoops();
+  checkAch();
+  if(!state.tutDone){state.tutDone=true;setTimeout(doTutorial,700);}
+}
+
+function Voltar() {
+  window.location.href="index.html"
+}
+
+function goMenu(){
+  document.getElementById('game-screen').classList.remove('active');
+  document.getElementById('menu-screen').style.display='flex';
+  save();clearInterval(gLoop);clearInterval(wxLoop);
+  initMenu();
+}
+
+function resetGame(){
+  if(!confirm('⚠️ Apagar todo progresso?')) return;
+  localStorage.removeItem('mfd6');
+  toast('🗑️ Jogo reiniciado!');
+  initMenu();
+}
+
+// ═══════════════════════════════════════════
+//  LOOPS
+// ═══════════════════════════════════════════
+
+function startLoops(){
+  clearInterval(gLoop);clearInterval(wxLoop);
+  gLoop=setInterval(()=>{if(!state) return;renderFarm();renderAnimals();updateDayLabel();},500);
+  wxLoop=setInterval(()=>{if(state) changeWeather();},90000);
+}
+
+function updateDayLabel(){
+  state.day=Math.floor((Date.now()-state.lastSave)/120000)+1;
+  const el=document.getElementById('g-day');
+  if(el) el.textContent=`${SEASONS[state.season%4]} · Dia ${state.day}`;
+}
+
+// ═══════════════════════════════════════════
+//  HUD
+// ═══════════════════════════════════════════
+
+function updateHUD(){
+  const gc=document.getElementById('g-coins');
+  const gl=document.getElementById('g-lv');
+  if(gc) gc.textContent=state.coins;
+  if(gl) gl.textContent=`Lv.${getLevel()}`;
+  save();
+}
+
+// ═══════════════════════════════════════════
+//  WEATHER
+// ═══════════════════════════════════════════
+
+function changeWeather(){
+  const w=WEATHERS[Math.floor(Math.random()*WEATHERS.length)];
+  state.weather=w.id;
+  if(w.id==='rainy'||w.id==='storm') state.rainCount=(state.rainCount||0)+1;
+  updateWX();
+  const mod=w.mod;
+  if(mod<1&&!state.rainProof) toast(`${w.emoji} ${w.name}! Crescimento mais lento.`);
+  else if(mod>1) toast(`${w.emoji} ${w.name}! Crescimento acelerado!`);
+  checkAch();
+}
+
+function updateWX(){
+  const w=getWeather();
+  const el=document.getElementById('wx');
+  if(el) el.textContent=`${w.emoji} ${w.name}`;
+}
+
+// ═══════════════════════════════════════════
+//  BOTTOM PANEL SLIDER
+// ═══════════════════════════════════════════
+
+function switchBPTab(tab, btn){
+  document.querySelectorAll('.bp-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('bp-seeds').classList.toggle('active',tab==='seeds');
+  document.getElementById('bp-tools').classList.toggle('active',tab==='tools');
+}
+
+function renderBPSlider(){
+  renderSeedsSlider();
+  renderToolsSlider();
+}
+
+function renderSeedsSlider(){
+  const el=document.getElementById('bp-seeds');
+  if(!el) return;
+  el.innerHTML='';
+  const cats=Object.keys(CAT_LABELS);
+  let first=true;
+  cats.forEach(cat=>{
+    const items=Object.entries(CROPS).filter(([id,c])=>c.cat===cat&&isUnlocked(id));
+    if(!items.length) return;
+    if(!first){const sep=document.createElement('div');sep.className='slider-sep';sep.innerHTML='<div class="slider-sep-line"></div>';el.appendChild(sep);}
+    first=false;
+    items.forEach(([id,c])=>{
+      const cnt=state.inv[id]||0;
+      const card=document.createElement('div');
+      card.className='seed-card'+(id===selectedSeed&&!selectedTool?' active':'');
+      card.dataset.id=id;
+      card.innerHTML=`<div class="sc-em">${c.emoji}</div><div class="sc-nm">${c.name}</div><div class="sc-cnt">${cnt>0?'📦'+cnt:'sem estoque'}</div>`;
+      card.onclick=()=>selectSeed(id);
+      el.appendChild(card);
+    });
+  });
+  // locked seeds preview
+  const locked=Object.entries(CROPS).filter(([id,c])=>!isUnlocked(id));
+  if(locked.length){
+    const sep=document.createElement('div');sep.className='slider-sep';sep.innerHTML='<div class="slider-sep-line"></div>';el.appendChild(sep);
+    locked.forEach(([id,c])=>{
+      const card=document.createElement('div');
+      card.className='seed-card locked-card';
+      card.innerHTML=`<div class="sc-em">🔒</div><div class="sc-nm">${c.name}</div><div class="sc-cost">${c.unlock}🪙</div>`;
+      el.appendChild(card);
+    });
+  }
+}
+
+function renderToolsSlider(){
+  const el=document.getElementById('bp-tools');
+  if(!el) return;
+  el.innerHTML='';
+  TOOLS_DATA.forEach(t=>{
+    const owned=hasTool(t.id);
+    const card=document.createElement('div');
+    card.className='tool-card'+(selectedTool===t.id?' active':'')+(owned?'':' locked-card');
+    if(owned&&t.id===selectedTool) card.style.borderColor='#60a5fa';
+    const costTxt=t.useCost?`${t.useCost}🪙/uso`:'';
+    card.innerHTML=`
+      ${owned?'':`<div style="position:absolute;top:3px;right:4px;font-size:9px;color:#888;">🔒${t.cost}🪙</div>`}
+      <div class="tc-em">${t.emoji}</div>
+      <div class="tc-nm">${t.name}</div>
+      <div class="tc-sub">${costTxt}</div>
+    `;
+    if(owned){
+      card.onclick=()=>selectTool(t.id);
+    } else {
+      card.onclick=()=>toast(`🔒 Compre na loja → Ferramentas`);
+    }
+    el.appendChild(card);
+  });
+}
+
+function selectSeed(id){
+  selectedSeed=id;
+  selectedTool=null;
+  document.querySelectorAll('.seed-card').forEach(c=>c.classList.toggle('active',c.dataset.id===id));
+  document.querySelectorAll('.tool-card').forEach(c=>c.classList.remove('active'));
+}
+
+function selectTool(id){
+  if(selectedTool===id){selectedTool=null;}
+  else{selectedTool=id;selectedSeed=null;}
+  document.querySelectorAll('.seed-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tool-card').forEach(c=>c.classList.toggle('active',c.dataset.tool===id||c.querySelector('.tc-nm')?.textContent===TOOLS_DATA.find(t=>t.id===id)?.name));
+  renderToolsSlider();
+}
+
+// ═══════════════════════════════════════════
+//  FARM
+// ═══════════════════════════════════════════
+
+function calcCols(){
+  const w=Math.min(window.innerWidth,680);
+  return Math.max(4,Math.floor((w-18)/79));
+}
+
+function renderFarm(){
+  const grid=document.getElementById('farm-grid');
+  if(!grid) return;
+  const cols=calcCols();
+  grid.style.gridTemplateColumns=`repeat(${cols},72px)`;
+
+  while(grid.children.length<state.plots.length){
+    const i=grid.children.length;
+    const d=document.createElement('div');
+    d.className='plot';d.dataset.idx=i;
+    d.onclick=()=>handlePlot(parseInt(d.dataset.idx));
+    d.innerHTML=`<div class="fb"></div><div class="wb"></div><div class="pb2"></div><div class="pe">🟫</div><div class="pl"></div><div class="pbar"><div class="pfill" style="width:0%"></div></div>`;
+    grid.appendChild(d);
+  }
+  while(grid.children.length>state.plots.length) grid.removeChild(grid.lastChild);
+
+  const now=Date.now();
+  const wxm=getWxMod();
+
+  state.plots.forEach((p,i)=>{
+    const el=grid.children[i];
+    const pe=el.querySelector('.pe');
+    const pl=el.querySelector('.pl');
+    const pbar=el.querySelector('.pbar');
+    const pfill=el.querySelector('.pfill');
+    const wb=el.querySelector('.wb');
+    const fb=el.querySelector('.fb');
+    const pb2=el.querySelector('.pb2');
+
+    el.classList.remove('ready','watered','fertilized','mulched','enchanted','locked-plot');
+
+    if(!p.crop){
+      pe.textContent='🟫';pl.textContent='';pbar.style.display='none';
+      wb.textContent='';fb.textContent='';pb2.textContent='';
+      if(p.plow) el.style.background='radial-gradient(circle at 35% 35%,#6b3a10,#2e1404)';
+      else el.style.background='';
+    } else {
+      el.style.background='';
+      const crop=CROPS[p.crop];
+      const elapsed=now-p.plantedAt;
+      let sm=state.speedMult*wxm;
+      if(p.watered) sm*=0.5;
+      const total=crop.grow*sm;
+      const pct=Math.min(elapsed/total,1);
+
+      wb.textContent=p.watered?'💧':'';
+      fb.textContent=p.fertilized?'✨':(p.mulch>0?'🪵':'');
+      pb2.textContent=p.pest?'🧴':(p.plow?'⛏️':'');
+
+      if(pct>=1){
+        p.ready=true;pe.textContent=crop.emoji;pl.textContent='Colher!';
+        pbar.style.display='none';el.classList.add('ready');
+      } else {
+        pe.textContent='🌱';
+        const tLeft=fmtTime(total*(1-pct));
+        pl.textContent=tLeft;
+        pbar.style.display='block';pfill.style.width=`${pct*100}%`;
+      }
+      if(p.watered) el.classList.add('watered');
+      if(p.fertilized||p.mulch>0) el.classList.add('fertilized');
+    }
+  });
+  updateHUD();
+}
+
+// ── PLOT INTERACTION ──
+function handlePlot(idx){
+  const p=state.plots[idx];
+  if(!p) return;
+
+  // TOOL MODE
+  if(selectedTool){
+    const td=TOOLS_DATA.find(t=>t.id===selectedTool);
+    if(!td) return;
+    if(!hasTool(selectedTool)){toast(`🔒 Compre ${td.name} na loja!`);return;}
+
+    if(selectedTool==='water'){
+      if(!p.crop||p.ready){toast('⚠️ Plante algo primeiro!');return;}
+      if(p.watered){toast('💧 Já está regado!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.watered=true;
+      toast('💧 Regado! Crescimento 2× mais rápido!');
+
+    } else if(selectedTool==='fert'){
+      if(!p.crop||p.ready){toast('⚠️ Plante algo primeiro!');return;}
+      if(p.fertilized){toast('✨ Já fertilizado!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.fertilized=true;
+      toast('✨ Fertilizado! +3 itens na colheita!');
+
+    } else if(selectedTool==='mulch'){
+      if(p.crop&&!p.ready){toast('⚠️ Só em lotes vazios ou prontos!');return;}
+      if(p.mulch>0){toast('🪵 Já tem cobertura morta!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.mulch=3;
+      toast('🪵 Cobertura morta aplicada! 3 colheitas bônus!');
+
+    } else if(selectedTool==='pesticide'){
+      if(!p.crop||p.ready){toast('⚠️ Plante algo primeiro!');return;}
+      if(p.pest){toast('🧴 Já tem pesticida!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.pest=true;
+      toast('🧴 Pesticida aplicado! +2 itens bônus!');
+
+    } else if(selectedTool==='magic'){
+      if(!p.crop||p.ready){toast('⚠️ Nada para acelerar!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.plantedAt=Date.now()-(CROPS[p.crop].grow*state.speedMult*2);
+      toast('🪄 Crescimento instantâneo!');
+
+    } else if(selectedTool==='harvest'){
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      let count=0;
+      state.plots.forEach(pl=>{
+        if(pl.ready&&pl.crop){
+          const crop=CROPS[pl.crop];
+          const qty=calcYield(pl);
+          state.inv[pl.crop]=(state.inv[pl.crop]||0)+qty;
+          state.totalHarvests++;addXP(crop.xp);count++;
+          pl.crop=null;pl.plantedAt=null;pl.ready=false;
+          pl.watered=false;pl.fertilized=false;pl.pest=false;pl.plow=false;
+        }
+      });
+      if(count===0){toast('🌀 Nenhum lote pronto!');return;}
+      state.coins-=td.useCost;
+      toast(`🌀 Colheita em massa! ${count} lotes colhidos!`);checkAch();
+
+    } else if(selectedTool==='plow'){
+      if(p.crop&&!p.ready){toast('⚠️ Remova a planta primeiro!');return;}
+      if(state.coins<td.useCost){toast('❌ Moedas insuficientes!');return;}
+      state.coins-=td.useCost;p.plow=true;
+      if(p.crop&&p.ready){
+        // harvest then plow
+        const crop=CROPS[p.crop];
+        const qty=calcYield(p)+1;
+        state.inv[p.crop]=(state.inv[p.crop]||0)+qty;
+        state.totalHarvests++;addXP(crop.xp);
+        p.crop=null;p.plantedAt=null;p.ready=false;p.watered=false;p.fertilized=false;p.pest=false;
+        toast('⛏️ Arado e colhido! +1 item bônus!');
+      } else {
+        toast('⛏️ Lote arado! Próxima semente: +1 item.');
+      }
+    }
+
+    renderFarm();renderBPSlider();updateHUD();return;
+  }
+
+  // PLANT MODE
+  if(!p.crop){
+    if(!selectedSeed){toast('🌱 Selecione uma semente!');return;}
+    const cnt=state.inv[selectedSeed]||0;
+    if(cnt<=0){toast('❌ Sem sementes! Compre na Loja.');return;}
+    state.inv[selectedSeed]--;
+    p.crop=selectedSeed;p.plantedAt=Date.now();p.ready=false;
+    p.watered=false;p.fertilized=false;p.pest=false;
+  } else if(p.ready){
+    const crop=CROPS[p.crop];
+    const qty=calcYield(p);
+    state.inv[p.crop]=(state.inv[p.crop]||0)+qty;
+    state.totalHarvests++;addXP(crop.xp);
+    showHPop(idx,`+${qty} ${crop.emoji}`);
+    // reset
+    const keepMulch=p.mulch>1?p.mulch-1:0;
+    p.crop=null;p.plantedAt=null;p.ready=false;
+    p.watered=false;p.fertilized=false;p.pest=false;
+    p.mulch=keepMulch;
+    checkAch();
+  }
+  renderBPSlider();renderFarm();
+}
+
+function calcYield(p){
+  let q=2+state.yieldBonus;
+  if(p.fertilized) q+=3;
+  if(p.mulch>0) q+=2;
+  if(p.pest) q+=2;
+  if(p.plow){q+=1;p.plow=false;}
+  return q;
+}
+
+function showHPop(idx,text){
+  const grid=document.getElementById('farm-grid');
+  if(!grid||!grid.children[idx]) return;
+  const r=grid.children[idx].getBoundingClientRect();
+  const ar=document.getElementById('app').getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.className='hpop';pop.textContent=text;
+  pop.style.left=`${r.left-ar.left+r.width/2}px`;
+  pop.style.top=`${r.top-ar.top+r.height/2}px`;
+  document.getElementById('app').appendChild(pop);
+  setTimeout(()=>pop.remove(),1050);
+}
+
+function expandPlots(n){
+  for(let i=0;i<n;i++) state.plots.push({crop:null,plantedAt:null,ready:false,watered:false,fertilized:false,mulch:0,plow:false,pest:false});
+  renderFarm();checkAch();
+}
+
+// ═══════════════════════════════════════════
+//  ANIMALS
+// ═══════════════════════════════════════════
+
+function renderAnimals(){
+  const zone=document.getElementById('animal-zone');
+  const row=document.getElementById('az-row');
+  if(!zone||!row) return;
+  const list=state.animals||[];
+  if(!list.length){zone.style.display='none';return;}
+  zone.style.display='block';
+  row.innerHTML='';
+  const now=Date.now();
+  list.forEach((a,i)=>{
+    const def=ANIMALS_DATA.find(x=>x.id===a.id);
+    if(!def) return;
+    const cd=def.cd*(state.animalSpeedBonus||1);
+    const elapsed=now-(a.lastCollect||a.boughtAt||now);
+    const ready=elapsed>=cd;
+    const tLeft=ready?0:fmtTime(cd-elapsed);
+    const slot=document.createElement('div');
+    slot.className='aslot';
+    slot.innerHTML=`${ready?'<div class="ar">!</div>':''}<div class="ae">${def.emoji}</div><div class="at">${ready?'Colher!':tLeft}</div>`;
+    slot.onclick=()=>collectAnimal(i);
+    row.appendChild(slot);
+  });
+}
+
+function collectAnimal(i){
+  const a=state.animals[i];
+  const def=ANIMALS_DATA.find(x=>x.id===a.id);
+  if(!def) return;
+  const cd=def.cd*(state.animalSpeedBonus||1);
+  const now=Date.now();
+  const elapsed=now-(a.lastCollect||a.boughtAt||now);
+  if(elapsed<cd){toast(`⏱️ ${def.emoji} ainda precisa ${fmtTime(cd-elapsed)}!`);return;}
+  const earn=Math.round(def.psell*(state.marketBonus||1));
+  state.coins+=earn;state.totalEarned+=earn;a.lastCollect=now;
+  addXP(8);toast(`${def.prod} ${def.name} → +${earn}🪙!`);
+  renderAnimals();updateHUD();checkAch();
+}
+
+// ═══════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeOverlay(e,id){if(e.target===document.getElementById(id)) closeModal(id);}
+
+// ═══════════════════════════════════════════
+//  SHOP
+// ═══════════════════════════════════════════
+
+function openShop(){
+  renderShSeeds();renderShUpg();renderShTools();
+  openModal('ov-shop');
+}
+
+function switchShopTab(btn,tabId){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['sh-seeds','sh-upg','sh-tools'].forEach(id=>{
+    document.getElementById(id).style.display=id===tabId?'':'none';
+  });
+}
+
+function renderShSeeds(){
+  const el=document.getElementById('sh-seeds');if(!el) return;
+  let html='<div class="sgrid">';
+  Object.keys(CAT_LABELS).forEach(cat=>{
+    const items=Object.entries(CROPS).filter(([id,c])=>c.cat===cat);
+    if(!items.length) return;
+    html+=`<div class="scat">${CAT_LABELS[cat]}</div>`;
+    items.forEach(([id,c])=>{
+      const unlocked=isUnlocked(id);
+      const cnt=state.inv[id]||0;
+      const profit=c.sell-c.buy;
+      const grow=c.grow/1000;
+      const canBuy=state.coins>=c.buy&&unlocked;
+      html+=`<div class="scard${unlocked?'':' slock'}">
+        <div class="scard-top"><div class="scard-em">${c.emoji}</div><div><div class="scard-nm">${c.name}</div><div class="scard-tm">⏱ ${grow<60?grow+'s':Math.ceil(grow/60)+'m'} · XP:${c.xp}</div></div></div>
+        <div class="scard-stats"><span class="ss-buy">🛒${c.buy}</span><span class="ss-sell">💰${c.sell}</span><span class="ss-prof">+${profit}</span></div>
+        <div class="scard-bot">
+          ${cnt>0?`<span class="sinv">📦${cnt}</span>`:'<span></span>'}
+          ${unlocked?`<button class="buybtn"${canBuy?'':' disabled'} onclick="buySeed('${id}')">Comprar</button>`:
+            `<span class="slockl">🔒${c.unlock}🪙</span>`}
+        </div>
+      </div>`;
+    });
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function buySeed(id){
+  const c=CROPS[id];
+  if(state.coins<c.buy){toast('❌ Moedas insuficientes!');return;}
+  state.coins-=c.buy;state.inv[id]=(state.inv[id]||0)+1;
+  toast(`${c.emoji} ${c.name} comprada!`);
+  updateHUD();renderShSeeds();renderBPSlider();
+}
+
+function renderShUpg(){
+  const el=document.getElementById('sh-upg');if(!el) return;
+  const cats={speed:'⚡ Velocidade',yield:'🌱 Rendimento',expand:'🟫 Expansão',animal:'🐾 Animais',market:'🛒 Mercado',weather:'🌤️ Clima',xp:'📚 XP'};
+  let html='';
+  Object.entries(cats).forEach(([cat,label])=>{
+    const items=UPGRADES.filter(u=>u.cat===cat);
+    if(!items.length) return;
+    html+=`<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#aaa;padding:10px 0 5px;border-top:1px solid #eee;margin-top:4px;">${label}</div>`;
+    html+='<div class="ulist">';
+    items.forEach(u=>{
+      const bought=state.upgrades.includes(u.id);
+      const reqOk=!u.req||state.upgrades.includes(u.req);
+      const canBuy=!bought&&reqOk&&state.coins>=u.cost;
+      html+=`<div class="ucard${bought?' udone':''}">
+        <div class="ui">${u.icon}</div>
+        <div style="flex:1"><div class="unm">${u.name}</div>
+        <div class="uds">${u.desc}${u.req&&!state.upgrades.includes(u.req)?` <em style="color:#f59e0b">(Requer: ${UPGRADES.find(x=>x.id===u.req)?.name})</em>`:''}</div></div>
+        ${bought?`<span class="udonebdg">✅</span>`:
+          `<button class="ubtn"${canBuy?'':' disabled'} onclick="buyUpgrade('${u.id}')">🪙${u.cost}</button>`}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
+
+function buyUpgrade(id){
+  const u=UPGRADES.find(x=>x.id===id);if(!u) return;
+  if(state.upgrades.includes(u.id)){toast('Já comprado!');return;}
+  if(u.req&&!state.upgrades.includes(u.req)){toast('⚠️ Requer melhoria anterior!');return;}
+  if(state.coins<u.cost){toast('❌ Moedas insuficientes!');return;}
+  state.coins-=u.cost;state.upgrades.push(u.id);
+  u.effect(state);
+  toast(`✅ ${u.name} desbloqueado!`);
+  updateHUD();renderShUpg();renderFarm();renderAnimals();renderBPSlider();checkAch();
+}
+
+function renderShTools(){
+  const el=document.getElementById('sh-tools');if(!el) return;
+  let html='<div class="tlist">';
+  TOOLS_DATA.forEach(t=>{
+    const owned=hasTool(t.id);
+    const canBuy=state.coins>=t.cost&&!owned;
+    html+=`<div class="tcard${owned?' towned':''}">
+      <div class="ti2">${t.emoji}</div>
+      <div style="flex:1"><div class="tnm">${t.name} ${owned?'<span style="color:#22c55e;font-size:11px;">✅ Desbloqueada</span>':''}</div>
+      <div class="tds">${t.desc}</div></div>
+      ${owned?`<span class="townbdg">Em uso</span>`:
+        `<button class="tbuybtn"${canBuy?'':' disabled'} onclick="buyTool('${t.id}')">🪙${t.cost}</button>`}
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function buyTool(id){
+  const t=TOOLS_DATA.find(x=>x.id===id);if(!t) return;
+  if(hasTool(id)){toast('Já possui!');return;}
+  if(state.coins<t.cost){toast('❌ Moedas insuficientes!');return;}
+  state.coins-=t.cost;
+  if(!state.tools) state.tools=[];
+  state.tools.push(id);
+  toast(`${t.emoji} ${t.name} desbloqueada!`);
+  updateHUD();renderShTools();renderBPSlider();
+}
+
+// ═══════════════════════════════════════════
+//  MARKET
+// ═══════════════════════════════════════════
+
+function openMarket(){renderMarket();openModal('ov-mkt');}
+
+function renderMarket(){
+  const body=document.getElementById('mkt-body');if(!body) return;
+  const mult=state.marketBonus||1;
+  let total=0;
+  Object.entries(state.inv).forEach(([id,amt])=>{if(amt>0&&CROPS[id]) total+=Math.round(CROPS[id].sell*mult*amt);});
+  let html=`<div class="mksum"><div class="mkttl">🪙 ${total}</div><div class="mklbl">Total disponível para venda</div></div>
+    <button class="mkallbtn"${total>0?'':' disabled'} onclick="sellAll();renderMarket()">💰 Vender Tudo!</button>
+    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#bbb;margin:12px 0 7px;">Por Produto</div>
+    <div class="mkrows">`;
+  let hasAny=false;
+  Object.entries(CROPS).forEach(([id,c])=>{
+    const cnt=state.inv[id]||0;
+    const price=Math.round(c.sell*mult);
+    html+=`<div class="mkrow">
+      <div class="mkem">${c.emoji}</div>
+      <div style="flex:1"><div class="mknm">${c.name}</div><div class="mkpr">🪙${price} cada</div><div class="mkstk">📦${cnt}</div></div>
+      <button class="mkbtn1"${cnt>0?'':' disabled'} onclick="sellItem('${id}',1);renderMarket()">1×</button>
+      <button class="mkbtnA"${cnt>0?'':' disabled'} onclick="sellItem('${id}',${cnt});renderMarket()">Tudo</button>
+    </div>`;
+    if(cnt>0) hasAny=true;
+  });
+  if(!hasAny) html+='<div style="text-align:center;color:#bbb;padding:20px;font-size:13px;font-weight:700;">📦 Estoque vazio!</div>';
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+function sellAll(){
+  const mult=state.marketBonus||1;let earned=0;
+  Object.entries(state.inv).forEach(([id,amt])=>{
+    if(amt>0&&CROPS[id]){earned+=Math.round(CROPS[id].sell*mult*amt);state.inv[id]=0;}
+  });
+  if(!earned){toast('📦 Estoque vazio!');return;}
+  state.coins+=earned;state.totalEarned+=earned;
+  toast(`💰 +${earned}🪙 vendido!`);
+  renderBPSlider();updateHUD();checkAch();
+}
+
+function sellItem(id,qty){
+  const cnt=state.inv[id]||0;if(!cnt) return;
+  const mult=state.marketBonus||1;
+  const q=Math.min(qty,cnt);
+  const earned=Math.round(CROPS[id].sell*mult*q);
+  state.coins+=earned;state.totalEarned+=earned;state.inv[id]-=q;
+  toast(`${CROPS[id].emoji} ${q}× → +${earned}🪙!`);
+  renderBPSlider();updateHUD();checkAch();
+}
+
+// ═══════════════════════════════════════════
+//  ANIMALS MODAL
+// ═══════════════════════════════════════════
+
+function openAnimals(){renderAnimModal();openModal('ov-anim');}
+
+function renderAnimModal(){
+  const body=document.getElementById('anim-body');
+  if(!body) return;
+
+  const owned=state.animals||[];
+  const cap=state.barnCap||4;
+
+  // CORREÇÃO
+  const full=owned.length>=cap;
+
+  let html=`<div style="background:#fffbeb;border:2px solid #f5c842;border-radius:13px;padding:11px 13px;margin-bottom:13px;">
+    <div style="font-weight:800;font-size:12px;color:#92400e;margin-bottom:5px;">
+      🐾 Seus Animais (${owned.length}/${cap})
+    </div>
+
+    ${
+      owned.length===0
+      ? '<div style="color:#aaa;font-size:12px;">Nenhum animal. Compre o Celeiro nas Melhorias!</div>'
+      :
+      owned.map(a=>{
+        const d=ANIMALS_DATA.find(x=>x.id===a.id);
+
+        return d
+        ? `<div style="font-size:12px;color:#555;margin-bottom:2px;">
+            ${d.emoji} ${d.name} — ${d.prod} a cada ${d.cd/60000}min
+          </div>`
+        : '';
+      }).join('')
+    }
+  </div>
+
+  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#aaa;margin-bottom:9px;">
+    Comprar Animais
+  </div>
+
+  <div class="amcards">`;
+
+  ANIMALS_DATA.forEach(a=>{
+
+    const reqOk=!a.req||state.upgrades.includes(a.req);
+
+    const canBuy=reqOk&&state.coins>=a.cost&&!full;
+
+    const ownCount=owned.filter(x=>x.id===a.id).length;
+
+    html+=`
+    <div class="amcard${reqOk?'':' amlocked'}">
+
+      <span class="amem">${a.emoji}</span>
+
+      <div class="amnm">${a.name}</div>
+
+      <div class="amds">${a.desc}</div>
+
+      ${
+        ownCount>0
+        ? `<div class="amownbdg">
+            Possui${ownCount>1?' ('+ownCount+'×)':''}
+          </div>`
+        : ''
+      }
+
+      ${
+        reqOk
+        ? `<button class="ambtn"
+            ${canBuy?'':'disabled'}
+            onclick="buyAnimal('${a.id}')">
+            🪙${a.cost}
+          </button>`
+        :
+        `<div style="color:#bbb;font-size:11px;margin-top:5px;">
+          🔒 Requer:
+          ${UPGRADES.find(u=>u.id===a.req)?.name||'Celeiro'}
+        </div>`
+      }
+
+    </div>`;
+  });
+
+  html+='</div>';
+
+  if(full){
+    html+=`
+    <div style="
+      background:#fee2e2;
+      border:2px solid #fca5a5;
+      border-radius:13px;
+      padding:10px 13px;
+      margin-top:12px;
+      text-align:center;
+      font-weight:800;
+      font-size:13px;
+      color:#b91c1c;
+    ">
+      🔴 Celeiro lotado! Expanda nas Melhorias.
+    </div>`;
+  }
+
+  body.innerHTML=html;
+}
+function buyAnimal(id){
+  const def=ANIMALS_DATA.find(a=>a.id===id);if(!def) return;
+  const cap=state.barnCap||4;
+  if((state.animals||[]).length>=cap){toast('🔴 Celeiro lotado!');return;}
+  if(def.req&&!state.upgrades.includes(def.req)){toast('⚠️ Requer: '+UPGRADES.find(u=>u.id===def.req)?.name);return;}
+  if(state.coins<def.cost){toast('❌ Moedas insuficientes!');return;}
+  state.coins-=def.cost;
+  if(!state.animals) state.animals=[];
+  state.animals.push({id:def.id,boughtAt:Date.now(),lastCollect:null});
+  toast(`${def.emoji} ${def.name} chegou à fazenda!`);
+  updateHUD();renderAnimals();renderAnimModal();checkAch();
+}
+
+// ═══════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════
+
+function openStats(){renderStats();openModal('ov-stats');}
+
+function renderStats(){
+  const body=document.getElementById('stats-body');if(!body) return;
+  const lv=getLevel();const xpPct=getXPPct();
+  let html=`<div class="stgrid">
+    <div class="stcard"><span class="sti">🪙</span><div class="stv">${state.coins}</div><div class="stl">Moedas</div></div>
+    <div class="stcard"><span class="sti">⭐</span><div class="stv">Nv.${lv}</div><div class="stl">Nível</div></div>
+    <div class="stcard"><span class="sti">🌾</span><div class="stv">${state.totalHarvests}</div><div class="stl">Colheitas</div></div>
+    <div class="stcard"><span class="sti">💰</span><div class="stv">${state.totalEarned}</div><div class="stl">Total Ganho</div></div>
+    <div class="stcard"><span class="sti">🟫</span><div class="stv">${state.plots.length}</div><div class="stl">Lotes</div></div>
+    <div class="stcard"><span class="sti">🐾</span><div class="stv">${(state.animals||[]).length}</div><div class="stl">Animais</div></div>
+  </div>
+  <div class="xpbar-wrap">
+    <div class="xpbar-lbl">⭐ XP — Nível ${lv}</div>
+    <div class="xpbar-bg"><div class="xpbar-fill" style="width:${xpPct}%"></div></div>
+    <div class="xpbar-sub">${(state.xp||0)%XP_PER_LVL}/${XP_PER_LVL} XP para nível ${lv+1}</div>
+  </div>
+  <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#aaa;margin-bottom:8px;">🏆 Conquistas (${(state.achievements||[]).length}/${ACHIEVEMENTS.length})</div>
+  <div class="achgrid">`;
+  ACHIEVEMENTS.forEach(a=>{
+    const un=(state.achievements||[]).includes(a.id);
+    html+=`<div class="achcard ${un?'aunlocked':'alocked'}"><span class="ache">${a.emoji}</span><div class="achn">${a.name}</div><div class="achd">${a.desc}</div></div>`;
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
+//  ACHIEVEMENTS
+// ═══════════════════════════════════════════
+
+function checkAch(){
+  if(!state.achievements) state.achievements=[];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!state.achievements.includes(a.id)&&a.chk(state)){
+      state.achievements.push(a.id);
+      toast(`🏆 Conquista: ${a.name}!`);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+
+let _toastT=null;
+function toast(msg){
+  const el=document.getElementById('toast');if(!el) return;
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(_toastT);_toastT=setTimeout(()=>el.classList.remove('show'),2700);
+}
+
+// ═══════════════════════════════════════════
+//  TUTORIAL
+// ═══════════════════════════════════════════
+
+let tutStep=0;
+function doTutorial(){tutStep=0;showTut();}
+function showTut(){
+  const ov=document.getElementById('tover');if(!ov) return;
+  if(tutStep>=TUTS.length){ov.classList.remove('show');return;}
+  const s=TUTS[tutStep];
+  document.getElementById('t-em').textContent=s.em;
+  document.getElementById('t-ttl').textContent=s.ttl;
+  document.getElementById('t-txt').textContent=s.txt;
+  document.getElementById('t-dots').innerHTML=TUTS.map((_,i)=>`<div class="tdot${i===tutStep?' active':''}"></div>`).join('');
+  document.getElementById('t-btn').textContent=tutStep===TUTS.length-1?'🌾 Jogar!':'Próximo →';
+  ov.classList.add('show');
+}
+function nextTut(){tutStep++;if(tutStep>=TUTS.length) document.getElementById('tover').classList.remove('show');else showTut();}
+
+// ═══════════════════════════════════════════
+//  DECORATIONS
+// ═══════════════════════════════════════════
+
+function setupDecorations(){
+  // Stars
+  const sw=document.getElementById('stars');
+  if(sw&&!sw.children.length){
+    for(let i=0;i<90;i++){
+      const s=document.createElement('div');s.className='star';
+      const sz=Math.random()*2.5+0.8;
+      s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*65}%;left:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*3}s;`;
+      sw.appendChild(s);
+    }
+  }
+  // Clouds
+  const cw=document.getElementById('clouds');
+  if(cw&&!cw.children.length){
+    for(let i=0;i<6;i++){
+      const c=document.createElement('div');c.className='cld';
+      const h=14+Math.random()*22;const w=h*2.8;
+      c.style.cssText=`width:${w}px;height:${h}px;top:${4+Math.random()*28}%;animation-duration:${45+Math.random()*50}s;animation-delay:${-Math.random()*95}s;opacity:${0.45+Math.random()*0.45};`;
+      cw.appendChild(c);
+    }
+  }
+  updateSky();
+}
+
+function updateSky(){
+  const sky=document.getElementById('sky');
+  const sm=document.getElementById('sunmoon');
+  const sw=document.getElementById('stars');
+  const cw=document.getElementById('clouds');
+  const h=new Date().getHours();
+  if(h>=6&&h<8||h>=19&&h<21){sky.className='sky-eve';sm.textContent='🌅';sm.style.cssText='top:55%;left:48%;font-size:48px;';sw.style.opacity='.3';cw.style.opacity='.5';}
+  else if(h>=8&&h<19){sky.className='sky-day';sm.textContent='☀️';sm.style.cssText='top:7%;left:72%;font-size:48px;';sw.style.opacity='0';cw.style.opacity='1';}
+  else{sky.className='sky-night';sm.textContent='🌕';sm.style.cssText='top:10%;left:18%;font-size:44px;';sw.style.opacity='1';cw.style.opacity='.15';}
+}
+
+setInterval(updateSky,60000);
+window.addEventListener('resize',()=>{if(state) renderFarm();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape') ['ov-shop','ov-mkt','ov-anim','ov-stats'].forEach(id=>closeModal(id));});
+
+// BOOT
+initMenu();
+</script>
+</body>
+</html>
+GAMEEOF
+echo "Done: $(wc -c < /mnt/user-data/outputs/mini-fazenda.html) bytes"

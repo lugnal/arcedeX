@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>STONE CLICKER</title>
+
+<style>
+
+/* =========================
+RESET
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Verdana,sans-serif;
+    background:linear-gradient(180deg,#07111f,#0f1f35);
+    color:white;
+    overflow-x:hidden;
+}
+
+/* =========================
+FUNDO
+========================= */
+
+.bg{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+
+    background:
+    radial-gradient(circle at top,
+    rgba(0,140,255,.12),
+    transparent 60%);
+}
+
+/* =========================
+MENU
+========================= */
+
+.menu{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:20px;
+    padding:20px;
+}
+
+.logo{
+    font-size:clamp(45px,8vw,90px);
+    font-weight:900;
+    color:#59b7ff;
+
+    text-shadow:
+    0 0 20px rgba(89,183,255,.5);
+}
+
+.menu p{
+    color:#8ca6c0;
+    font-size:18px;
+}
+
+/* =========================
+GAME
+========================= */
+
+.gameTela{
+    display:none;
+}
+
+.container{
+    max-width:1500px;
+    margin:auto;
+    padding:15px;
+}
+
+/* =========================
+BOTÕES
+========================= */
+
+button{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:13px;
+    font-weight:bold;
+    cursor:pointer;
+    color:white;
+
+    background:
+    linear-gradient(90deg,#0077ff,#00aaff);
+
+    transition:.2s;
+    font-size:14px;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+button:active{
+    transform:scale(.98);
+}
+
+.menu button{
+    width:260px;
+}
+
+.botoesTopo{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+/* =========================
+TOPO
+========================= */
+
+.topo{
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(160px,1fr));
+
+    gap:15px;
+
+    margin-bottom:20px;
+}
+
+.card{
+    background:#12263d;
+
+    border:2px solid rgba(255,255,255,.06);
+
+    border-radius:18px;
+
+    padding:15px;
+
+    text-align:center;
+}
+
+.card h2{
+    color:#8ca6c0;
+    font-size:12px;
+    margin-bottom:8px;
+}
+
+.card p{
+    font-size:clamp(18px,3vw,30px);
+    font-weight:bold;
+    word-break:break-word;
+}
+
+/* =========================
+LAYOUT
+========================= */
+
+.game{
+    display:grid;
+
+    grid-template-columns:
+    minmax(0,1fr)
+    minmax(300px,420px);
+
+    gap:20px;
+}
+
+/* =========================
+AREA
+========================= */
+
+.area{
+    background:#12263d;
+
+    border-radius:25px;
+
+    padding:25px;
+
+    position:relative;
+
+    overflow:hidden;
+
+    border:2px solid rgba(255,255,255,.06);
+}
+
+/* =========================
+PEDRA
+========================= */
+
+.block{
+    width:min(280px,70vw);
+    height:min(280px,70vw);
+
+    margin:auto;
+
+    border-radius:30px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    font-size:clamp(70px,10vw,120px);
+
+    cursor:pointer;
+
+    user-select:none;
+
+    transition:.08s;
+
+    background:
+    linear-gradient(145deg,#5d7fa3,#2e4f73);
+
+    box-shadow:
+    0 0 30px rgba(0,140,255,.3);
+
+    border:4px solid #7ea5cf;
+}
+
+.block:hover{
+    transform:scale(1.02);
+}
+
+.block:active{
+    transform:scale(.95);
+}
+
+.titulo{
+    margin-top:25px;
+    text-align:center;
+    font-size:clamp(24px,4vw,34px);
+}
+
+.sub{
+    margin-top:10px;
+    text-align:center;
+    color:#8ca6c0;
+}
+
+/* =========================
+INFOS
+========================= */
+
+.infos{
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(140px,1fr));
+
+    gap:12px;
+
+    margin-top:25px;
+}
+
+.info{
+    background:#19324f;
+
+    border-radius:15px;
+
+    padding:14px;
+
+    text-align:center;
+}
+
+.info h3{
+    font-size:11px;
+    color:#8ca6c0;
+    margin-bottom:8px;
+}
+
+.info p{
+    font-size:clamp(16px,3vw,24px);
+}
+
+/* =========================
+LOJA
+========================= */
+
+.loja{
+    background:#12263d;
+
+    border-radius:25px;
+
+    padding:20px;
+
+    border:2px solid rgba(255,255,255,.06);
+
+    max-height:90vh;
+
+    overflow-y:auto;
+}
+
+.loja h2{
+    font-size:30px;
+    color:#59b7ff;
+    margin-bottom:18px;
+}
+
+.loja::-webkit-scrollbar{
+    width:6px;
+}
+
+.loja::-webkit-scrollbar-thumb{
+    background:#59b7ff;
+    border-radius:10px;
+}
+
+/* =========================
+ITEM
+========================= */
+
+.item{
+    background:#19324f;
+
+    border:2px solid rgba(255,255,255,.05);
+
+    border-radius:18px;
+
+    padding:14px;
+
+    margin-bottom:14px;
+
+    transition:.2s;
+}
+
+.item:hover{
+    transform:translateY(-3px);
+    border-color:#59b7ff;
+}
+
+.item-topo{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+
+.item h3{
+    font-size:15px;
+}
+
+.item p{
+    font-size:12px;
+    color:#8ca6c0;
+    margin-bottom:12px;
+}
+
+.preco{
+    color:#ffe066;
+    font-size:12px;
+}
+
+/* =========================
+TEXTO CLICK
+========================= */
+
+.click{
+    position:absolute;
+
+    font-size:clamp(18px,4vw,32px);
+
+    font-weight:bold;
+
+    pointer-events:none;
+
+    animation:subirTexto 1s forwards;
+}
+
+@keyframes subirTexto{
+
+    0%{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+
+    100%{
+        opacity:0;
+        transform:translateY(-100px) scale(1.3);
+    }
+
+}
+
+/* =========================
+RESPONSIVO
+========================= */
+
+@media(max-width:1000px){
+
+.game{
+    grid-template-columns:1fr;
+}
+
+.loja{
+    max-height:none;
+}
+
+.botoesTopo{
+    flex-direction:column;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- MENU -->
+
+<div class="menu" id="menu">
+
+<div class="logo">
+🪨 STONE CLICKER
+</div>
+
+<p>
+Um clicker difícil com progressão lenta.
+</p>
+
+<button onclick="iniciarJogo()">
+▶ JOGAR
+</button>
+<BUtton onclick="Voltar()">VOLTAR</BUtton>
+
+</div>
+
+<!-- GAME -->
+
+<div class="gameTela" id="gameTela">
+
+<div class="container">
+
+<div class="botoesTopo">
+
+<button onclick="voltarMenu()">
+⬅ VOLTAR AO MENU
+</button>
+
+<button onclick="resetarJogo()">
+🗑 RESETAR SAVE
+</button>
+
+</div>
+
+<div class="topo">
+
+<div class="card">
+<h2>MOEDAS</h2>
+<p id="moedas">0</p>
+</div>
+
+<div class="card">
+<h2>POR CLIQUE</h2>
+<p id="clique">1</p>
+</div>
+
+<div class="card">
+<h2>POR SEGUNDO</h2>
+<p id="segundo">0</p>
+</div>
+
+<div class="card">
+<h2>TOTAL CLIQUES</h2>
+<p id="cliques">0</p>
+</div>
+
+<div class="card">
+<h2>CRÍTICO</h2>
+<p id="critico">x3</p>
+</div>
+
+</div>
+
+<div class="game">
+
+<div class="area" id="area">
+
+<div class="block" onclick="clicar()" id="bloco">
+🪨
+</div>
+
+<div class="titulo">
+MINERE A PEDRA
+</div>
+
+<div class="sub">
+Ganhar moedas aqui é difícil.
+</div>
+
+<div class="infos">
+
+<div class="info">
+<h3>🔥 COMBO</h3>
+<p id="combo">0</p>
+</div>
+
+<div class="info">
+<h3>💥 CRÍTICO</h3>
+<p id="chance">1%</p>
+</div>
+
+<div class="info">
+<h3>⚡ MULTI</h3>
+<p id="multi">x1</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="loja">
+
+<h2>🛒 LOJA</h2>
+
+<div id="itens"></div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* =========================
+TELAS
+========================= */
+
+function iniciarJogo(){
+
+    document.getElementById('menu')
+    .style.display = 'none';
+
+    document.getElementById('gameTela')
+    .style.display = 'block';
+}
+
+function voltarMenu(){
+
+    document.getElementById('menu')
+    .style.display = 'flex';
+
+    document.getElementById('gameTela')
+    .style.display = 'none';
+}
+
+/* =========================
+RESETAR
+========================= */
+
+function resetarJogo(){
+
+    localStorage.removeItem('stoneClickerSave');
+
+    location.reload();
+}
+
+/* =========================
+VARIÁVEIS
+========================= */
+
+let moedas = 0;
+let porClique = 1;
+let porSegundo = 0;
+let totalCliques = 0;
+let combo = 0;
+let multiplicador = 1;
+let critico = 3;
+let chanceCritica = 1;
+
+/* =========================
+LOJA
+========================= */
+
+const upgrades = [
+
+{
+nome:"⛏️ Picareta Velha",
+desc:"+1 clique",
+preco:100,
+efeito:()=> porClique += 1
+},
+
+{
+nome:"🪓 Ferramenta Pesada",
+desc:"+3 clique",
+preco:1000,
+efeito:()=> porClique += 3
+},
+
+{
+nome:"⚙️ Máquina Básica",
+desc:"+1 por segundo",
+preco:2000,
+efeito:()=> porSegundo += 1
+},
+
+{
+nome:"🔋 Bateria",
+desc:"+5 clique",
+preco:2800,
+efeito:()=> porClique += 5
+},
+
+{
+nome:"🤖 Robô",
+desc:"+4 por segundo",
+preco:5200,
+efeito:()=> porSegundo += 4
+},
+
+{
+nome:"🚀 Turbo",
+desc:"+20 clique",
+preco:7000,
+efeito:()=> porClique += 20
+},
+
+{
+nome:"🛰️ Satélite",
+desc:"+25 por segundo",
+preco:800000,
+efeito:()=> porSegundo += 25
+},
+
+{
+nome:"☢️ Núcleo",
+desc:"x2 clique",
+preco:3000000,
+efeito:()=> porClique *= 2
+},
+
+{
+nome:"🌌 Portal",
+desc:"+100 clique",
+preco:10000000,
+efeito:()=> porClique += 100
+},
+
+{
+nome:"👑 Rei",
+desc:"+150 por segundo",
+preco:40000000,
+efeito:()=> porSegundo += 150
+},
+
+{
+nome:"⚔️ Lendário",
+desc:"x5 clique",
+preco:120000000,
+efeito:()=> porClique *= 5
+},
+
+{
+nome:"🐉 Dragão",
+desc:"+1000 clique",
+preco:400000000,
+efeito:()=> porClique += 1000
+},
+
+{
+nome:"🪐 Planeta",
+desc:"+2000 por segundo",
+preco:1500000000,
+efeito:()=> porSegundo += 2000
+},
+
+{
+nome:"🌠 Estrela",
+desc:"+7000 clique",
+preco:5000000000,
+efeito:()=> porClique += 7000
+},
+
+{
+nome:"🕳️ Buraco Negro",
+desc:"x10 clique",
+preco:20000000000,
+efeito:()=> porClique *= 10
+},
+
+{
+nome:"👾 Deus",
+desc:"+100000 clique",
+preco:100000000000,
+efeito:()=> porClique += 100000
+}
+
+];
+
+/* =========================
+GERAR LOJA
+========================= */
+
+function gerarLoja(){
+
+    const loja =
+    document.getElementById('itens');
+
+    loja.innerHTML = "";
+
+    upgrades.forEach((u,index)=>{
+
+        loja.innerHTML += `
+
+        <div class="item">
+
+            <div class="item-topo">
+
+                <h3>${u.nome}</h3>
+
+                <div class="preco">
+                ${formatar(u.preco)}
+                </div>
+
+            </div>
+
+            <p>${u.desc}</p>
+
+            <button onclick="comprar(${index})">
+            Comprar
+            </button>
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+/* =========================
+FORMATAR
+========================= */
+
+function formatar(v){
+
+    return Math.floor(v)
+    .toLocaleString('pt-BR');
+}
+
+/* =========================
+ATUALIZAR
+========================= */
+
+function atualizar(){
+
+    moedas = Math.floor(moedas);
+
+    document.getElementById('moedas')
+    .innerText = formatar(moedas);
+
+    document.getElementById('clique')
+    .innerText = formatar(porClique);
+
+    document.getElementById('segundo')
+    .innerText = formatar(porSegundo);
+
+    document.getElementById('cliques')
+    .innerText = formatar(totalCliques);
+
+    document.getElementById('combo')
+    .innerText = combo;
+
+    document.getElementById('critico')
+    .innerText = "x"+critico;
+
+    document.getElementById('chance')
+    .innerText = chanceCritica + "%";
+
+    document.getElementById('multi')
+    .innerText = "x"+multiplicador;
+}
+
+/* =========================
+CLICK
+========================= */
+
+function clicar(){
+
+    totalCliques++;
+
+    combo++;
+
+    let ganho =
+    (porClique * multiplicador) * 0.2;
+
+    if(ganho < 1){
+        ganho = 1;
+    }
+
+    ganho = Math.floor(ganho);
+
+    if(Math.random()*100 < chanceCritica){
+
+        ganho *= critico;
+
+        texto("CRÍTICO!",'#ff5252');
+    }
+
+    moedas += ganho;
+
+    criarTexto("+"+formatar(ganho));
+
+    animar();
+
+    atualizar();
+}
+
+function Voltar() {
+    window.location.href="index.html"
+}
+
+/* =========================
+TEXTOS
+========================= */
+
+function criarTexto(valor){
+
+    texto(valor,'#ffe066');
+}
+
+function texto(msg,cor){
+
+    const t =
+    document.createElement('div');
+
+    t.classList.add('click');
+
+    t.innerText = msg;
+
+    t.style.color = cor;
+
+    t.style.left =
+    Math.random()*70 + 15 + '%';
+
+    t.style.top = '45%';
+
+    document.getElementById('area')
+    .appendChild(t);
+
+    setTimeout(()=>{
+
+        t.remove();
+
+    },1000);
+}
+
+/* =========================
+ANIMAÇÃO
+========================= */
+
+function animar(){
+
+    const bloco =
+    document.getElementById('bloco');
+
+    bloco.style.transform = 'scale(.95)';
+
+    setTimeout(()=>{
+
+        bloco.style.transform = 'scale(1)';
+
+    },80);
+}
+
+/* =========================
+COMPRAR
+========================= */
+
+function comprar(i){
+
+    const u = upgrades[i];
+
+    if(moedas >= u.preco){
+
+        moedas -= u.preco;
+
+        u.efeito();
+
+        u.preco =
+        Math.floor(u.preco * 4.5);
+
+        atualizar();
+
+        gerarLoja();
+    }
+
+}
+
+/* =========================
+AUTO MONEY
+========================= */
+
+setInterval(()=>{
+
+    moedas += porSegundo * 0.4;
+
+    atualizar();
+
+},1000);
+
+/* =========================
+COMBO
+========================= */
+
+let tempo;
+
+document.addEventListener('click',()=>{
+
+    clearTimeout(tempo);
+
+    tempo = setTimeout(()=>{
+
+        combo = 0;
+
+        atualizar();
+
+    },1500);
+
+});
+
+/* =========================
+SAVE
+========================= */
+
+function salvar(){
+
+    localStorage.setItem('stoneClickerSave',JSON.stringify({
+
+        moedas,
+        porClique,
+        porSegundo,
+        totalCliques,
+        combo,
+        multiplicador,
+        critico,
+        chanceCritica,
+        upgrades
+
+    }));
+
+}
+
+function carregar(){
+
+    const save =
+    JSON.parse(localStorage.getItem('stoneClickerSave'));
+
+    if(save){
+
+        moedas = save.moedas;
+        porClique = save.porClique;
+        porSegundo = save.porSegundo;
+        totalCliques = save.totalCliques;
+        combo = save.combo;
+        multiplicador = save.multiplicador;
+        critico = save.critico;
+        chanceCritica = save.chanceCritica;
+
+        save.upgrades.forEach((u,i)=>{
+
+            upgrades[i].preco = u.preco;
+
+        });
+
+    }
+
+}
+
+setInterval(salvar,2000);
+
+/* =========================
+START
+========================= */
+
+carregar();
+gerarLoja();
+atualizar();
+
+</script>
+
+</body>
+</html>

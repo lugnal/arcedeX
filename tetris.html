@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tetris</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:'Courier New',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px 8px}
+h1{font-size:clamp(14px,4vw,18px);font-weight:700;letter-spacing:4px;color:#00e5ff;margin-bottom:10px;text-shadow:0 0 14px rgba(0,229,255,0.4)}
+#wrap{display:flex;gap:16px;justify-content:center;align-items:flex-start}
+canvas{display:block;border:1px solid #1a1a40;image-rendering:pixelated}
+#side{display:flex;flex-direction:column;gap:10px;min-width:90px}
+.panel{background:#0a0a1a;border:1px solid #1a1a40;border-radius:4px;padding:10px 12px}
+.panel label{display:block;font-size:10px;letter-spacing:1px;color:#444;margin-bottom:4px}
+.panel .val{font-size:18px;font-weight:700;color:#00e5ff;letter-spacing:1px}
+#nextCanvas{display:block;margin:0 auto}
+.btns{display:flex;flex-direction:column;gap:8px}
+button{padding:7px 10px;border:1px solid #1a1a40;border-radius:4px;background:#0a0a1a;color:#00e5ff;cursor:pointer;font-size:10px;letter-spacing:1px;font-family:'Courier New',monospace;transition:all .15s;width:100%}
+button:hover{background:#0d1f2d;border-color:#00e5ff}
+#mobileCtrl{display:none;justify-content:center;gap:6px;padding:10px 4px;flex-wrap:wrap}
+.mBtn{padding:12px 18px;border:1px solid #1a1a40;border-radius:4px;background:#0a0a1a;color:#00e5ff;font-size:16px;font-family:'Courier New',monospace;cursor:pointer;touch-action:manipulation;user-select:none;min-width:56px}
+.mBtn:active{background:#0d1f2d}
+p.hint{font-size:10px;color:#222;margin-top:6px;letter-spacing:1px;text-align:center}
+@media(max-width:500px){
+  #mobileCtrl{display:flex}
+  #wrap{gap:8px}
+}
+</style>
+</head>
+<body>
+
+<h1>TETRIS</h1>
+
+<div id="wrap">
+  <canvas id="board" width="200" height="400"></canvas>
+  <div id="side">
+    <div class="panel">
+      <label>PRÓXIMA</label>
+      <canvas id="nextCanvas" width="70" height="70"></canvas>
+    </div>
+    <div class="panel">
+      <label>PONTOS</label>
+      <div class="val" id="score">0</div>
+    </div>
+    <div class="panel">
+      <label>LINHAS</label>
+      <div class="val" id="lines">0</div>
+    </div>
+    <div class="panel">
+      <label>NÍVEL</label>
+      <div class="val" id="level">1</div>
+    </div>
+    <div class="btns">
+      <button onclick="startGame()">JOGAR</button>
+      <button onclick="togglePause()">PAUSAR</button>
+      <button onclick="voltar()">Voltar</button>
+    </div>
+    <div class="panel" style="font-size:9px;color:#333;line-height:1.9;letter-spacing:.5px">
+      ← → mover<br>↑ girar<br>↓ descer<br>ESPAÇO drop
+    </div>
+  </div>
+</div>
+
+<div id="mobileCtrl">
+  <button class="mBtn" onclick="mAction('left')">◀</button>
+  <button class="mBtn" onclick="mAction('down')">▼</button>
+  <button class="mBtn" onclick="mAction('rotate')">↻</button>
+  <button class="mBtn" onclick="mAction('right')">▶</button>
+  <button class="mBtn" onclick="mAction('drop')" style="width:100%;margin-top:2px">DROP</button>
+</div>
+
+<p class="hint">← → mover &nbsp;|&nbsp; ↑ girar &nbsp;|&nbsp; ↓ descer &nbsp;|&nbsp; ESPAÇO drop</p>
+
+<script>
+const bc  = document.getElementById("board");
+const bx  = bc.getContext("2d");
+const nc  = document.getElementById("nextCanvas");
+const nx  = nc.getContext("2d");
+const SZ  = 20, COLS = 10, ROWS = 20;
+
+const PIECES = [
+  {shape:[[1,1,1,1]],         color:"#00e5ff"},
+  {shape:[[1,0],[1,0],[1,1]], color:"#ff9500"},
+  {shape:[[0,1],[0,1],[1,1]], color:"#3a86ff"},
+  {shape:[[1,1],[1,1]],       color:"#ffcc00"},
+  {shape:[[0,1,1],[1,1,0]],   color:"#00d26a"},
+  {shape:[[1,1,0],[0,1,1]],   color:"#ff3860"},
+  {shape:[[0,1,0],[1,1,1]],   color:"#a239ca"},
+];
+
+let board, cur, next;
+let score=0, lines=0, level=1;
+let running=false, paused=false;
+let dropInterval=800, lastTick=0, raf=null;
+
+// ── board ─────────────────────────────────────────
+function newBoard(){
+  return Array.from({length:ROWS}, ()=>Array(COLS).fill(0));
+}
+
+// ── pieces ────────────────────────────────────────
+function randPiece(){
+  const p = PIECES[Math.floor(Math.random()*PIECES.length)];
+  return {shape: p.shape.map(r=>[...r]), color: p.color, x:3, y:0};
+}
+
+function rotate(shape){
+  const R=shape.length, C=shape[0].length;
+  return Array.from({length:C}, (_,c)=>Array.from({length:R}, (_,r)=>shape[R-1-r][c]));
+}
+
+function voltar(){
+  window.location.href="index.html";
+}
+
+// ── collision ─────────────────────────────────────
+function fits(shape, ox, oy){
+  return shape.every((row,r)=>row.every((v,c)=>{
+    if(!v) return true;
+    const nx2=ox+c, ny2=oy+r;
+    return nx2>=0 && nx2<COLS && ny2<ROWS && (ny2<0 || !board[ny2][nx2]);
+  }));
+}
+
+// ── place & clear ─────────────────────────────────
+function place(){
+  // stamp the current piece onto the board
+  cur.shape.forEach((row,r)=>row.forEach((v,c)=>{
+    if(v && cur.y+r >= 0) board[cur.y+r][cur.x+c] = cur.color;
+  }));
+
+  clearLines();
+
+  // bring in next piece
+  cur  = next;
+  next = randPiece();
+
+  // ── GAME OVER CHECK ──────────────────────────────
+  // If the new piece doesn't fit at spawn, the board is full → game over
+  if(!fits(cur.shape, cur.x, cur.y)){
+    gameOver();
+    return;
+  }
+
+  // Extra safety: if any cell in row 0 is filled, game over
+  if(board[0].some(v => v)){
+    gameOver();
+  }
+}
+
+function clearLines(){
+  let cleared=0;
+  for(let r=ROWS-1;r>=0;r--){
+    if(board[r].every(v=>v)){
+      board.splice(r,1);
+      board.unshift(Array(COLS).fill(0));
+      cleared++; r++;
+    }
+  }
+  if(!cleared) return;
+  lines += cleared;
+  score += [0,100,300,500,800][cleared] * level;
+  level  = Math.floor(lines/10)+1;
+  dropInterval = Math.max(100, 800-level*70);
+  document.getElementById("score").textContent = score;
+  document.getElementById("lines").textContent = lines;
+  document.getElementById("level").textContent = level;
+}
+
+// ── movement ──────────────────────────────────────
+function moveDown(){
+  if(fits(cur.shape, cur.x, cur.y+1)){
+    cur.y++;
+  } else {
+    place();
+  }
+}
+
+function hardDrop(){
+  while(fits(cur.shape, cur.x, cur.y+1)) cur.y++;
+  score += 2*(ROWS-cur.y);
+  document.getElementById("score").textContent = score;
+  place();
+}
+
+function tryRotate(){
+  const r = rotate(cur.shape);
+  if     (fits(r, cur.x,   cur.y)) { cur.shape=r; }
+  else if(fits(r, cur.x+1, cur.y)) { cur.shape=r; cur.x++; }
+  else if(fits(r, cur.x-1, cur.y)) { cur.shape=r; cur.x--; }
+}
+
+// ── ghost ─────────────────────────────────────────
+function ghostY(){
+  let gy=cur.y;
+  while(fits(cur.shape, cur.x, gy+1)) gy++;
+  return gy;
+}
+
+// ── draw helpers ──────────────────────────────────
+function drawCell(ctx, x, y, color, sz){
+  ctx.fillStyle = color;
+  ctx.fillRect(x*sz+1, y*sz+1, sz-2, sz-2);
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.fillRect(x*sz+1, y*sz+1, sz-2, 4);
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.fillRect(x*sz+1, y*sz+sz-4, sz-2, 3);
+}
+
+function drawBoard(){
+  bx.fillStyle="#060610";
+  bx.fillRect(0,0,bc.width,bc.height);
+
+  bx.strokeStyle="#0e0e22"; bx.lineWidth=1;
+  for(let c=0;c<COLS;c++){bx.beginPath();bx.moveTo(c*SZ,0);bx.lineTo(c*SZ,ROWS*SZ);bx.stroke();}
+  for(let r=0;r<ROWS;r++){bx.beginPath();bx.moveTo(0,r*SZ);bx.lineTo(COLS*SZ,r*SZ);bx.stroke();}
+
+  board.forEach((row,r)=>row.forEach((v,c)=>{ if(v) drawCell(bx,c,r,v,SZ); }));
+
+  // ghost
+  const gy = ghostY();
+  if(gy !== cur.y){
+    cur.shape.forEach((row,r)=>row.forEach((v,c)=>{
+      if(!v) return;
+      bx.fillStyle = cur.color+"28";
+      bx.fillRect((cur.x+c)*SZ+1, (gy+r)*SZ+1, SZ-2, SZ-2);
+      bx.strokeStyle = cur.color+"55"; bx.lineWidth=1;
+      bx.strokeRect((cur.x+c)*SZ+1, (gy+r)*SZ+1, SZ-2, SZ-2);
+    }));
+  }
+
+  // current piece
+  cur.shape.forEach((row,r)=>row.forEach((v,c)=>{ if(v) drawCell(bx,cur.x+c,cur.y+r,cur.color,SZ); }));
+
+  if(paused){
+    bx.fillStyle="rgba(0,0,0,0.62)";
+    bx.fillRect(0,0,bc.width,bc.height);
+    bx.fillStyle="#00e5ff";
+    bx.font="bold 16px 'Courier New'";
+    bx.textAlign="center";
+    bx.fillText("PAUSADO",100,200);
+    bx.textAlign="left";
+  }
+
+  nx.fillStyle="#0a0a1a";
+  nx.fillRect(0,0,70,70);
+  const nsh=next.shape;
+  const offX=Math.floor((3.5-nsh[0].length/2));
+  const offY=Math.floor((3.5-nsh.length/2));
+  nsh.forEach((row,r)=>row.forEach((v,c)=>{ if(v) drawCell(nx,offX+c,offY+r,next.color,14); }));
+}
+
+// ── game loop ─────────────────────────────────────
+function loop(ts){
+  if(!running){ raf=null; return; }
+  raf = requestAnimationFrame(loop);
+  if(!paused && ts-lastTick > dropInterval){ moveDown(); lastTick=ts; }
+  drawBoard();
+}
+
+// ── start / pause ─────────────────────────────────
+function startGame(){
+  if(raf) cancelAnimationFrame(raf);
+  board=newBoard();
+  score=0; lines=0; level=1; dropInterval=800;
+  running=true; paused=false; lastTick=0;
+  cur=randPiece(); next=randPiece();
+  document.getElementById("score").textContent=0;
+  document.getElementById("lines").textContent=0;
+  document.getElementById("level").textContent=1;
+  raf=requestAnimationFrame(loop);
+}
+
+function togglePause(){ if(running) paused=!paused; }
+
+// ── game over ─────────────────────────────────────
+function gameOver(){
+  running = false;          // stop the loop first
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+
+  // draw final board state
+  drawBoard();
+
+  // overlay
+  bx.fillStyle="rgba(0,0,0,0.78)";
+  bx.fillRect(0,0,bc.width,bc.height);
+  bx.fillStyle="#ff3860";
+  bx.font="bold 18px 'Courier New'";
+  bx.textAlign="center";
+  bx.fillText("FIM DE JOGO",100,170);
+  bx.fillStyle="#00e5ff";
+  bx.font="bold 13px 'Courier New'";
+  bx.fillText("PONTOS: "+score,100,196);
+  bx.fillStyle="#555";
+  bx.font="10px 'Courier New'";
+  bx.fillText("JOGAR para reiniciar",100,220);
+  bx.textAlign="left";
+}
+
+// ── keyboard ──────────────────────────────────────
+document.addEventListener("keydown", e=>{
+  if(!running || paused) return;
+  if(e.key==="ArrowLeft"  && fits(cur.shape,cur.x-1,cur.y)) cur.x--;
+  if(e.key==="ArrowRight" && fits(cur.shape,cur.x+1,cur.y)) cur.x++;
+  if(e.key==="ArrowDown")  moveDown();
+  if(e.key==="ArrowUp")    tryRotate();
+  if(e.key===" "){e.preventDefault(); hardDrop();}
+});
+
+// ── mobile buttons ────────────────────────────────
+function mAction(a){
+  if(!running || paused) return;
+  if(a==="left"   && fits(cur.shape,cur.x-1,cur.y)) cur.x--;
+  if(a==="right"  && fits(cur.shape,cur.x+1,cur.y)) cur.x++;
+  if(a==="down")   moveDown();
+  if(a==="rotate") tryRotate();
+  if(a==="drop")   hardDrop();
+}
+
+// ── idle screen ───────────────────────────────────
+(function(){
+  bx.fillStyle="#060610"; bx.fillRect(0,0,bc.width,bc.height);
+  for(let c=0;c<COLS;c++) for(let r=0;r<ROWS;r++){
+    if((c+r)%2===0){bx.fillStyle="#0e0e20";bx.fillRect(c*SZ,r*SZ,SZ,SZ);}
+  }
+  bx.fillStyle="#00e5ff"; bx.font="bold 14px 'Courier New'"; bx.textAlign="center";
+  bx.fillText("TETRIS",100,185);
+  bx.fillStyle="#333"; bx.font="10px 'Courier New'";
+  bx.fillText("clique em JOGAR",100,210);
+  bx.textAlign="left";
+  nx.fillStyle="#0a0a1a"; nx.fillRect(0,0,70,70);
+})();
+</script>
+</body>
+</html>

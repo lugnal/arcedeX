@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drift Legends</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    overflow:hidden;
+    background:#0f172a;
+    font-family:Arial, sans-serif;
+}
+
+canvas{
+    display:block;
+    background:#1e293b;
+}
+
+.ui{
+    position:fixed;
+    top:20px;
+    left:20px;
+    color:white;
+    z-index:10;
+    background:rgba(0,0,0,.5);
+    padding:15px;
+    border-radius:14px;
+    backdrop-filter:blur(8px);
+}
+
+h1{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+.info{
+    margin-top:6px;
+    font-size:15px;
+}
+
+.controls{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    gap:15px;
+    z-index:10;
+}
+
+.btn{
+    width:70px;
+    height:70px;
+    border:none;
+    border-radius:20px;
+    background:rgba(255,255,255,.15);
+    color:white;
+    font-size:30px;
+    backdrop-filter:blur(10px);
+}
+
+</style>
+</head>
+<body>
+
+<div class="garage" style="position:fixed;right:20px;top:20px;z-index:20;background:rgba(0,0,0,.5);padding:15px;border-radius:18px;color:white;backdrop-filter:blur(10px)">
+<h2 style="margin-bottom:10px">🚗 Garagem</h2>
+<select id="carSelect" style="padding:10px;border-radius:10px;border:none;font-size:16px">
+<option value="red">🏎️ Drift Vermelho</option>
+<option value="blue">💙 Drift Azul</option>
+<option value="green">💚 Drift Verde</option>
+<option value="gold">👑 Drift Dourado</option>
+<option value="purple">🟣 Drift Roxo</option>
+</select>
+</div>
+
+<div class="ui">
+    <h1>🏎️ Drift Legends</h1>
+    <div class="info">Pontos: <span id="score">0</span></div>
+    <div class="info">Velocidade: <span id="speed">0</span> km/h</div>
+    <div class="info">Melhor Drift: <span id="best">0</span></div>
+</div>
+
+<div class="controls">
+    <button class="btn" id="left">⬅️</button>
+    <button class="btn" id="right">➡️</button>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const scoreEl = document.getElementById('score');
+const speedEl = document.getElementById('speed');
+const bestEl = document.getElementById('best');
+
+const CARS = {
+    red:{color:'#ef4444',speed:8},
+    blue:{color:'#3b82f6',speed:9},
+    green:{color:'#22c55e',speed:7},
+    gold:{color:'#facc15',speed:10},
+    purple:{color:'#a855f7',speed:8.5}
+};
+
+const car = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    width: 40,
+    height: 70,
+    angle: 0,
+    speed: 0,
+    maxSpeed: 8,
+    acceleration: 0.12,
+    friction: 0.04,
+    drift: 0,
+    color: '#ef4444'
+};
+
+let keys = {};
+let score = 0;
+let bestDrift = 0;
+let particles = [];
+
+window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+});
+
+window.addEventListener('keyup', e => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+function createParticle(){
+
+    particles.push({
+        x: car.x,
+        y: car.y,
+        size: Math.random()*6+2,
+        alpha: 1,
+        vx:(Math.random()-.5)*2,
+        vy:(Math.random()-.5)*2
+    });
+}
+
+function updateParticles(){
+
+    for(let i=particles.length-1;i>=0;i--){
+
+        const p = particles[i];
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= .02;
+
+        if(p.alpha <= 0){
+            particles.splice(i,1);
+        }
+    }
+}
+
+function drawParticles(){
+
+    particles.forEach(p=>{
+
+        ctx.fillStyle = `rgba(200,200,200,${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fill();
+    });
+}
+
+function drawTrack(){
+
+    // GRAMA
+    ctx.fillStyle = '#14532d';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // AUTÓDROMO
+    ctx.beginPath();
+    ctx.fillStyle = '#4b5563';
+
+    ctx.moveTo(250,150);
+    ctx.lineTo(canvas.width-250,150);
+    ctx.quadraticCurveTo(canvas.width-80,180,canvas.width-120,350);
+    ctx.lineTo(canvas.width-200,canvas.height-220);
+    ctx.quadraticCurveTo(canvas.width-250,canvas.height-80,canvas.width-450,canvas.height-120);
+    ctx.lineTo(350,canvas.height-180);
+    ctx.quadraticCurveTo(120,canvas.height-220,150,canvas.height-420);
+    ctx.lineTo(220,300);
+    ctx.quadraticCurveTo(250,180,250,150);
+
+    ctx.fill();
+
+    // PARTE INTERNA
+    ctx.beginPath();
+    ctx.fillStyle = '#14532d';
+
+    ctx.moveTo(380,260);
+    ctx.lineTo(canvas.width-380,260);
+    ctx.quadraticCurveTo(canvas.width-250,300,canvas.width-300,420);
+    ctx.lineTo(canvas.width-360,canvas.height-300);
+    ctx.quadraticCurveTo(canvas.width-420,canvas.height-240,canvas.width-520,canvas.height-260);
+    ctx.lineTo(430,canvas.height-320);
+    ctx.quadraticCurveTo(280,canvas.height-360,300,canvas.height-470);
+    ctx.lineTo(350,340);
+    ctx.quadraticCurveTo(370,280,380,260);
+
+    ctx.fill();
+
+    // LINHA DA PISTA
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 8;
+    ctx.setLineDash([30,20]);
+
+    ctx.beginPath();
+    ctx.moveTo(320,210);
+    ctx.lineTo(canvas.width-320,210);
+    ctx.quadraticCurveTo(canvas.width-120,240,canvas.width-160,360);
+    ctx.lineTo(canvas.width-250,canvas.height-250);
+    ctx.quadraticCurveTo(canvas.width-300,canvas.height-140,canvas.width-470,canvas.height-180);
+    ctx.lineTo(390,canvas.height-240);
+    ctx.quadraticCurveTo(180,canvas.height-270,220,canvas.height-430);
+    ctx.lineTo(280,320);
+    ctx.quadraticCurveTo(300,220,320,210);
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+}
+
+function updateCar(){
+
+    if(keys['w'] || keys['arrowup']){
+        car.speed += car.acceleration;
+    }
+
+    if(keys['s'] || keys['arrowdown']){
+        car.speed -= car.acceleration;
+    }
+
+    if(car.speed > car.maxSpeed) car.speed = car.maxSpeed;
+    if(car.speed < -car.maxSpeed/2) car.speed = -car.maxSpeed/2;
+
+    if(keys['a'] || keys['arrowleft']){
+        car.angle -= 0.05 * (car.speed/2);
+        car.drift += Math.abs(car.speed);
+
+        if(Math.abs(car.speed) > 3){
+            createParticle();
+        }
+    }
+
+    if(keys['d'] || keys['arrowright']){
+        car.angle += 0.05 * (car.speed/2);
+        car.drift += Math.abs(car.speed);
+
+        if(Math.abs(car.speed) > 3){
+            createParticle();
+        }
+    }
+
+    car.x += Math.sin(car.angle) * car.speed;
+    car.y -= Math.cos(car.angle) * car.speed;
+
+    if(car.speed > 0){
+        car.speed -= car.friction;
+    }
+
+    if(car.speed < 0){
+        car.speed += car.friction;
+    }
+
+    if(Math.abs(car.speed) < 0.05){
+        car.speed = 0;
+    }
+
+    score += Math.floor(car.drift * 0.01);
+
+    if(car.drift > bestDrift){
+        bestDrift = Math.floor(car.drift);
+    }
+
+    scoreEl.textContent = score;
+    speedEl.textContent = Math.floor(Math.abs(car.speed)*25);
+    bestEl.textContent = bestDrift;
+}
+
+function drawCar(){
+
+    ctx.save();
+
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle);
+
+    ctx.fillStyle = car.color;
+    ctx.fillRect(-car.width/2,-car.height/2,car.width,car.height);
+
+    ctx.fillStyle = '#111827';
+
+    ctx.fillRect(-18,-25,10,18);
+    ctx.fillRect(8,-25,10,18);
+    ctx.fillRect(-18,7,10,18);
+    ctx.fillRect(8,7,10,18);
+
+    ctx.fillStyle = '#60a5fa';
+    ctx.fillRect(-12,-12,24,20);
+
+    ctx.restore();
+}
+
+function drawGrass(){
+
+    for(let i=0;i<200;i++){
+
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(
+            Math.random()*canvas.width,
+            Math.random()*canvas.height,
+            4,
+            4
+        );
+    }
+}
+
+function gameLoop(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawGrass();
+    drawTrack();
+
+    updateCar();
+    updateParticles();
+
+    drawParticles();
+    drawCar();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// MOBILE
+
+const leftBtn = document.getElementById('left');
+const rightBtn = document.getElementById('right');
+
+leftBtn.addEventListener('touchstart',()=>keys['a']=true);
+leftBtn.addEventListener('touchend',()=>keys['a']=false);
+
+rightBtn.addEventListener('touchstart',()=>keys['d']=true);
+rightBtn.addEventListener('touchend',()=>keys['d']=false);
+
+window.addEventListener('resize',()=>{
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+const carSelect = document.getElementById('carSelect');
+
+carSelect.addEventListener('change',()=>{
+
+    const selected = CARS[carSelect.value];
+
+    car.color = selected.color;
+    car.maxSpeed = selected.speed;
+});
+
+gameLoop();
+
+</script>
+</body>
+</html>
+

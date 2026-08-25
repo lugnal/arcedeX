@@ -1,0 +1,1 @@
+console.log("ArcadeX Premium carregado com sucesso!");

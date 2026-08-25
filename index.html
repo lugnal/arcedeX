@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArcadeX</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1b1b3a, #0a0a16 60%);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 40px;
+      background: rgba(10, 10, 22, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+    }
+
+    .logo-area h1 {
+      color: #00e5ff;
+      font-size: 2.3rem;
+      text-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+    }
+
+    .logo-area p {
+      color: #bdbdf0;
+      font-size: 0.95rem;
+      margin-top: 5px;
+    }
+
+    .menu-topo {
+      display: flex;
+      gap: 20px;
+    }
+
+    .menu-topo a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .menu-topo a:hover {
+      color: #00e5ff;
+    }
+
+    .hero {
+      min-height: 55vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .hero-conteudo h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .hero-conteudo p {
+      color: #c9c9ff;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    .botao-hero {
+      display: inline-block;
+      background: linear-gradient(90deg, #00e5ff, #8a2be2);
+      color: white;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .botao-hero:hover {
+      transform: scale(1.05);
+    }
+
+    .principal {
+      padding: 20px 40px 60px;
+    }
+
+    .titulo-secao {
+      font-size: 2rem;
+      margin-bottom: 25px;
+      color: #00e5ff;
+    }
+
+    .grade-jogos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 25px;
+    }
+
+    /* 🔥 CARD AJUSTADO */
+    .cartao-jogo {
+      background: rgba(28, 28, 43, 0.95);
+      border-radius: 18px;
+      text-decoration: none;
+      color: white;
+      position: relative;
+      transition: 0.35s;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      padding-bottom: 20px;
+    }
+
+    .cartao-jogo:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.25);
+    }
+
+    /* 🖼️ IMAGEM CENTRALIZADA E VISÍVEL */
+    .cartao-jogo img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      transition: 0.3s;
+    }
+
+    .cartao-jogo:hover img {
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 10px #00e5ff);
+    }
+
+    .tag-jogo {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(90deg, #8a2be2, #00e5ff);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .info-jogo {
+      text-align: center;
+      padding: 0 15px;
+    }
+
+    .info-jogo h3 {
+      margin-bottom: 10px;
+    }
+
+    .info-jogo p {
+      color: #c4c4da;
+      font-size: 0.9rem;
+    }
+
+    .rodape {
+      text-align: center;
+      padding: 25px;
+      color: #aaaad5;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    @media (max-width: 768px) {
+      .hero-conteudo h2 {
+        font-size: 2.2rem;
+      }
+
+      .cabecalho {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="cabecalho">
+    <div class="logo-area">
+      <h1>🎮 ArcadeX</h1>
+      <p>Mini site gamer premium com jogos interativos</p>
+    </div>
+
+    <nav class="menu-topo">
+      <a href="index.html">Home</a>
+      <a href="#jogos">Jogos</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-conteudo">
+      <h2>Escolha seu jogo e divirta-se</h2>
+      <p>Uma experiência gamer moderna com jogos clássicos.</p>
+      <a href="#jogos" class="botao-hero">Jogar Agora</a>
+    </div>
+  </section>
+
+  <main class="principal" id="jogos">
+    <h2 class="titulo-secao">🔥 Jogos Disponíveis</h2>
+
+    <section class="grade-jogos">
+
+      <a href="PPT.html" class="cartao-jogo">
+        <div class="tag-jogo">Clássico</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2702.svg">
+        <div class="info-jogo">
+          <h3>✊ Pedra, Papel e Tesoura</h3>
+          <p>Desafie o computador e acumule vitórias no placar.</p>
+        </div>
+      </a>
+
+      <a href="ADV-NM.html" class="cartao-jogo">
+        <div class="tag-jogo">Desafio</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f3b2.svg">
+        <div class="info-jogo">
+          <h3>🔢 Adivinhe o Número</h3>
+          <p>Tente acertar o número secreto entre 1 e 100.</p>
+        </div>
+      </a>
+
+      <a href="quiz.html" class="cartao-jogo">
+        <div class="tag-jogo">Conhecimento</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2753.svg">
+        <div class="info-jogo">
+          <h3>🧠 Quiz</h3>
+          <p>Teste seus conhecimentos de programação e tecnologia.</p>
+        </div>
+      </a>
+
+      <a href="jogo-velha.html" class="cartao-jogo">
+        <div class="tag-jogo">Versus</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/274c.svg">
+        <div class="info-jogo">
+          <h3>❌⭕ Jogo da Velha</h3>
+          <p>Jogue com um amigo em um tabuleiro estilizado.</p>
+        </div>
+      </a>
+
+      <a href="snake.html" class="cartao-jogo">
+        <div class="tag-jogo">Arcade</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f40d.svg">
+        <div class="info-jogo">
+          <h3>🐍 Jogo da Cobra</h3>
+          <p>Aumente a sua Cobra</p>
+        </div>
+        </a>
+
+      <a href="memoria.html" class="cartao-jogo">
+        <div class="tag-jogo">Cartas</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9e9.svg">
+        <div class="info-jogo">
+          <h3>🧠 Jogo da Memoria</h3>
+          <p>Ative a sua Memoria</p>
+        </div>
+      </a>
+
+      <a href="clique.html" class="cartao-jogo">
+        <div class="tag-jogo">Arcade</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f3af.svg">
+        <div class="info-jogo">
+          <h3>🧠 Jogo do clique</h3>
+          <p>Mira afiada 😁</p>
+        </div>
+      </a>
+
+      <a href="forca.html" class="cartao-jogo">
+        <div class="tag-jogo">Conhecimento</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f52c.svg">
+        <div class="info-jogo">
+          <h3>Forca</h3>
+          <p>Adivinhe a palavra</p>
+        </div>
+      </a>
+
+      <a href="labirinto.html" class="cartao-jogo">
+        <div class="tag-jogo">Estrategia</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9ed.svg">
+        <div class="info-jogo">
+          <h3>Labirinto</h3>
+          <p>Consiga sair do Labirinto</p>
+        </div>
+      </a>
+
+      <a href="stack.html" class="cartao-jogo">
+        <div class="tag-jogo">Estrategia</div>
+        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2699.svg">
+        <div class="info-jogo">
+          <h3>Stack</h3>
+          <p>Empilhe os blocos</p>
+        </div>
+      </a>
+
+      <a href="evolucao-pro.html" class="cartao-jogo">
+        <div class="tag-jogo">Evolução</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9ec.svg">
+        <div class="info-jogo">
+          <h3>Evolução</h3>
+          <p>Evolua</p>
+        </div>
+      </a>
+
+      <a href="campominado.html" class="cartao-jogo">
+        <div class="tag-jogo">Estrategia</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f4a3.svg">
+        <div class="info-jogo">
+          <h3>Campo Minado</h3>
+          <p>Não se Exploda</p>
+        </div>
+      </a>
+
+      <a href="buraco-negro.html" class="cartao-jogo">
+        <div class="tag-jogo">Casual</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f573.svg">
+        <div class="info-jogo">
+          <h3>Buraco Negro</h3>
+          <p>Coma tudo que está na sua Frente</p>
+        </div>
+      </a>
+
+      <a href="quebraBlocos.html" class="cartao-jogo">
+        <div class="tag-jogo">Acade</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9f1.svg">
+        <div class="info-jogo">
+          <h3>Quebra Blocos</h3>
+          <p>Detona todos o Blocos</p>
+        </div>
+      </a>
+
+      <a href="tetris.html" class="cartao-jogo">
+        <div class="tag-jogo">Acade</div>
+        <img src="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'>
+  <rect x='2' y='14' width='10' height='10' rx='2' fill='%238a3ffc'/>
+  <rect x='12' y='14' width='10' height='10' rx='2' fill='%238a3ffc'/>
+  <rect x='22' y='14' width='10' height='10' rx='2' fill='%238a3ffc'/>
+  <rect x='12' y='4' width='10' height='10' rx='2' fill='%238a3ffc'/>
+</svg>">
+        <div class="info-jogo">
+          <h3>Tetris</h3>
+          <p>Encaixe blocos</p>
+        </div>
+      </a>
+
+       <a href="sudoku.html" class="cartao-jogo">
+        <div class="tag-jogo">Logica</div>
+        <img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 90'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='%23ffffff'/><stop offset='100%' stop-color='%23e9ecff'/></linearGradient></defs><rect width='90' height='90' rx='20' fill='url(%23g)'/><g stroke='%23d0d4ff' stroke-width='1'><path d='M0 10h90M0 20h90M0 30h90M0 40h90M0 50h90M0 60h90M0 70h90M0 80h90M10 0v90M20 0v90M30 0v90M40 0v90M50 0v90M60 0v90M70 0v90M80 0v90'/></g><g stroke='%23666cff' stroke-width='2'><path d='M0 30h90M0 60h90M30 0v90M60 0v90'/></g><g fill='%23333' font-size='11' text-anchor='middle' dominant-baseline='middle'><text x='15' y='15'>5</text><text x='45' y='45'>7</text><text x='75' y='75'>9</text></g></svg>">
+        <div class="info-jogo">
+          <h3>sudoku</h3>
+          <p>Preencha o tabuleiro</p>
+        </div>
+      </a>
+
+      <a href="quiz-bandeira.html" class="cartao-jogo">
+        <div class="tag-jogo">Conhecimento</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f30d.svg">
+        <div class="info-jogo">
+          <h3>Quiz de Bandeiras</h3>
+          <p>Teste seus conhecimentos</p>
+        </div>
+      </a>
+
+      <a href="nave-espacial.html" class="cartao-jogo">
+        <div class="tag-jogo">Space Shooter</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f680.svg">
+        <div class="info-jogo">
+          <h3>Nave Espacial</h3>
+          <p>Defenda a Terra</p>
+        </div>
+      </a>
+
+      <a href="BlockClique.html" class="cartao-jogo">
+        <div class="tag-jogo">Clique</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1fa99.svg">
+        <div class="info-jogo">
+            <h3>Block Clique</h3>
+            <p>Ganhe moedas</p>
+        </div>
+      </a>
+
+      <a href="hacker.html" class="cartao-jogo">
+        <div class="tag-jogo">Simulador</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f510.svg">
+        <div class="info-jogo">
+          <h3>Hacker</h3>
+          <p>Hackeie</p>
+        </div>
+      </a>
+
+      <a href="corrida.html" class="cartao-jogo">
+        <div class="tag-jogo">Corrida</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f6e3.svg">
+        <div class="info-jogo">
+          <h3>corrida</h3>
+          <p>Seja o mais rapido</p>
+        </div>
+      </a>
+
+      <a href="FlappyBird.html" class="cartao-jogo">
+        <div class="tag-jogo">Arcade</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f426.svg">
+        <div class="info-jogo">
+          <h3>FlappyBird</h3>
+          <p>Voe o mais longe</p>
+        </div>
+      </a>
+
+      <a href="PacMan.html" class="cartao-jogo">
+        <div class="tag-jogo">Labirinto</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f7e1.svg">
+        <div class="info-jogo">
+          <h3>Pac-man</h3>
+          <p>coma tudoo!!</p>
+        </div>
+      </a>
+
+      <a href="rpg.html" class="cartao-jogo">
+        <div class="tag-jogo">RPG</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2694.svg">
+        <div class="info-jogo">
+          <h3>RPG</h3>
+          <p>Viva uma aventura</p>
+        </div>
+      </a>
+
+      <a href="Kindon.html" class="cartao-jogo">
+        <div class="tag-jogo">Estrategia</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f451.svg">
+        <div class="info-jogo">
+          <h3>Kindon</h3>
+          <p>Governe o seu reino</p>
+        </div>
+      </a>
+
+      <a href="mutante.html" class="cartao-jogo">
+        <div class="tag-jogo">Simulador</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9ea.svg">
+        <div class="info-jogo">
+          <h3>Mutantes</h3>
+          <p>Crie o seu mutante</p>
+        </div>
+      </a>
+
+      <a href="Drift.html" class="cartao-jogo">
+        <div class="tag-jogo">Drift</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f3ce.svg">
+        <div class="info-jogo">
+          <h3>Drift</h3>
+          <p>Corra com o seu carro de drift</p>
+        </div>
+      </a>
+
+      <a href="fazenda.html" class="cartao-jogo">
+        <div class="tag-jogo">Farm Simulador</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f69c.svg">
+        <div class="info-jogo">
+          <h3>Fazenda</h3>
+          <p>Crie a sua pripria fazenda</p>
+        </div>
+      </a>
+
+      <a href="Pixel-art.html" class="cartao-jogo">
+        <div class="tag-jogo">Pixel Art</div>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f58c.svg">
+        <div class="info-jogo">
+          <h3>Paint Utopia</h3>
+          <p>Lugar Perfeito Para Pintar</p>
+        </div>
+      </a>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>2026 ArcadeX Premium 😎</p>
+  </footer>
+
+</body>
+</html>

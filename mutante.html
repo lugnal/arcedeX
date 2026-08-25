@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mutantes</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cyan:#22d3ee;--purple:#a855f7;--green:#4ade80;--red:#ef4444;
+  --amber:#f59e0b;--bg0:#020617;--bg1:#0f172a;--bg2:#111827;
+  --bg3:#1e293b;--text:#e2e8f0;--muted:#64748b;
+}
+body{font-family:'Orbitron',sans-serif;background:var(--bg0);color:var(--text);overflow-x:hidden;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(34,211,238,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,#10224f44,transparent),radial-gradient(ellipse 40% 60% at 80% 90%,#0f766e22,transparent);pointer-events:none;z-index:0}
+
+/* HEADER */
+header{background:#0c1121dd;border-bottom:2px solid var(--cyan);padding:14px 20px;position:sticky;top:0;z-index:200;backdrop-filter:blur(10px);box-shadow:0 0 30px #22d3ee22}
+h1{text-align:center;color:var(--cyan);font-size:20px;letter-spacing:4px;margin-bottom:12px;text-shadow:0 0 20px var(--cyan);animation:flicker 8s infinite}
+@keyframes flicker{0%,95%,100%{opacity:1}96%{opacity:.8}97%{opacity:1}98%{opacity:.9}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media(min-width:700px){.stats{grid-template-columns:repeat(6,1fr)}}
+.stat{background:#0f172aaa;border:1px solid #1e3a8a66;border-radius:10px;padding:7px;text-align:center;font-size:8px;letter-spacing:1px;transition:.2s;position:relative;overflow:hidden}
+.stat:hover{border-color:var(--cyan)}
+.stat span{display:block;color:var(--cyan);font-size:14px;font-weight:700;margin-top:3px;font-family:'Share Tech Mono',monospace}
+
+/* NAV TABS */
+.nav-tabs{display:flex;gap:0;max-width:1500px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+.nav-tab{flex:1;padding:10px 8px;font-size:9px;letter-spacing:1px;background:#0c1121;border:1px solid #1e293b;border-bottom:none;color:var(--muted);cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;text-align:center}
+.nav-tab:first-child{border-radius:10px 0 0 0}
+.nav-tab:last-child{border-radius:0 10px 0 0}
+.nav-tab.active{background:#0f172a;color:var(--cyan);border-color:var(--cyan);border-bottom:2px solid var(--bg0);margin-bottom:-1px}
+.nav-tab:hover:not(.active){background:#111827;color:var(--text)}
+
+/* PAGE SYSTEM */
+.page{display:none;max-width:1500px;margin:auto;padding:16px 20px;position:relative;z-index:1}
+.page.active{display:grid}
+
+/* LAB PAGE */
+#page-lab{grid-template-columns:1fr;gap:16px}
+@media(min-width:1100px){#page-lab{grid-template-columns:300px 1fr 300px}}
+
+/* INVENTORY PAGE */
+#page-inventory{grid-template-columns:1fr;gap:16px}
+@media(min-width:900px){#page-inventory{grid-template-columns:280px 1fr}}
+
+/* BATTLE PAGE */
+#page-battle{grid-template-columns:1fr;gap:16px}
+@media(min-width:800px){#page-battle{grid-template-columns:1fr 1fr}}
+
+/* PANELS */
+.panel{background:#0c1121cc;border:1px solid #1e293b;border-radius:14px;padding:16px;backdrop-filter:blur(8px);position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.section-title{color:var(--cyan);font-size:12px;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#22d3ee44,transparent)}
+
+/* DNA GRID */
+.dna-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--cyan) var(--bg0)}
+.card{background:#111827;border:1px solid #1e3a8a55;border-radius:10px;padding:10px;transition:.2s;position:relative;overflow:hidden;cursor:pointer}
+.card:hover{transform:translateY(-2px);border-color:var(--cyan);box-shadow:0 0 12px #22d3ee22}
+.card.selected{border-color:var(--purple);background:#1a1035;box-shadow:0 0 15px #a855f744}
+.card h3{font-size:10px;color:#67e8f9;margin-bottom:5px;letter-spacing:1px}
+.card p{font-size:8px;color:var(--muted);line-height:1.5;margin-bottom:6px;font-family:'Share Tech Mono',monospace}
+
+/* BUTTONS */
+button{width:100%;border:none;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#3b82f6);color:white;padding:8px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1px;transition:.2s;position:relative;overflow:hidden}
+button::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:.4s}
+button:hover::before{left:100%}
+button:hover{transform:scale(1.02);box-shadow:0 0 12px #22d3ee44}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.btn-success{background:linear-gradient(135deg,#059669,#10b981)}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+.btn-amber{background:linear-gradient(135deg,#d97706,#f59e0b);color:#000}
+.btn-sm{padding:5px 8px;font-size:7px;width:auto}
+
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.xp-wrap{margin:10px 0}
+.xp-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;font-family:'Share Tech Mono',monospace}
+.progress{width:100%;height:7px;background:#020617;border-radius:999px;overflow:hidden;border:1px solid #1e293b}
+.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:.4s;box-shadow:0 0 6px var(--cyan)}
+
+/* LOG */
+.log{height:160px;overflow-y:auto;background:#020617;border-radius:10px;padding:10px;font-size:8px;line-height:2;font-family:'Share Tech Mono',monospace;border:1px solid #1e293b;scrollbar-width:thin;scrollbar-color:#22d3ee44 #020617}
+.log p{border-bottom:1px solid #0f172a;padding:1px 0;color:#94a3b8}
+.log p.ev-success{color:#4ade80}.log p.ev-danger{color:#f87171}.log p.ev-warn{color:#fbbf24}.log p.ev-info{color:#67e8f9}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:8px;letter-spacing:1px;font-family:'Share Tech Mono',monospace}
+.common{background:#334155;color:#94a3b8}.rare{background:#1e40af;color:#93c5fd}
+.epic{background:#6b21a8;color:#d8b4fe}.legendary{background:#92400e;color:#fbbf24}
+.forbidden{background:#7f1d1d;color:#fca5a5;animation:glow-red 1.5s infinite alternate}
+@keyframes glow-red{0%{box-shadow:0 0 5px #ef4444}100%{box-shadow:0 0 15px #ef4444,0 0 30px #ef444488}}
+
+/* STAT BARS */
+.mini-bar-wrap{margin:3px 0;display:flex;align-items:center;gap:5px;font-size:7px;font-family:'Share Tech Mono',monospace;color:var(--muted)}
+.mini-bar{flex:1;height:4px;background:#1e293b;border-radius:4px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:4px;transition:.6s ease}
+
+/* LAB SCENE */
+#lab{position:relative;height:440px;background:linear-gradient(180deg,#020617 0%,#0a1628 100%);border-radius:14px;border:1px solid #1e293b;overflow:hidden;margin-bottom:12px}
+#lab::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:10}
+.tank{position:absolute;width:130px;height:210px;border:2px solid var(--cyan);border-radius:14px;overflow:hidden;box-shadow:0 0 18px #22d3ee33,inset 0 0 15px #22d3ee11}
+#tank1{left:40px;top:90px}#tank2{right:40px;top:90px}
+.liquid{position:absolute;bottom:0;width:100%;animation:bubble 4s infinite ease-in-out}
+#liq1{height:65%;background:linear-gradient(180deg,#ef4444aa,#f97316cc)}
+#liq2{height:65%;background:linear-gradient(180deg,#8b5cf6aa,#06b6d4cc)}
+@keyframes bubble{0%,100%{height:65%}50%{height:68%}}
+.bubble-particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:.6}100%{transform:translateY(-220px) scale(.3);opacity:0}}
+.dna-emoji{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-size:46px;animation:float-dna 3s infinite ease-in-out;filter:drop-shadow(0 0 10px rgba(255,255,255,.4));z-index:2}
+@keyframes float-dna{0%,100%{transform:translate(-50%,-50%) translateY(0) rotate(-5deg)}50%{transform:translate(-50%,-50%) translateY(-8px) rotate(5deg)}}
+.machine{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:180px;height:180px;border-radius:50%;border:3px solid var(--cyan);background:radial-gradient(circle,#0c1a3a,#020617);display:flex;align-items:center;justify-content:center;box-shadow:0 0 35px #22d3ee44,inset 0 0 25px #22d3ee11}
+.machine::before{content:'';position:absolute;width:210px;height:210px;border-radius:50%;border:1px dashed #22d3ee55;animation:spin 8s linear infinite}
+.machine::after{content:'';position:absolute;width:196px;height:196px;border-radius:50%;border:1px dashed #a855f744;animation:spin 5s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.machine-core{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,#67e8f9,#0ea5e9,#082f49);animation:pulse-core 2s infinite;box-shadow:0 0 18px var(--cyan);display:flex;align-items:center;justify-content:center;font-size:26px}
+@keyframes pulse-core{0%,100%{transform:scale(1);box-shadow:0 0 18px var(--cyan)}50%{transform:scale(1.1);box-shadow:0 0 30px var(--cyan),0 0 50px #22d3ee44}}
+.tube{position:absolute;top:50%;height:4px;background:linear-gradient(90deg,var(--cyan),transparent);animation:flow 1.5s linear infinite}
+.tube-left{left:170px;width:100px}.tube-right{right:170px;width:100px;transform:scaleX(-1)}
+@keyframes flow{0%{opacity:.6}50%{opacity:1}100%{opacity:.6}}
+.particle{position:absolute;pointer-events:none;font-size:14px;animation:particle-fly .8s ease-out forwards}
+@keyframes particle-fly{0%{transform:scale(0);opacity:1}100%{transform:scale(1) translate(var(--tx),var(--ty));opacity:0}}
+#resultCreature{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);text-align:center;z-index:5;min-width:180px}
+#resultEmoji{font-size:52px;margin-bottom:4px;filter:drop-shadow(0 0 12px rgba(255,255,255,.3));animation:float-dna 4s infinite ease-in-out}
+#resultName{color:var(--cyan);font-size:10px;letter-spacing:1px;line-height:1.5;text-shadow:0 0 10px var(--cyan)}
+@keyframes mutating{0%{transform:translate(-50%,-50%) scale(1) rotate(0)}25%{transform:translate(-50%,-50%) scale(1.3) rotate(10deg)}50%{transform:translate(-50%,-50%) scale(.8) rotate(-15deg)}75%{transform:translate(-50%,-50%) scale(1.2) rotate(5deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(0)}}
+.mutating .dna-emoji{animation:mutating .5s ease-in-out infinite!important}
+
+/* FILTER ROW */
+.filter-row{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.filter-btn{flex:none;width:auto;padding:4px 9px;font-size:7px;background:#1e293b;border:1px solid #334155;border-radius:20px;color:#94a3b8;letter-spacing:.5px}
+.filter-btn.active{background:var(--cyan);color:#000;border-color:var(--cyan)}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin:8px 0;font-size:8px;color:var(--muted)}
+.toggle{width:34px;height:17px;background:#1e293b;border-radius:20px;border:1px solid #334155;position:relative;cursor:pointer;transition:.2s}
+.toggle.on{background:var(--cyan);border-color:var(--cyan)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;background:#fff;border-radius:50%;transition:.2s}
+.toggle.on::after{left:19px}
+
+/* FUSION PREVIEW */
+#fusionPreview{margin-top:10px;background:#020617;border-radius:10px;padding:10px;border:1px solid #1e293b;font-size:9px;display:none}
+
+/* ==============================
+   INVENTORY PAGE
+   ============================== */
+
+/* INVENTORY SIDEBAR */
+#inv-sidebar{
+.inv-stats-box{background:#020617;border-radius:10px;padding:12px;border:1px solid #1e293b;margin-bottom:12px}
+.inv-stat-row{display:flex;justify-content:space-between;font-size:8px;font-family:'Share Tech Mono',monospace;padding:4px 0;border-bottom:1px solid #0f172a;color:var(--muted)}
+.inv-stat-row:last-child{border:none}
+.inv-stat-row span:last-child{color:var(--cyan)}
+}
+/* CAPACITY BAR */
+.cap-bar-wrap{margin:10px 0}
+.cap-label{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;font-family:'Share Tech Mono',monospace}
+.cap-bar{height:8px;background:#020617;border-radius:999px;overflow:hidden;border:1px solid #1e293b}
+.cap-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--cyan));transition:.4s}
+.cap-fill.warn{background:linear-gradient(90deg,var(--amber),var(--red))}
+
+/* INVENTORY EQUIP SLOTS */
+.equip-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.equip-slot{background:#020617;border:1px dashed #1e3a8a55;border-radius:10px;padding:10px;text-align:center;min-height:70px;position:relative;cursor:pointer;transition:.2s}
+.equip-slot:hover{border-color:var(--cyan)}
+.equip-slot.filled{border-style:solid;border-color:var(--purple)}
+.equip-slot .slot-label{font-size:7px;color:var(--muted);letter-spacing:1px;margin-bottom:4px}
+.equip-slot .slot-emoji{font-size:26px;display:block}
+.equip-slot .slot-name{font-size:7px;color:#67e8f9;margin-top:3px;line-height:1.3}
+.equip-slot .unequip-btn{position:absolute;top:3px;right:4px;background:none;border:none;color:#ef4444;font-size:11px;cursor:pointer;width:auto;padding:0;transform:none;box-shadow:none}
+.equip-slot .unequip-btn:hover{transform:scale(1.2);box-shadow:none}
+
+/* MAIN INVENTORY GRID */
+.inv-main{
+.inv-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.inv-search{flex:1;min-width:120px;background:#020617;border:1px solid #1e293b;border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:9px;outline:none}
+.inv-search:focus{border-color:var(--cyan)}
+.inv-search::placeholder{color:var(--muted)}
+}
+/* INVENTORY GRID */
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;max-height:560px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#22d3ee44 #020617}
+
+/* CREATURE INVENTORY CARD */
+.inv-card{background:#111827;border:1.5px solid #1e3a8a44;border-radius:10px;padding:10px;transition:.2s;position:relative;cursor:pointer}
+.inv-card:hover{border-color:#22d3ee66;transform:translateY(-2px);box-shadow:0 4px 20px #22d3ee11}
+.inv-card.equipped{border-color:var(--purple);background:#16103a}
+.inv-card.selected-for-battle{border-color:var(--amber);background:#1a1200;box-shadow:0 0 12px #f59e0b44}
+.inv-card .inv-emoji{font-size:32px;text-align:center;display:block;margin-bottom:6px}
+.inv-card .inv-name{font-size:8px;color:#67e8f9;letter-spacing:.5px;line-height:1.4;margin-bottom:6px;text-align:center}
+.inv-card .inv-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+.inv-card .inv-actions button{padding:4px;font-size:6px}
+.inv-card .equip-tag{position:absolute;top:4px;left:4px;background:var(--purple);color:#e9d5ff;font-size:6px;padding:2px 5px;border-radius:4px;font-family:'Share Tech Mono',monospace}
+.inv-card .rarity-stripe{position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+
+/* DETAIL MODAL */
+#modal-overlay{position:fixed;inset:0;background:#000a;z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#modal-overlay.open{display:flex}
+#modal-box{background:#0f172a;border:2px solid var(--cyan);border-radius:16px;padding:24px;max-width:420px;width:90%;position:relative;box-shadow:0 0 40px #22d3ee44;animation:modal-in .2s}
+@keyframes modal-in{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+#modal-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;width:auto;padding:0;box-shadow:none;transform:none}
+#modal-close:hover{color:var(--red);transform:none;box-shadow:none}
+.modal-emoji{font-size:64px;text-align:center;display:block;margin-bottom:10px;filter:drop-shadow(0 0 15px rgba(255,255,255,.3))}
+.modal-name{text-align:center;color:var(--cyan);font-size:12px;letter-spacing:1px;margin-bottom:4px;line-height:1.4}
+.modal-origin{text-align:center;font-size:8px;color:var(--muted);margin-bottom:14px;font-family:'Share Tech Mono',monospace}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.modal-stat{background:#020617;border-radius:8px;padding:8px;text-align:center;font-size:8px;font-family:'Share Tech Mono',monospace}
+.modal-stat .val{font-size:18px;color:var(--cyan);font-weight:700;display:block}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ==============================
+   BATTLE PAGE
+   ============================== */
+.battle-panel{
+.battle-slot-area{background:#020617;border-radius:10px;padding:12px;border:1px solid #1e293b;min-height:200px;margin-bottom:10px}
+.battle-slot-title{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:10px;font-family:'Share Tech Mono',monospace}
+.battle-creature-preview{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px}
+.battle-creature-preview .be{font-size:60px;filter:drop-shadow(0 0 10px rgba(255,255,255,.3))}
+.battle-creature-preview .bn{font-size:9px;color:var(--cyan);text-align:center;letter-spacing:.5px;line-height:1.4}
+.battle-hp-bar{width:100%;height:10px;background:#1e293b;border-radius:10px;overflow:hidden;margin-top:4px}
+.battle-hp-fill{height:100%;background:linear-gradient(90deg,var(--green),#86efac);transition:.5s;border-radius:10px}
+.battle-empty-slot{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;color:var(--muted);font-size:8px;gap:8px;letter-spacing:1px}
+.battle-empty-slot .big{font-size:32px;opacity:.3}
+}
+/* Battle arena */
+#battle-arena{grid-column:span 1}
+@media(min-width:800px){#battle-arena{grid-column:span 2}}
+.arena-box{background:#020617;border-radius:14px;border:1px solid #1e293b;padding:16px;text-align:center}
+#battle-log{height:200px;overflow-y:auto;background:#0c1121;border-radius:8px;padding:10px;font-size:8px;line-height:2;font-family:'Share Tech Mono',monospace;border:1px solid #1e293b;text-align:left;margin-top:10px}
+#battle-log p{padding:2px 0;border-bottom:1px solid #0f172a}
+#battle-log p.att{color:#fbbf24}
+#battle-log p.hit{color:#4ade80}
+#battle-log p.miss{color:#64748b}
+#battle-log p.crit{color:#f87171}
+#battle-log p.result{color:#22d3ee;font-size:10px}
+
+.vs-display{display:flex;align-items:center;justify-content:center;gap:20px;margin:10px 0}
+.vs-display .fighter{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.vs-display .fe{font-size:48px;transition:.3s}
+.vs-display .fn{font-size:8px;color:#67e8f9;text-align:center;letter-spacing:.5px;line-height:1.3}
+.vs-display .fhp{width:100%;height:8px;background:#1e293b;border-radius:8px;overflow:hidden}
+.vs-display .fhp-fill{height:100%;border-radius:8px;transition:.5s}
+.vs-display .vs-text{font-size:22px;color:var(--red);font-weight:700;text-shadow:0 0 10px var(--red)}
+.attack-anim{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* CREATURE PICKER (for battle) */
+.creature-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;max-height:250px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#22d3ee44 #020617}
+.picker-card{background:#111827;border:1px solid #1e3a8a44;border-radius:8px;padding:8px;text-align:center;cursor:pointer;transition:.2s}
+.picker-card:hover{border-color:var(--cyan)}
+.picker-card.chosen{border-color:var(--amber);background:#1a1200}
+.picker-card .pe{font-size:26px;display:block;margin-bottom:3px}
+.picker-card .pn{font-size:7px;color:#67e8f9;line-height:1.3}
+.picker-card .pr{font-size:6px;color:var(--muted);margin-top:2px}
+
+/* NOTIFICATION */
+#notif{position:fixed;bottom:20px;right:20px;background:#0f172a;border:1px solid var(--cyan);border-radius:10px;padding:10px 16px;font-size:9px;z-index:999;display:none;animation:slide-in .3s;max-width:240px;box-shadow:0 0 20px #22d3ee33;font-family:'Share Tech Mono',monospace}
+@keyframes slide-in{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+footer{text-align:center;padding:18px;color:#334155;font-size:8px;letter-spacing:2px;position:relative;z-index:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:#22d3ee44;border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧬 MUTANTES</h1>
+  <div class="stats">
+    <div class="stat">💰 CRÉDITOS<span id="s-money">500</span></div>
+    <div class="stat">🧬 DNA<span id="s-dna">0</span></div>
+    <div class="stat">👾 CRIATURAS<span id="s-creatures">0</span></div>
+    <div class="stat">🏆 NÍVEL<span id="s-level">1</span></div>
+    <div class="stat">⭐ XP<span id="s-xp">0/100</span></div>
+    <div class="stat">🔬 LABORATÓRIO<span id="s-lab">1</span></div>
+  </div>
+</header>
+
+<!-- NAV -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('lab')">⚗️ LABORATÓRIO</div>
+  <div class="nav-tab" onclick="showPage('inventory')">📦 INVENTÁRIO</div>
+  <div class="nav-tab" onclick="showPage('battle')">⚔️ BATALHA</div>
+</div>
+
+<!-- ===== LAB PAGE ===== -->
+<div class="page active" id="page-lab">
+
+  <!-- LEFT -->
+  <div class="panel">
+    <h2 class="section-title">🧬 Banco de DNA</h2>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterDNA('all',event)">Todos</button>
+      <button class="filter-btn" onclick="filterDNA('animal',event)">🐾 Animal</button>
+      <button class="filter-btn" onclick="filterDNA('alien',event)">👾 Alien</button>
+      <button class="filter-btn" onclick="filterDNA('tech',event)">🤖 Tech</button>
+    </div>
+    <div class="dna-grid" id="dnaGrid"></div>
+
+    <h2 class="section-title" style="margin-top:14px">⚡ Ações</h2>
+    <div class="action-grid">
+      <button onclick="collectDNA()">🧬 Coletar DNA</button>
+      <button class="btn-purple" onclick="mutate()">⚗️ Mutar!</button>
+      <button class="btn-success" onclick="collectAll()">💰 Vender Tudo</button>
+      <button class="btn-amber" onclick="upgradeLab()">🔬 Upgrade Lab</button>
+      <button class="btn-purple" onclick="researchDNA()">🔭 Pesquisar</button>
+      <button class="btn-danger" onclick="purge()">☣️ Purgar</button>
+    </div>
+
+    <div class="toggle-row">
+      <span>Auto-coleta</span>
+      <div class="toggle" id="autoToggle" onclick="toggleAuto()"></div>
+    </div>
+
+    <div class="xp-wrap">
+      <div class="xp-label"><span>XP</span><span id="xp-txt">0 / 100</span></div>
+      <div class="progress"><div class="bar" id="xpBar"></div></div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:12px">📡 Log</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="panel">
+    <h2 class="section-title">⚗️ Câmara de Mutação</h2>
+    <div id="lab">
+      <div class="tank" id="tank1"><div class="liquid" id="liq1"></div><div class="dna-emoji" id="dna1">❔</div></div>
+      <div class="tank" id="tank2"><div class="liquid" id="liq2"></div><div class="dna-emoji" id="dna2">❔</div></div>
+      <div class="tube tube-left"></div>
+      <div class="tube tube-right"></div>
+      <div class="machine"><div class="machine-core" id="machineCore">⚛️</div></div>
+      <div id="resultCreature">
+        <div id="resultEmoji">🧪</div>
+        <div id="resultName">Aguardando DNA...</div>
+      </div>
+    </div>
+    <div id="fusionPreview">
+      <div class="section-title" style="margin-bottom:8px">🔍 Preview</div>
+      <div id="fusionStats"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: recent creatures -->
+  <div class="panel">
+    <h2 class="section-title">👾 Recém Criadas</h2>
+    <div class="filter-row" id="sort-row">
+      <button class="filter-btn active" onclick="sortCreatures('recent',event)">Recentes</button>
+      <button class="filter-btn" onclick="sortCreatures('power',event)">⚔️ Força</button>
+      <button class="filter-btn" onclick="sortCreatures('value',event)">💰 Valor</button>
+    </div>
+    <div id="creatures" style="display:grid;gap:7px;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#22d3ee44 #020617"></div>
+  </div>
+
+</div>
+
+<!-- ===== INVENTORY PAGE ===== -->
+<div class="page" id="page-inventory">
+
+  <!-- SIDEBAR -->
+  <div class="panel" id="inv-sidebar">
+    <h2 class="section-title">📊 Estatísticas</h2>
+    <div class="inv-stats-box">
+      <div class="inv-stat-row"><span>Total de Mutantes</span><span id="inv-total">0</span></div>
+      <div class="inv-stat-row"><span>Capacidade</span><span id="inv-cap-txt">0 / 50</span></div>
+      <div class="inv-stat-row"><span>Valor Total</span><span id="inv-val">0 💰</span></div>
+      <div class="inv-stat-row"><span>Mais Poderoso</span><span id="inv-strongest">—</span></div>
+      <div class="inv-stat-row"><span>Lendários</span><span id="inv-legendary">0</span></div>
+      <div class="inv-stat-row"><span>Proibidos</span><span id="inv-forbidden">0</span></div>
+    </div>
+
+    <div class="cap-bar-wrap">
+      <div class="cap-label"><span>Espaço no Inventário</span><span id="cap-pct">0%</span></div>
+      <div class="cap-bar"><div class="cap-fill" id="capFill"></div></div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:14px">🛡️ Equipe Ativa (3 slots)</h2>
+    <div class="equip-slots" id="equipSlots">
+      <div class="equip-slot" id="slot-0" onclick="openEquipPicker(0)">
+        <div class="slot-label">SLOT 1</div>
+        <span class="slot-emoji">➕</span>
+        <div class="slot-name">Vazio</div>
+      </div>
+      <div class="equip-slot" id="slot-1" onclick="openEquipPicker(1)">
+        <div class="slot-label">SLOT 2</div>
+        <span class="slot-emoji">➕</span>
+        <div class="slot-name">Vazio</div>
+      </div>
+      <div class="equip-slot" id="slot-2" onclick="openEquipPicker(2)">
+        <div class="slot-label">SLOT 3</div>
+        <span class="slot-emoji">➕</span>
+        <div class="slot-name">Vazio</div>
+      </div>
+    </div>
+
+    <div class="action-grid" style="grid-template-columns:1fr">
+      <button class="btn-danger" onclick="sellAllCommon()">💀 Vender Comuns</button>
+      <button class="btn-success" onclick="sortAndSellWeak()">📈 Vender Fracos</button>
+      <button onclick="expandInventory()">📦 Expandir (+10 slots)</button>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="panel" id="inv-main">
+    <h2 class="section-title">📦 Inventário de Mutantes</h2>
+    <div class="inv-toolbar">
+      <input class="inv-search" id="inv-search" placeholder="🔍 Buscar mutante..." oninput="renderInventory()">
+      <div class="filter-row" style="margin:0">
+        <button class="filter-btn active" onclick="invFilter('all',event)">Todos</button>
+        <button class="filter-btn" onclick="invFilter('common',event)">Comum</button>
+        <button class="filter-btn" onclick="invFilter('rare',event)">Raro</button>
+        <button class="filter-btn" onclick="invFilter('epic',event)">Épico</button>
+        <button class="filter-btn" onclick="invFilter('legendary',event)">Lendário</button>
+        <button class="filter-btn" onclick="invFilter('forbidden',event)">Proibido</button>
+      </div>
+    </div>
+    <div class="inv-grid" id="invGrid"></div>
+  </div>
+
+</div>
+
+<!-- ===== BATTLE PAGE ===== -->
+<div class="page" id="page-battle">
+
+  <!-- PLAYER SIDE -->
+  <div class="panel">
+    <h2 class="section-title">🟦 Seu Lutador</h2>
+    <div class="battle-slot-area" id="player-slot-area">
+      <div class="battle-empty-slot" id="player-empty">
+        <span class="big">👾</span>
+        <span>Selecione um mutante abaixo</span>
+      </div>
+    </div>
+    <h2 class="section-title">Escolha seu Mutante</h2>
+    <div class="creature-picker-grid" id="player-picker"></div>
+  </div>
+
+  <!-- ENEMY SIDE -->
+  <div class="panel">
+    <h2 class="section-title">🟥 Inimigo</h2>
+    <div class="battle-slot-area" id="enemy-slot-area">
+      <div class="battle-empty-slot" id="enemy-empty">
+        <span class="big">💀</span>
+        <span>Inimigo aparecerá aqui</span>
+      </div>
+    </div>
+    <h2 class="section-title">Inimigos Disponíveis</h2>
+    <div class="creature-picker-grid" id="enemy-picker"></div>
+  </div>
+
+  <!-- ARENA -->
+  <div class="panel" id="battle-arena">
+    <h2 class="section-title">⚔️ Arena</h2>
+    <div class="arena-box">
+      <div class="vs-display" id="vs-display">
+        <div class="fighter" id="f-player">
+          <span class="fe" id="fe-player">❓</span>
+          <div class="fn" id="fn-player">—</div>
+          <div class="fhp"><div class="fhp-fill" id="fhp-player" style="width:100%;background:linear-gradient(90deg,#4ade80,#22c55e)"></div></div>
+        </div>
+        <div class="vs-text">VS</div>
+        <div class="fighter" id="f-enemy">
+          <span class="fe" id="fe-enemy">❓</span>
+          <div class="fn" id="fn-enemy">—</div>
+          <div class="fhp"><div class="fhp-fill" id="fhp-enemy" style="width:100%;background:linear-gradient(90deg,#ef4444,#dc2626)"></div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0">
+        <button class="btn-success" onclick="startBattle()" id="btn-fight">⚔️ LUTAR</button>
+        <button onclick="autoBattle()" id="btn-auto">🔄 AUTO</button>
+        <button class="btn-amber" onclick="generateEnemy()">🎲 Novo Inimigo</button>
+      </div>
+      <div id="battle-log"><p class="result">➜ Selecione lutadores e clique LUTAR!</p></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>MUTANTES v3.0 • GENETIC RESEARCH DIVISION • AUTO-SAVE ATIVO</footer>
+
+<div id="notif"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box">
+    <button id="modal-close" onclick="closeModal()">✕</button>
+    <span class="modal-emoji" id="modal-emoji">❓</span>
+    <div class="modal-name" id="modal-name">—</div>
+    <div class="modal-origin" id="modal-origin">—</div>
+    <span class="badge" id="modal-badge">—</span>
+    <div class="modal-stats" style="margin-top:12px">
+      <div class="modal-stat"><span class="val" id="ms-power">—</span>⚔️ Força</div>
+      <div class="modal-stat"><span class="val" id="ms-int">—</span>🧠 Intel.</div>
+      <div class="modal-stat"><span class="val" id="ms-spd">—</span>⚡ Veloc.</div>
+      <div class="modal-stat"><span class="val" id="ms-val">—</span>💰 Valor</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-success" id="modal-sell-btn">💰 Vender</button>
+      <button class="btn-purple" id="modal-equip-btn">🛡️ Equipar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUIP PICKER MODAL -->
+<div id="equip-overlay" onclick="closeEquipPicker(event)" style="position:fixed;inset:0;background:#000a;z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:#0f172a;border:2px solid var(--purple);border-radius:14px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 0 40px #a855f744">
+    <button onclick="closeEquipPicker()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;width:auto;padding:0;box-shadow:none">✕</button>
+    <div style="color:var(--purple);font-size:12px;letter-spacing:2px;margin-bottom:14px">🛡️ ESCOLHER PARA SLOT <span id="equip-slot-num"></span></div>
+    <div class="creature-picker-grid" id="equip-picker-grid"></div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// GAME STATE
+// ==============================
+const G={
+  money:500, dna:[], creatures:[], level:1, xp:0, xpNeeded:100, labLevel:1,
+  autoCollect:false, totalMutations:0, totalSold:0,
+  selectedDNA:[], sortMode:'recent', filterMode:'all',
+  invFilter:'all', invCapacity:50,
+  equippedSlots:[null,null,null], // indices into G.creatures
+  battlePlayer:null, battleEnemy:null,
+  wins:0, losses:0
+};
+
+const DNA_POOL=[
+  {name:'Lobo',emoji:'🐺',type:'animal',desc:'DNA feroz, alta força'},
+  {name:'Tubarão',emoji:'🦈',type:'animal',desc:'DNA aquático, alta velocidade'},
+  {name:'Cobra',emoji:'🐍',type:'animal',desc:'DNA rastejante, alta destreza'},
+  {name:'Águia',emoji:'🦅',type:'animal',desc:'DNA alado, alta inteligência'},
+  {name:'Escorpião',emoji:'🦂',type:'animal',desc:'DNA venenoso, força+'},
+  {name:'Polvo',emoji:'🐙',type:'animal',desc:'DNA tentacular, adaptativo'},
+  {name:'Tigre',emoji:'🐯',type:'animal',desc:'DNA felino, velocidade+'},
+  {name:'Gorila',emoji:'🦍',type:'animal',desc:'DNA primata, força máx.'},
+  {name:'Robô',emoji:'🤖',type:'tech',desc:'DNA cibernético, inteligência+'},
+  {name:'Vírus',emoji:'🦠',type:'tech',desc:'DNA viral, mutagênico'},
+  {name:'Nanotec',emoji:'⚙️',type:'tech',desc:'DNA nano, bônus múltiplos'},
+  {name:'IA',emoji:'💾',type:'tech',desc:'DNA digital, inteligência máx.'},
+  {name:'Dragão',emoji:'🐉',type:'alien',desc:'DNA ancestral, poder total'},
+  {name:'Alien',emoji:'👽',type:'alien',desc:'DNA extraterrestre, raro'},
+  {name:'Mutante',emoji:'☢️',type:'alien',desc:'DNA instável, imprevisível'},
+  {name:'Cósmico',emoji:'🌌',type:'alien',desc:'DNA estelar, lendário'}
+];
+
+const PREFIXES=['Cyber','Dark','Mega','Ultra','Infernal','Cosmic','Shadow','Bio','Omega','Mutant','Hyper','Void','Plasma','Neon','Apex'];
+const SUFFIXES=['Beast','Titan','Serpent','Hunter','Destroyer','Crawler','Phantom','Rex','Prime','Walker','Dread','Fury','Specter','Core','Alpha'];
+
+const RARITY_TABLE=[
+  {name:'Comum',cls:'common',min:0,max:.50,value:100,color:'#64748b',rank:0},
+  {name:'Raro',cls:'rare',min:.50,max:.75,value:250,color:'#3b82f6',rank:1},
+  {name:'Épico',cls:'epic',min:.75,max:.92,value:600,color:'#a855f7',rank:2},
+  {name:'Lendário',cls:'legendary',min:.92,max:.99,value:1500,color:'#f59e0b',rank:3},
+  {name:'PROIBIDO',cls:'forbidden',min:.99,max:1,value:5000,color:'#ef4444',rank:4}
+];
+
+const ENEMIES=[
+  {name:'Slime Radioativo',emoji:'🟢',power:20,intelligence:10,speed:15,hp:80},
+  {name:'Mutante Selvagem',emoji:'☣️',power:35,intelligence:20,speed:25,hp:120},
+  {name:'Robô Destruidor',emoji:'🤖',power:50,intelligence:60,speed:40,hp:150},
+  {name:'Dragão Corrupto',emoji:'🐲',power:70,intelligence:45,speed:55,hp:200},
+  {name:'Alien Supremo',emoji:'👾',power:80,intelligence:90,speed:75,hp:250},
+  {name:'Void Devorador',emoji:'🕳️',power:95,intelligence:80,speed:90,hp:300},
+  {name:'Omega Destruidor',emoji:'💀',power:100,intelligence:100,speed:100,hp:400}
+];
+
+// ==============================
+// UTILITIES
+// ==============================
+const logHistory=[];
+function addLog(text,type=''){
+  logHistory.unshift({text,type});
+  if(logHistory.length>80)logHistory.pop();
+  document.getElementById('log').innerHTML=logHistory.slice(0,50).map(e=>`<p class="ev-${e.type}">➜ ${e.text}</p>`).join('');
+}
+function fmt(n){return Math.floor(n).toLocaleString('pt-BR')}
+function rng(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+// ==============================
+// UI UPDATE
+// ==============================
+function updateUI(){
+  document.getElementById('s-money').textContent=fmt(G.money);
+  document.getElementById('s-dna').textContent=G.dna.length;
+  document.getElementById('s-creatures').textContent=G.creatures.length;
+  document.getElementById('s-level').textContent=G.level;
+  document.getElementById('s-xp').textContent=G.xp+'/'+G.xpNeeded;
+  document.getElementById('s-lab').textContent=G.labLevel;
+  document.getElementById('xpBar').style.width=(G.xp/G.xpNeeded*100)+'%';
+  document.getElementById('xp-txt').textContent=G.xp+' / '+G.xpNeeded;
+  renderDNA();
+  renderCreatures();
+  renderInventory();
+  renderInventoryStats();
+  renderEquipSlots();
+  renderBattlePicker();
+}
+
+function addXP(a){
+  G.xp+=Math.floor(a*(1+G.labLevel*0.1));
+  while(G.xp>=G.xpNeeded){
+    G.xp-=G.xpNeeded; G.level++;
+    G.xpNeeded=Math.floor(G.xpNeeded*1.3+50);
+    addLog('🏆 Nível '+G.level+' alcançado!','success');
+    notify('🏆 NÍVEL '+G.level+'!');
+  }
+}
+
+// ==============================
+// PAGE NAVIGATION
+// ==============================
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab')[['lab','inventory','battle'].indexOf(name)].classList.add('active');
+  if(name==='inventory')renderInventory();
+  if(name==='battle'){renderBattlePicker();generateEnemy();}
+}
+
+// ==============================
+// DNA
+// ==============================
+function renderDNA(){
+  const grid=document.getElementById('dnaGrid');
+  const list=G.dna.filter(d=>G.filterMode==='all'||d.type===G.filterMode);
+  if(!list.length){grid.innerHTML='<p style="font-size:8px;color:#334155;grid-column:span 2;text-align:center;padding:12px;font-family:\'Share Tech Mono\',monospace">Banco vazio.</p>';return;}
+  grid.innerHTML=list.map(dna=>{
+    const ri=G.dna.indexOf(dna);
+    const sel=G.selectedDNA.includes(ri);
+    return `<div class="card${sel?' selected':''}" onclick="selectDNA(${ri})">
+      <h3>${dna.emoji} ${dna.name}</h3>
+      <p>${dna.desc}</p>
+      <p style="color:#334155;font-size:7px">${dna.type.toUpperCase()}</p>
+      ${sel?'<span style="color:#a855f7;font-size:7px">✓ SEL.</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function filterDNA(mode,ev){
+  G.filterMode=mode;
+  if(ev){document.querySelectorAll('#page-lab .filter-btn').forEach(b=>b.classList.remove('active'));ev.target.classList.add('active');}
+  renderDNA();
+}
+
+function selectDNA(idx){
+  const pos=G.selectedDNA.indexOf(idx);
+  if(pos>-1){G.selectedDNA.splice(pos,1);}
+  else{if(G.selectedDNA.length>=2)G.selectedDNA.shift();G.selectedDNA.push(idx);}
+  document.getElementById('dna1').textContent=G.selectedDNA[0]!==undefined?G.dna[G.selectedDNA[0]]?.emoji||'❔':'❔';
+  document.getElementById('dna2').textContent=G.selectedDNA[1]!==undefined?G.dna[G.selectedDNA[1]]?.emoji||'❔':'❔';
+  addLog('🧪 DNA selecionado: '+(G.dna[idx]?.name||'—'));
+  renderDNA(); updateFusionPreview();
+}
+
+function updateFusionPreview(){
+  const fp=document.getElementById('fusionPreview');
+  if(G.selectedDNA.length<2){fp.style.display='none';return;}
+  const a=G.dna[G.selectedDNA[0]], b=G.dna[G.selectedDNA[1]];
+  if(!a||!b){fp.style.display='none';return;}
+  fp.style.display='block';
+  const fail=Math.max(0,(0.12-G.labLevel*0.01)*100).toFixed(0);
+  document.getElementById('fusionStats').innerHTML=`
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+      <span style="font-size:26px">${a.emoji}</span>
+      <span style="color:var(--cyan)">+</span>
+      <span style="font-size:26px">${b.emoji}</span>
+      <span style="color:var(--cyan);font-size:9px">→ ???</span>
+    </div>
+    <p style="font-size:8px;color:#64748b;font-family:'Share Tech Mono',monospace">Falha: <span style="color:#ef4444">${fail}%</span> &nbsp; Lendária: <span style="color:#fbbf24">${(G.labLevel*0.5).toFixed(0)}%+</span></p>`;
+}
+
+// ==============================
+// MUTATION
+// ==============================
+function collectDNA(){
+  const dna={...DNA_POOL[rng(0,DNA_POOL.length-1)]};
+  G.dna.push(dna); addXP(10);
+  addLog('🧬 DNA: '+dna.emoji+' '+dna.name,'info');
+  notify('🧬 '+dna.name); updateUI();
+}
+
+function mutate(){
+  if(G.selectedDNA.length<2){notify('❌ Selecione 2 DNAs!');return;}
+  if(G.creatures.length>=G.invCapacity){notify('❌ Inventário cheio! Expanda ou venda.');addLog('❌ Inventário lotado!','danger');return;}
+  const idxA=G.selectedDNA[0], idxB=G.selectedDNA[1];
+  const dnaA=G.dna[idxA], dnaB=G.dna[idxB];
+  if(!dnaA||!dnaB){addLog('❌ DNA inválido!','danger');return;}
+
+  const lab=document.getElementById('lab');
+  lab.classList.add('mutating');
+  setTimeout(()=>lab.classList.remove('mutating'),1200);
+
+  const failChance=Math.max(0.03,0.12-G.labLevel*0.01);
+  if(Math.random()<failChance){
+    document.getElementById('resultEmoji').textContent='☣️';
+    document.getElementById('resultName').textContent='FALHA CRÍTICA';
+    const loss=rng(50,150);
+    G.money=Math.max(0,G.money-loss);
+    addLog('☣️ EXPLOSÃO! -'+loss+' créditos','danger');
+    notify('💥 -'+loss+' créditos');
+    spawnParticles('💥',lab);
+    G.selectedDNA=[];renderDNA();updateUI();return;
+  }
+
+  const [iA,iB]=[idxA,idxB].sort((a,b)=>b-a);
+  G.dna.splice(iA,1); G.dna.splice(iB,1);
+
+  const name=PREFIXES[rng(0,14)]+' '+dnaA.name+'-'+dnaB.name+' '+SUFFIXES[rng(0,14)];
+  const emoji=Math.random()>.5?dnaA.emoji:dnaB.emoji;
+  const roll=Math.random();
+  const boost=G.labLevel*0.005;
+  let rarity=RARITY_TABLE[0];
+  for(const r of RARITY_TABLE){if(roll>=r.min-boost)rarity=r;}
+
+  const creature={
+    id:Date.now()+Math.random(),
+    name, emoji,
+    power:rng(10,100), intelligence:rng(10,100), speed:rng(10,100),
+    rarity:rarity.name, rarityClass:rarity.cls, rarityRank:rarity.rank,
+    value:rarity.value, rarityColor:rarity.color,
+    dnaA:dnaA.name, dnaB:dnaB.name,
+    wins:0, losses:0
+  };
+
+  G.creatures.push(creature); G.totalMutations++;
+  G.selectedDNA=[];
+  document.getElementById('resultEmoji').textContent=emoji;
+  document.getElementById('resultName').textContent=name;
+  document.getElementById('dna1').textContent='❔';
+  document.getElementById('dna2').textContent='❔';
+
+  addXP(40+rarity.rank*20);
+  addLog('👾 '+name+' ['+rarity.name+']',rarity.rank>=3?'warn':'success');
+  notify('👾 '+rarity.name+'! '+emoji);
+  if(rarity.rank>=3)spawnParticles('✨',lab);
+  updateUI();
+}
+
+// ==============================
+// CREATURES (lab panel)
+// ==============================
+function renderCreatures(){
+  const grid=document.getElementById('creatures');
+  if(!G.creatures.length){grid.innerHTML='<p style="font-size:8px;color:#334155;text-align:center;padding:20px;font-family:\'Share Tech Mono\',monospace">Nenhuma criatura.</p>';return;}
+  let sorted=[...G.creatures];
+  if(G.sortMode==='power')sorted.sort((a,b)=>b.power-a.power);
+  else if(G.sortMode==='value')sorted.sort((a,b)=>b.value-a.value);
+  grid.innerHTML=sorted.slice(0,12).map(c=>{
+    const gi=G.creatures.indexOf(c);
+    const isEq=G.equippedSlots.includes(gi);
+    return `<div class="panel" style="padding:8px;border:1.5px solid ${c.rarityColor}22">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+        <span style="font-size:24px">${c.emoji}</span>
+        <div><div style="font-size:7px;color:#67e8f9;line-height:1.3">${c.name}</div>${isEq?'<span style="font-size:6px;color:var(--purple)">🛡️ EQUIPADO</span>':''}</div>
+      </div>
+      <div class="mini-bar-wrap"><span style="width:40px">⚔️</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.power}%;background:#ef4444"></div></div><span>${c.power}</span></div>
+      <div class="mini-bar-wrap"><span style="width:40px">🧠</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.intelligence}%;background:#8b5cf6"></div></div><span>${c.intelligence}</span></div>
+      <div class="mini-bar-wrap"><span style="width:40px">⚡</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.speed}%;background:#22d3ee"></div></div><span>${c.speed}</span></div>
+      <span class="badge ${c.rarityClass}" style="margin-top:5px">${c.rarity}</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
+        <button class="btn-success" style="font-size:6px;padding:5px" onclick="sellOne(${gi})">💰 ${fmt(c.value)}</button>
+        <button style="font-size:6px;padding:5px" onclick="openDetail(${gi})">🔍 Ver</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sortCreatures(mode,ev){
+  G.sortMode=mode;
+  if(ev){document.querySelectorAll('#sort-row .filter-btn').forEach(b=>b.classList.remove('active'));ev.target.classList.add('active');}
+  renderCreatures();
+}
+
+function sellOne(idx){
+  if(idx<0||idx>=G.creatures.length)return;
+  unequipIfEquipped(idx);
+  const c=G.creatures.splice(idx,1)[0];
+  G.money+=c.value; G.totalSold++; addXP(15);
+  addLog('💰 Vendida: '+c.name+' +'+fmt(c.value)+'💰','success');
+  notify('+'+fmt(c.value)+' 💰');
+  updateUI();
+}
+
+function collectAll(){
+  if(!G.creatures.length){notify('❌ Sem criaturas!');return;}
+  const tot=G.creatures.reduce((s,c)=>s+c.value,0);
+  G.creatures=[]; G.equippedSlots=[null,null,null];
+  G.money+=tot; G.totalSold++; addXP(20);
+  addLog('💰 Vendidas TODAS: +'+fmt(tot)+'💰','success');
+  notify('+'+fmt(tot)+' 💰!'); updateUI();
+}
+
+function upgradeLab(){
+  const cost=G.labLevel*500;
+  if(G.money<cost){notify('❌ Precisa '+fmt(cost)+' créditos');return;}
+  G.money-=cost; G.labLevel++; addXP(80);
+  addLog('🔬 Laboratório → Nível '+G.labLevel,'info');
+  notify('🔬 Lab Nível '+G.labLevel+'!'); updateUI();
+}
+
+function researchDNA(){
+  const cost=100+G.labLevel*50;
+  if(G.money<cost){notify('❌ Precisa '+fmt(cost)+' créditos');return;}
+  G.money-=cost;
+  const high=DNA_POOL.filter(d=>d.type==='alien'||d.name==='Dragão'||d.name==='IA');
+  const dna={...high[rng(0,high.length-1)]};
+  G.dna.push(dna); addXP(25);
+  addLog('🔭 Pesquisa: '+dna.emoji+' '+dna.name,'info');
+  notify('🔭 '+dna.name+'!'); updateUI();
+}
+
+function purge(){
+  if(!G.dna.length){notify('❌ Banco vazio!');return;}
+  const gain=G.dna.length*30;
+  G.dna=[]; G.money+=gain; G.selectedDNA=[];
+  document.getElementById('dna1').textContent='❔';
+  document.getElementById('dna2').textContent='❔';
+  addLog('☣️ Lab purgado! +'+gain+' créditos','warn');
+  notify('+'+gain+' 💰'); updateUI();
+}
+
+function toggleAuto(){
+  G.autoCollect=!G.autoCollect;
+  document.getElementById('autoToggle').classList.toggle('on',G.autoCollect);
+  addLog(G.autoCollect?'🤖 Auto-coleta ATIVADA':'🔴 Auto-coleta DESATIVADA');
+}
+
+// ==============================
+// INVENTORY
+// ==============================
+function renderInventory(){
+  const grid=document.getElementById('invGrid');
+  const search=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  let list=G.creatures.filter(c=>{
+    const matchFilter=G.invFilter==='all'||c.rarityClass===G.invFilter;
+    const matchSearch=!search||c.name.toLowerCase().includes(search);
+    return matchFilter&&matchSearch;
+  });
+
+  if(!list.length){
+    grid.innerHTML='<div style="grid-column:span 4;text-align:center;padding:30px;font-size:9px;color:#334155;font-family:\'Share Tech Mono\',monospace">Nenhum mutante encontrado.</div>';
+    return;
+  }
+
+  grid.innerHTML=list.map(c=>{
+    const gi=G.creatures.indexOf(c);
+    const isEq=G.equippedSlots.includes(gi);
+    const slotNum=G.equippedSlots.indexOf(gi);
+    return `<div class="inv-card${isEq?' equipped':''}" onclick="openDetail(${gi})">
+      <div class="rarity-stripe" style="background:${c.rarityColor}"></div>
+      ${isEq?`<div class="equip-tag">S${slotNum+1}</div>`:''}
+      <span class="inv-emoji">${c.emoji}</span>
+      <div class="inv-name">${c.name}</div>
+      <div class="mini-bar-wrap" style="margin-bottom:2px"><span style="width:20px">⚔️</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.power}%;background:#ef4444"></div></div><span>${c.power}</span></div>
+      <div class="mini-bar-wrap" style="margin-bottom:2px"><span style="width:20px">🧠</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.intelligence}%;background:#8b5cf6"></div></div><span>${c.intelligence}</span></div>
+      <div class="mini-bar-wrap" style="margin-bottom:4px"><span style="width:20px">⚡</span><div class="mini-bar"><div class="mini-bar-fill" style="width:${c.speed}%;background:#22d3ee"></div></div><span>${c.speed}</span></div>
+      <span class="badge ${c.rarityClass}">${c.rarity}</span>
+      <div class="inv-actions">
+        <button class="btn-success" onclick="event.stopPropagation();sellOne(${gi})">💰 ${fmt(c.value)}</button>
+        <button class="btn-purple" onclick="event.stopPropagation();quickEquip(${gi})">${isEq?'❌ Deseq.':'🛡️ Equipar'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function invFilter(mode,ev){
+  G.invFilter=mode;
+  if(ev){document.querySelectorAll('#inv-main .filter-btn').forEach(b=>b.classList.remove('active'));ev.target.classList.add('active');}
+  renderInventory();
+}
+
+function renderInventoryStats(){
+  const total=G.creatures.length;
+  const val=G.creatures.reduce((s,c)=>s+c.value,0);
+  const strongest=G.creatures.reduce((b,c)=>c.power>b?c.power:b,0);
+  const legendary=G.creatures.filter(c=>c.rarityClass==='legendary').length;
+  const forbidden=G.creatures.filter(c=>c.rarityClass==='forbidden').length;
+  const pct=Math.min(100,Math.round(total/G.invCapacity*100));
+  document.getElementById('inv-total').textContent=total;
+  document.getElementById('inv-cap-txt').textContent=total+' / '+G.invCapacity;
+  document.getElementById('inv-val').textContent=fmt(val)+' 💰';
+  document.getElementById('inv-strongest').textContent=strongest?strongest+'⚔️':'—';
+  document.getElementById('inv-legendary').textContent=legendary;
+  document.getElementById('inv-forbidden').textContent=forbidden;
+  document.getElementById('cap-pct').textContent=pct+'%';
+  const fill=document.getElementById('capFill');
+  fill.style.width=pct+'%';
+  fill.classList.toggle('warn',pct>=80);
+}
+
+function expandInventory(){
+  const cost=200+G.invCapacity*10;
+  if(G.money<cost){notify('❌ Precisa '+fmt(cost)+' créditos');return;}
+  G.money-=cost; G.invCapacity+=10;
+  addLog('📦 Inventário expandido para '+G.invCapacity+' slots!','success');
+  notify('📦 +10 slots!'); updateUI();
+}
+
+function sellAllCommon(){
+  const commons=G.creatures.filter(c=>c.rarityClass==='common');
+  if(!commons.length){notify('❌ Sem comuns!');return;}
+  commons.forEach(c=>{
+    const gi=G.creatures.indexOf(c);
+    if(gi>-1){unequipIfEquipped(gi);G.money+=c.value;}
+  });
+  G.creatures=G.creatures.filter(c=>c.rarityClass!=='common');
+  fixEquipIndices();
+  addLog('💰 Vendidos todos os comuns!','success');
+  notify('💰 Comuns vendidos!'); updateUI();
+}
+
+function sortAndSellWeak(){
+  if(G.creatures.length<5){notify('❌ Precisa de 5+ criaturas!');return;}
+  const sorted=[...G.creatures].sort((a,b)=>(a.power+a.intelligence+a.speed)-(b.power+b.intelligence+b.speed));
+  const toSell=sorted.slice(0,Math.floor(G.creatures.length*0.3));
+  toSell.forEach(c=>{
+    const gi=G.creatures.indexOf(c);
+    if(gi>-1){unequipIfEquipped(gi);G.money+=c.value;}
+  });
+  G.creatures=G.creatures.filter(c=>!toSell.includes(c));
+  fixEquipIndices();
+  addLog('📈 Vendidos os 30% mais fracos!','success');
+  notify('📈 Fracos vendidos!'); updateUI();
+}
+
+// ==============================
+// EQUIP SYSTEM
+// ==============================
+function renderEquipSlots(){
+  G.equippedSlots.forEach((ci,si)=>{
+    const slot=document.getElementById('slot-'+si);
+    if(!slot)return;
+    if(ci===null||!G.creatures[ci]){
+      slot.className='equip-slot';
+      slot.innerHTML=`<div class="slot-label">SLOT ${si+1}</div><span class="slot-emoji">➕</span><div class="slot-name">Vazio</div>`;
+      slot.onclick=()=>openEquipPicker(si);
+    } else {
+      const c=G.creatures[ci];
+      slot.className='equip-slot filled';
+      slot.innerHTML=`<button class="unequip-btn" onclick="event.stopPropagation();unequipSlot(${si})">✕</button>
+        <div class="slot-label">SLOT ${si+1}</div>
+        <span class="slot-emoji">${c.emoji}</span>
+        <div class="slot-name">${c.name.split(' ').slice(0,2).join(' ')}</div>
+        <span class="badge ${c.rarityClass}" style="font-size:6px">${c.rarity}</span>`;
+      slot.onclick=()=>openDetail(ci);
+    }
+  });
+}
+
+function quickEquip(gi){
+  const isEq=G.equippedSlots.includes(gi);
+  if(isEq){unequipIfEquipped(gi);}
+  else{
+    const empty=G.equippedSlots.indexOf(null);
+    if(empty>-1){G.equippedSlots[empty]=gi;addLog('🛡️ '+G.creatures[gi]?.name+' equipado no Slot '+(empty+1));}
+    else{notify('❌ Todos os slots cheios! Desequipe um primeiro.');}
+  }
+  updateUI();
+}
+
+function unequipSlot(si){
+  const c=G.creatures[G.equippedSlots[si]];
+  G.equippedSlots[si]=null;
+  if(c)addLog('🔓 '+c.name+' desequipado');
+  updateUI();
+}
+
+function unequipIfEquipped(gi){
+  G.equippedSlots=G.equippedSlots.map(e=>e===gi?null:e);
+}
+
+function fixEquipIndices(){
+  // After splice, indices may shift - rebuild from IDs
+  G.equippedSlots=G.equippedSlots.map(si=>{
+    if(si===null)return null;
+    const newIdx=G.creatures.indexOf(G.creatures[si]);
+    return newIdx>-1?newIdx:null;
+  });
+}
+
+let equipPickerSlot=-1;
+function openEquipPicker(slotIdx){
+  equipPickerSlot=slotIdx;
+  document.getElementById('equip-slot-num').textContent=slotIdx+1;
+  const grid=document.getElementById('equip-picker-grid');
+  if(!G.creatures.length){grid.innerHTML='<p style="font-size:9px;color:#334155;font-family:\'Share Tech Mono\',monospace">Nenhuma criatura disponível.</p>';
+  } else {
+    grid.innerHTML=G.creatures.map((c,i)=>`
+      <div class="picker-card${G.equippedSlots[slotIdx]===i?' chosen':''}" onclick="equipToSlot(${i})">
+        <span class="pe">${c.emoji}</span>
+        <div class="pn">${c.name.split(' ').slice(0,2).join(' ')}</div>
+        <div class="pr">${c.rarity} | ⚔️${c.power}</div>
+      </div>`).join('');
+  }
+  document.getElementById('equip-overlay').style.display='flex';
+}
+
+function equipToSlot(gi){
+  // Remove from any other slot
+  G.equippedSlots=G.equippedSlots.map((e,i)=>i===equipPickerSlot?null:e===gi?null:e);
+  G.equippedSlots[equipPickerSlot]=gi;
+  addLog('🛡️ '+G.creatures[gi]?.name+' equipado no Slot '+(equipPickerSlot+1));
+  closeEquipPicker(); updateUI();
+}
+
+function closeEquipPicker(ev){
+  if(ev&&ev.target!==document.getElementById('equip-overlay'))return;
+  document.getElementById('equip-overlay').style.display='none';
+}
+
+// ==============================
+// DETAIL MODAL
+// ==============================
+let modalCreatureIdx=-1;
+function openDetail(gi){
+  const c=G.creatures[gi];
+  if(!c)return;
+  modalCreatureIdx=gi;
+  document.getElementById('modal-emoji').textContent=c.emoji;
+  document.getElementById('modal-name').textContent=c.name;
+  document.getElementById('modal-origin').textContent='DNA: '+c.dnaA+' + '+c.dnaB;
+  const badge=document.getElementById('modal-badge');
+  badge.textContent=c.rarity; badge.className='badge '+c.rarityClass;
+  document.getElementById('ms-power').textContent=c.power;
+  document.getElementById('ms-int').textContent=c.intelligence;
+  document.getElementById('ms-spd').textContent=c.speed;
+  document.getElementById('ms-val').textContent=fmt(c.value);
+  const isEq=G.equippedSlots.includes(gi);
+  document.getElementById('modal-equip-btn').textContent=isEq?'❌ Desequipar':'🛡️ Equipar';
+  document.getElementById('modal-sell-btn').onclick=()=>{sellOne(gi);closeModal();};
+  document.getElementById('modal-equip-btn').onclick=()=>{quickEquip(gi);closeModal();};
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(ev){
+  if(ev&&ev.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ==============================
+// BATTLE SYSTEM
+// ==============================
+let currentEnemy=null;
+let battleRunning=false;
+let autoInterval=null;
+
+function generateEnemy(){
+  const tier=Math.min(ENEMIES.length-1,Math.floor(G.level/2));
+  const base=ENEMIES[Math.min(tier,ENEMIES.length-1)];
+  currentEnemy={
+    ...base,
+    power:base.power+rng(0,G.level*3),
+    intelligence:base.intelligence+rng(0,G.level*2),
+    speed:base.speed+rng(0,G.level*2),
+    hp:base.hp+G.level*10,
+    maxHp:base.hp+G.level*10
+  };
+  document.getElementById('fe-enemy').textContent=currentEnemy.emoji;
+  document.getElementById('fn-enemy').textContent=currentEnemy.name;
+  document.getElementById('fhp-enemy').style.width='100%';
+  addBattleLog('➜ Novo inimigo: '+currentEnemy.emoji+' '+currentEnemy.name,'result');
+  renderEnemyPicker();
+}
+
+function renderBattlePicker(){
+  const grid=document.getElementById('player-picker');
+  if(!G.creatures.length){grid.innerHTML='<p style="font-size:8px;color:#334155;font-family:\'Share Tech Mono\',monospace">Crie mutantes no Laboratório!</p>';return;}
+  grid.innerHTML=G.creatures.map((c,i)=>`
+    <div class="picker-card${G.battlePlayer===i?' chosen':''}" onclick="selectBattlePlayer(${i})">
+      <span class="pe">${c.emoji}</span>
+      <div class="pn">${c.name.split(' ').slice(0,2).join(' ')}</div>
+      <div class="pr">⚔️${c.power} ⚡${c.speed}</div>
+    </div>`).join('');
+}
+
+function renderEnemyPicker(){
+  const grid=document.getElementById('enemy-picker');
+  grid.innerHTML=ENEMIES.map((e,i)=>`
+    <div class="picker-card${currentEnemy?.name===e.name?' chosen':''}" onclick="selectEnemy(${i})">
+      <span class="pe">${e.emoji}</span>
+      <div class="pn">${e.name}</div>
+      <div class="pr">⚔️${e.power}</div>
+    </div>`).join('');
+}
+
+function selectBattlePlayer(gi){
+  G.battlePlayer=gi;
+  const c=G.creatures[gi];
+  document.getElementById('fe-player').textContent=c.emoji;
+  document.getElementById('fn-player').textContent=c.name;
+  document.getElementById('fhp-player').style.width='100%';
+  renderBattlePicker();
+  addBattleLog('➜ Selecionado: '+c.emoji+' '+c.name,'result');
+}
+
+function selectEnemy(i){
+  const e=ENEMIES[i];
+  currentEnemy={...e,hp:e.hp+G.level*10,maxHp:e.hp+G.level*10};
+  document.getElementById('fe-enemy').textContent=e.emoji;
+  document.getElementById('fn-enemy').textContent=e.name;
+  document.getElementById('fhp-enemy').style.width='100%';
+  renderEnemyPicker();
+}
+
+function startBattle(){
+  if(G.battlePlayer===null||G.battlePlayer>=G.creatures.length){notify('❌ Selecione um mutante!');return;}
+  if(!currentEnemy){generateEnemy();}
+  if(battleRunning)return;
+
+  const player={...G.creatures[G.battlePlayer],hp:100+G.creatures[G.battlePlayer].power,maxHp:100+G.creatures[G.battlePlayer].power};
+  const enemy={...currentEnemy,hp:currentEnemy.hp,maxHp:currentEnemy.maxHp};
+
+  document.getElementById('btn-fight').disabled=true;
+  battleRunning=true;
+  addBattleLog('⚔️ BATALHA INICIADA!','result');
+
+  let round=0;
+  const tick=setInterval(()=>{
+    round++;
+    // Player attacks
+    const playerDmg=calcDamage(player,enemy);
+    const playerHit=Math.random()>(0.2-player.speed*0.001);
+    if(playerHit){
+      const isCrit=Math.random()<0.15;
+      const dmg=isCrit?Math.floor(playerDmg*1.8):playerDmg;
+      enemy.hp=Math.max(0,enemy.hp-dmg);
+      addBattleLog((isCrit?'💥 CRÍTICO! ':'')+'[Rnd '+round+'] '+player.emoji+' ataca: -'+dmg+' HP',isCrit?'crit':'hit');
+    } else {
+      addBattleLog('[Rnd '+round+'] '+player.emoji+' errou!','miss');
+    }
+    document.getElementById('fhp-enemy').style.width=(enemy.hp/enemy.maxHp*100)+'%';
+
+    if(enemy.hp<=0){
+      clearInterval(tick); battleRunning=false;
+      document.getElementById('fn-enemy').textContent=enemy.name+' 💀';
+      const xpGain=50+enemy.power;
+      const gold=rng(enemy.power*5,enemy.power*15);
+      G.money+=gold; addXP(xpGain); G.wins++;
+      if(G.creatures[G.battlePlayer])G.creatures[G.battlePlayer].wins=(G.creatures[G.battlePlayer].wins||0)+1;
+      addBattleLog('🏆 VITÓRIA! +'+xpGain+' XP +'+gold+' créditos','result');
+      notify('🏆 VITÓRIA! +'+gold+' 💰');
+      document.getElementById('btn-fight').disabled=false;
+      generateEnemy(); updateUI(); return;
+    }
+
+    // Enemy attacks
+    const enemyDmg=calcDamage(enemy,player);
+    const enemyHit=Math.random()>(0.2-enemy.speed*0.001);
+    if(enemyHit){
+      const isCrit=Math.random()<0.1;
+      const dmg=isCrit?Math.floor(enemyDmg*1.8):enemyDmg;
+      player.hp=Math.max(0,player.hp-dmg);
+      addBattleLog((isCrit?'💥 CRÍTICO! ':'')+'[Rnd '+round+'] '+enemy.emoji+' ataca: -'+dmg+' HP',isCrit?'crit':'hit');
+    } else {
+      addBattleLog('[Rnd '+round+'] '+enemy.emoji+' errou!','miss');
+    }
+    document.getElementById('fhp-player').style.width=(player.hp/player.maxHp*100)+'%';
+
+    if(player.hp<=0){
+      clearInterval(tick); battleRunning=false;
+      document.getElementById('fn-player').textContent=(G.creatures[G.battlePlayer]?.name||'?')+' 💀';
+      G.losses++;
+      if(G.creatures[G.battlePlayer])G.creatures[G.battlePlayer].losses=(G.creatures[G.battlePlayer].losses||0)+1;
+      addBattleLog('💀 DERROTA! Seu mutante foi derrotado.','result');
+      notify('💀 Derrota!');
+      document.getElementById('btn-fight').disabled=false;
+      updateUI();
+    }
+    if(round>80){clearInterval(tick);battleRunning=false;addBattleLog('⏱️ Empate — batalha encerrada!','result');document.getElementById('btn-fight').disabled=false;}
+  },600);
+}
+
+function calcDamage(attacker,defender){
+  const base=attacker.power*0.5+attacker.speed*0.2;
+  const reduction=defender.intelligence*0.15;
+  return Math.max(1,Math.floor(base-reduction+rng(-3,3)));
+}
+
+function autoBattle(){
+  if(autoInterval){clearInterval(autoInterval);autoInterval=null;document.getElementById('btn-auto').textContent='🔄 AUTO';return;}
+  document.getElementById('btn-auto').textContent='⏹️ PARAR';
+  autoInterval=setInterval(()=>{
+    if(!battleRunning){
+      if(G.battlePlayer===null||G.battlePlayer>=G.creatures.length){
+        if(G.creatures.length){selectBattlePlayer(0);}
+        else{clearInterval(autoInterval);autoInterval=null;document.getElementById('btn-auto').textContent='🔄 AUTO';return;}
+      }
+      startBattle();
+    }
+  },4000);
+}
+
+function addBattleLog(msg,cls=''){
+  const log=document.getElementById('battle-log');
+  const p=document.createElement('p');
+  if(cls)p.className=cls;
+  p.textContent=msg;
+  log.prepend(p);
+  if(log.children.length>60)log.removeChild(log.lastChild);
+}
+
+// ==============================
+// RANDOM EVENTS
+// ==============================
+let eventTimer=0;
+function tickEvents(){
+  eventTimer++;
+  if(eventTimer<15)return;
+  eventTimer=0;
+  const r=Math.random();
+  if(r<0.20){
+    const dna={...DNA_POOL[rng(0,DNA_POOL.length-1)]};
+    G.dna.push(dna); addLog('🛸 DNA grátis: '+dna.emoji+' '+dna.name,'info'); notify('🛸 DNA!');
+  } else if(r<0.38){
+    const gain=rng(150,350); G.money+=gain;
+    addLog('🏛️ Governo financiou! +'+gain,'success'); notify('+'+gain+' 💰');
+  } else if(r<0.52){
+    addLog('☣️ Anomalia nos tanques...','warn');
+  } else if(r<0.65){
+    G.dna.push({name:'Primordial',emoji:'🌋',type:'alien',desc:'DNA primordial raro'});
+    addLog('🌋 DNA Primordial no solo!','warn'); notify('🌋 DNA Especial!');
+  } else if(r<0.75){
+    const steal=Math.floor(G.money*0.05); G.money=Math.max(0,G.money-steal);
+    addLog('🕵️ Espião roubou '+steal,'danger'); notify('🕵️ -'+steal);
+  }
+  updateUI();
+}
+
+function autoIncome(){
+  G.money+=G.labLevel*5;
+  if(G.autoCollect&&Math.random()<0.4)collectDNA();
+  updateUI();
+}
+
+// PARTICLES
+function spawnParticles(emoji,container){
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');
+    p.className='particle'; p.textContent=emoji;
+    const tx=(Math.random()-.5)*200, ty=(Math.random()-.5)*200;
+    p.style.cssText=`left:${30+Math.random()*40}%;top:${30+Math.random()*40}%;--tx:${tx}px;--ty:${ty}px;animation-delay:${Math.random()*.3}s`;
+    container.appendChild(p); setTimeout(()=>p.remove(),1200);
+  }
+}
+
+// TANK BUBBLES
+function addTankBubbles(){
+  ['tank1','tank2'].forEach(id=>{
+    const tank=document.getElementById(id);
+    for(let i=0;i<4;i++){
+      const b=document.createElement('div'); b.className='bubble-particle';
+      const s=3+Math.random()*6;
+      b.style.cssText=`width:${s}px;height:${s}px;left:${10+Math.random()*80}%;bottom:0;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*2}s`;
+      tank.appendChild(b);
+    }
+  });
+}
+
+// NOTIFICATION
+let notifTimer=null;
+function notify(msg){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.style.display='block';
+  if(notifTimer)clearTimeout(notifTimer);
+  notifTimer=setTimeout(()=>{el.style.display='none'},2500);
+}
+
+// SAVE / LOAD
+function saveGame(){localStorage.setItem('mutantesV3',JSON.stringify(G))}
+function loadGame(){
+  const s=localStorage.getItem('mutantesV3');
+  if(s){try{const d=JSON.parse(s);Object.assign(G,d);}catch(e){}}
+}
+
+// INIT
+loadGame();
+addTankBubbles();
+updateUI();
+generateEnemy();
+setInterval(autoIncome,3000);
+setInterval(tickEvents,1000);
+setInterval(saveGame,8000);
+addLog('🧪 Mutantes v3.0 — Sistema de Inventário ativo!','info');
+addLog('📦 Vá em INVENTÁRIO para gerenciar seus mutantes.','info');
+</script>
+</body>
+</html>

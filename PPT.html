@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedra, Papel e Tesoura</title>
+  <link rel="stylesheet" href="PPT.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>✊ Pedra, Papel e Tesoura</h1>
+    <p class="subtitulo">Desafie o computador e veja quem domina!</p>
+
+    <div class="placar">
+      <div>Você: <span id="placarJogador">0</span></div>
+      <div>Computador: <span id="placarComputador">0</span></div>
+    </div>
+
+    <div class="botoes">
+      <button onclick="jogar('pedra')">✊ Pedra</button>
+      <button onclick="jogar('papel')">✋ Papel</button>
+      <button onclick="jogar('tesoura')">✌️ Tesoura</button>
+    </div>
+
+    <div class="resultado">
+      <p id="escolhaJogador">Sua escolha: -</p>
+      <p id="escolhaComputador">Computador: -</p>
+      <h2 id="mensagem">Resultado: -</h2>
+    </div>
+
+    <div class="acoes">
+      <button onclick="resetarPlacar()">Resetar Placar</button>
+      <a href="index.html" class="voltar">⬅ Voltar</a>
+    </div>
+  </div>
+
+  <script src="PPT.js"></script>
+</body>
+
+</html>
+
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top, #1b1b3a, #0a0a16 70%);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: auto;
+  }
+
+  h1 {
+    color: #00e5ff;
+    font-size: 2.5rem;
+  }
+
+  .subtitulo {
+    color: #c9c9ff;
+    margin: 10px 0 25px;
+  }
+
+  .placar {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .placar div {
+    background: rgba(31, 31, 53, 0.9);
+    padding: 14px 22px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 229, 255, 0.12);
+  }
+
+  .botoes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .botoes button,
+  .acoes button {
+    padding: 14px 22px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #8a2be2, #00e5ff);
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  .botoes button:hover,
+  .acoes button:hover {
+    transform: translateY(-3px);
+  }
+
+  .resultado {
+    margin-top: 30px;
+    background: rgba(31, 31, 53, 0.95);
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 229, 255, 0.08);
+  }
+
+  .acoes {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .voltar {
+    text-decoration: none;
+    background: #1f1f35;
+    color: #00e5ff;
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-weight: bold;
+  }
+</style>
+<Script>
+  let placarJogador = 0;
+  let placarComputador = 0;
+
+  function jogar(escolhaJogador) {
+    const opcoes = ["pedra", "papel", "tesoura"];
+    const escolhaComputador = opcoes[Math.floor(Math.random() * 3)];
+    let mensagem = "";
+
+    if (escolhaJogador === escolhaComputador) {
+      mensagem = "Empate!";
+    } else if (
+      (escolhaJogador === "pedra" && escolhaComputador === "tesoura") ||
+      (escolhaJogador === "papel" && escolhaComputador === "pedra") ||
+      (escolhaJogador === "tesoura" && escolhaComputador === "papel")
+    ) {
+      mensagem = "Você venceu! 🎉";
+      placarJogador++;
+    } else {
+      mensagem = "Você perdeu! 😢";
+      placarComputador++;
+    }
+
+    document.getElementById("escolhaJogador").textContent = `Sua escolha: ${escolhaJogador}`;
+    document.getElementById("escolhaComputador").textContent = `Computador: ${escolhaComputador}`;
+    document.getElementById("mensagem").textContent = `Resultado: ${mensagem}`;
+    document.getElementById("placarJogador").textContent = placarJogador;
+    document.getElementById("placarComputador").textContent = placarComputador;
+  }
+
+  function resetarPlacar() {
+    placarJogador = 0;
+    placarComputador = 0;
+    document.getElementById("placarJogador").textContent = 0;
+    document.getElementById("placarComputador").textContent = 0;
+    document.getElementById("escolhaJogador").textContent = "Sua escolha: -";
+    document.getElementById("escolhaComputador").textContent = "Computador: -";
+    document.getElementById("mensagem").textContent = "Resultado: -";
+  }
+</Script>

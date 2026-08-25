@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labirinto</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:radial-gradient(circle at top,#1b1b3a,#0a0a16);color:white;text-align:center;padding:10px 8px;min-height:100vh}
+h1{color:#00e5ff;margin-bottom:8px;font-size:clamp(16px,4vw,20px);text-shadow:0 0 15px #00e5ff88;letter-spacing:2px}
+.hud{display:flex;justify-content:center;gap:20px;font-size:12px;color:#777;margin-bottom:8px;letter-spacing:1px;flex-wrap:wrap}
+.hud b{color:#00e5ff}
+#game{width:420px;height:420px;margin:0 auto;position:relative;background:rgba(10,10,30,0.95);border:2px solid #00e5ff;overflow:hidden}
+#player,#goal{width:18px;height:18px;position:absolute;border-radius:4px;transition:left .06s,top .06s}
+#player{background:#00e5ff;box-shadow:0 0 10px #00e5ff;z-index:5}
+#goal{background:#8a2be2;box-shadow:0 0 12px #8a2be2;border-radius:50%;z-index:5}
+.wall{position:absolute;border:1px solid rgba(0,229,255,0.08)}
+.enemy{position:absolute;width:14px;height:14px;background:#ff3860;border-radius:50%;box-shadow:0 0 8px #ff3860;z-index:4}
+.key{position:absolute;width:12px;height:12px;background:#ffcc00;border-radius:50%;box-shadow:0 0 8px #ffcc00;z-index:4}
+#timer-bar-wrap{width:420px;margin:4px auto;height:6px;background:#111;border-radius:3px;overflow:hidden}
+#timer-bar{height:100%;background:linear-gradient(90deg,#00e5ff,#8a2be2);width:100%;transition:width .1s linear}
+#winBox{position:absolute;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:20}
+.win-content{background:rgba(20,20,40,0.97);padding:22px 28px;border-radius:14px;text-align:center;border:1px solid #00e5ff;box-shadow:0 0 24px #00e5ff44}
+.win-content h2{color:#00e5ff;margin-bottom:6px;font-size:22px}
+.win-content p{color:#888;font-size:13px;margin-bottom:14px}
+.btns{display:flex;justify-content:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+button{padding:8px 16px;border-radius:20px;border:1px solid rgba(0,229,255,0.3);background:rgba(0,229,255,0.08);color:#00e5ff;cursor:pointer;font-size:11px;letter-spacing:1px;transition:all .2s}
+button:hover{background:rgba(0,229,255,0.18);border-color:#00e5ff}
+#mobileCtrl{display:none;justify-content:center;gap:6px;padding:8px 0;flex-wrap:wrap}
+.mBtn{padding:11px 18px;border:1px solid #1a1a40;border-radius:4px;background:#0a0a1a;color:#00e5ff;font-size:15px;cursor:pointer;touch-action:manipulation;user-select:none}
+.mBtn:active{background:#0d1f2d}
+p.hint{font-size:10px;color:#444;margin-top:5px;letter-spacing:1px}
+@media(max-width:480px){#mobileCtrl{display:flex}#timer-bar-wrap{width:100%}}
+</style>
+</head>
+<body>
+
+<h1>LABIRINTO</h1>
+
+<div class="btns">
+  <button onclick="reiniciar()">NOVO MAPA</button>
+  <button onclick="reiniciarNivel1()">REINICIAR</button>
+  <button onclick="Voltar()">VOLTAR</button>
+</div>
+
+<div class="hud">
+  <span>NÍVEL <b id="nivel">1</b></span>
+  <span>TEMPO <b id="tempo">--</b></span>
+  <span>PONTOS <b id="pontos">0</b></span>
+  <span>CHAVES <b id="chaves">—</b></span>
+</div>
+
+<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+
+<div id="game">
+  <div id="player"></div>
+  <div id="goal"></div>
+  <div id="winBox">
+    <div class="win-content">
+      <h2 id="winTitle">NÍVEL COMPLETO!</h2>
+      <p id="winMsg"></p>
+      <button id="winBtn" onclick="proximoNivel()">PRÓXIMO NÍVEL ▶</button>
+    </div>
+  </div>
+</div>
+
+<div id="mobileCtrl">
+  <button class="mBtn" onclick="move(-1,0)">◀</button>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <button class="mBtn" onclick="move(0,-1)">▲</button>
+    <button class="mBtn" onclick="move(0,1)">▼</button>
+  </div>
+  <button class="mBtn" onclick="move(1,0)">▶</button>
+</div>
+
+<p class="hint">← → ↑ ↓ ou WASD para mover</p>
+
+<script>
+const CELL=20, COLS=21, ROWS=21;
+const gameEl   = document.getElementById("game");
+const playerEl = document.getElementById("player");
+const goalEl   = document.getElementById("goal");
+const winBox   = document.getElementById("winBox");
+
+let grid=[], px=1, py=1;
+let nivel=1, pontos=0;
+let timeLeft=0, timerInterval=null;
+let enemies=[], keyObjs=[], keysNeeded=0, keysCollected=0;
+let enemyInterval=null;
+
+// ── difficulty config ─────────────────────────────
+function lvlConfig(n){
+  return {
+    timeLimit:   Math.max(15, 90 - n*7),
+    enemyCount:  Math.max(0, Math.floor((n-2)/2)),
+    enemySpeed:  Math.max(200, 600 - n*40),
+    keysNeeded:  n>=3 ? Math.min(Math.floor((n-2)/2)+1, 4) : 0,
+    wallStyle:   `rgba(0,${Math.min(229,180+n*5)},${Math.min(255,200+n*5)},${Math.min(0.45,0.18+n*0.03)})`
+  };
+}
+
+// ── maze generation ───────────────────────────────
+function initGrid(){ grid=Array.from({length:ROWS},()=>Array(COLS).fill(1)); }
+
+function carve(x,y){
+  [[0,-2],[0,2],[-2,0],[2,0]].sort(()=>Math.random()-.5).forEach(([dx,dy])=>{
+    const nx=x+dx, ny=y+dy;
+    if(nx>0&&nx<COLS-1&&ny>0&&ny<ROWS-1&&grid[ny][nx]===1){
+      grid[y+dy/2][x+dx/2]=0;
+      grid[ny][nx]=0;
+      carve(nx,ny);
+    }
+  });
+}
+
+function generateMaze(){ initGrid(); grid[1][1]=0; carve(1,1); }
+function Voltar(){ window.location.href = "index.html"; }
+
+// ── BFS: farthest cell ────────────────────────────
+function findFarthest(){
+  let max=[COLS-2,ROWS-2], distMax=0;
+  const visited=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+  const queue=[[1,1,0]]; visited[1][1]=true;
+  while(queue.length){
+    const [x,y,d]=queue.shift();
+    if(d>distMax){distMax=d; max=[x,y];}
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+      const nx=x+dx, ny=y+dy;
+      if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&!visited[ny][nx]&&grid[ny][nx]===0){
+        visited[ny][nx]=true; queue.push([nx,ny,d+1]);
+      }
+    });
+  }
+  return max;
+}
+
+// ── open cells far from origin ────────────────────
+function openCells(minDist){
+  const cells=[];
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      if(grid[r][c]===0&&(Math.abs(c-1)+Math.abs(r-1))>minDist)
+        cells.push([c,r]);
+  return cells;
+}
+
+// ── render maze ───────────────────────────────────
+function render(){
+  gameEl.querySelectorAll(".wall,.enemy,.key").forEach(e=>e.remove());
+  const cfg=lvlConfig(nivel);
+  for(let r=0;r<ROWS;r++)
+    for(let c=0;c<COLS;c++)
+      if(grid[r][c]===1){
+        const w=document.createElement("div");
+        w.className="wall";
+        w.style.cssText=`left:${c*CELL}px;top:${r*CELL}px;width:${CELL}px;height:${CELL}px;background:${cfg.wallStyle}`;
+        gameEl.appendChild(w);
+      }
+}
+
+// ── enemies com movimento ALEATÓRIO ──────────────
+function spawnEnemies(){
+  enemies=[];
+  clearInterval(enemyInterval);
+  const cfg=lvlConfig(nivel);
+  const cells=openCells(8);
+  for(let i=0;i<cfg.enemyCount&&cells.length;i++){
+    const idx=Math.floor(Math.random()*cells.length);
+    const [ex,ey]=cells.splice(idx,1)[0];
+    const el=document.createElement("div");
+    el.className="enemy";
+    el.style.cssText=`left:${ex*CELL+3}px;top:${ey*CELL+3}px`;
+    gameEl.appendChild(el);
+    // cada inimigo guarda a última direção para preferir continuar reto (movimento mais natural)
+    enemies.push({x:ex, y:ey, el, dx:0, dy:0});
+  }
+  if(enemies.length){
+    enemyInterval=setInterval(moveEnemies, cfg.enemySpeed);
+  }
+}
+
+function moveEnemies(){
+  const DIRS=[[1,0],[-1,0],[0,1],[0,-1]];
+  enemies.forEach(e=>{
+    // monta lista de direções válidas (sem parede)
+    const valid=DIRS.filter(([dx,dy])=>{
+      const nx=e.x+dx, ny=e.y+dy;
+      return nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&grid[ny][nx]===0;
+    });
+    if(!valid.length) return;
+
+    // tenta continuar na mesma direção (70% de chance) para evitar zigue-zague
+    let chosen=null;
+    if((e.dx!==0||e.dy!==0) && Math.random()<0.7){
+      const fwd=valid.find(([dx,dy])=>dx===e.dx&&dy===e.dy);
+      if(fwd) chosen=fwd;
+    }
+    // se não conseguiu seguir em frente, escolhe aleatório (sem voltar se possível)
+    if(!chosen){
+      const noBack=valid.filter(([dx,dy])=>!(dx===-e.dx&&dy===-e.dy));
+      const pool=noBack.length?noBack:valid;
+      chosen=pool[Math.floor(Math.random()*pool.length)];
+    }
+
+    const [dx,dy]=chosen;
+    e.x+=dx; e.y+=dy;
+    e.dx=dx;  e.dy=dy;
+    e.el.style.left=e.x*CELL+3+"px";
+    e.el.style.top =e.y*CELL+3+"px";
+
+    if(e.x===px&&e.y===py) killPlayer();
+  });
+}
+
+function killPlayer(){
+  clearInterval(timerInterval);
+  clearInterval(enemyInterval);
+  document.getElementById("winTitle").textContent="PEGO!";
+  document.getElementById("winMsg").textContent="Um inimigo te alcançou. Tente novamente.";
+  document.getElementById("winBtn").textContent="TENTAR NOVAMENTE";
+  document.getElementById("winBtn").onclick=reiniciarMesmoNivel;
+  winBox.style.display="flex";
+}
+
+// ── keys ─────────────────────────────────────────
+function spawnKeys(){
+  keyObjs=[]; keysCollected=0;
+  const cfg=lvlConfig(nivel);
+  keysNeeded=cfg.keysNeeded;
+  updateChavesHUD();
+  const cells=openCells(6);
+  for(let i=0;i<keysNeeded&&cells.length;i++){
+    const idx=Math.floor(Math.random()*cells.length);
+    const [kx,ky]=cells.splice(idx,1)[0];
+    const el=document.createElement("div");
+    el.className="key";
+    el.style.cssText=`left:${kx*CELL+4}px;top:${ky*CELL+4}px`;
+    gameEl.appendChild(el);
+    keyObjs.push({x:kx,y:ky,el,collected:false});
+  }
+  goalEl.style.opacity=keysNeeded>0?"0.3":"1";
+}
+
+function checkKeys(){
+  keyObjs.forEach(k=>{
+    if(!k.collected&&k.x===px&&k.y===py){
+      k.collected=true; k.el.remove();
+      keysCollected++;
+      updateChavesHUD();
+      if(keysCollected>=keysNeeded) goalEl.style.opacity="1";
+    }
+  });
+}
+
+function updateChavesHUD(){
+  const rem=keysNeeded-keysCollected;
+  document.getElementById("chaves").textContent=keysNeeded>0?rem:"—";
+}
+
+// ── timer ─────────────────────────────────────────
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft=lvlConfig(nivel).timeLimit;
+  updateTimerUI();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimerUI();
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      clearInterval(enemyInterval);
+      document.getElementById("winTitle").textContent="TEMPO ESGOTADO!";
+      document.getElementById("winMsg").textContent="Tente este nível novamente.";
+      document.getElementById("winBtn").textContent="TENTAR NOVAMENTE";
+      document.getElementById("winBtn").onclick=reiniciarMesmoNivel;
+      winBox.style.display="flex";
+    }
+  },1000);
+}
+
+function updateTimerUI(){
+  const pct=timeLeft/lvlConfig(nivel).timeLimit;
+  document.getElementById("tempo").textContent=timeLeft+"s";
+  const bar=document.getElementById("timer-bar");
+  bar.style.width=pct*100+"%";
+  bar.style.background=pct>0.4?"linear-gradient(90deg,#00e5ff,#8a2be2)":pct>0.2?"#ff9500":"#ff3860";
+}
+
+// ── movement ──────────────────────────────────────
+function move(dx,dy){
+  const nx=px+dx, ny=py+dy;
+  if(nx<0||nx>=COLS||ny<0||ny>=ROWS) return;
+  if(grid[ny][nx]===0){
+    px=nx; py=ny;
+    playerEl.style.left=px*CELL+"px";
+    playerEl.style.top=py*CELL+"px";
+    checkKeys();
+    enemies.forEach(e=>{ if(e.x===px&&e.y===py) killPlayer(); });
+    if(px===+goalEl.dataset.x&&py===+goalEl.dataset.y){
+      if(keysCollected>=keysNeeded) vitoria();
+    }
+  }
+}
+
+// ── victory ───────────────────────────────────────
+function vitoria(){
+  clearInterval(timerInterval);
+  clearInterval(enemyInterval);
+  const bonus=timeLeft*5;
+  pontos+=100*nivel+bonus;
+  document.getElementById("pontos").textContent=pontos;
+  document.getElementById("winTitle").textContent="NÍVEL "+nivel+" COMPLETO!";
+  document.getElementById("winMsg").textContent=`+${100*nivel} pts  |  bônus tempo +${bonus}`;
+  document.getElementById("winBtn").textContent="PRÓXIMO NÍVEL ▶";
+  document.getElementById("winBtn").onclick=proximoNivel;
+  winBox.style.display="flex";
+}
+
+// ── load level ────────────────────────────────────
+function carregarNivel(){
+  clearInterval(timerInterval);
+  clearInterval(enemyInterval);
+  winBox.style.display="none";
+  document.getElementById("nivel").textContent=nivel;
+  generateMaze();
+  render();
+  px=1; py=1;
+  playerEl.style.left="20px";
+  playerEl.style.top="20px";
+  const [gx,gy]=findFarthest();
+  goalEl.dataset.x=gx; goalEl.dataset.y=gy;
+  goalEl.style.left=gx*CELL+"px";
+  goalEl.style.top=gy*CELL+"px";
+  spawnKeys();
+  spawnEnemies();
+  startTimer();
+}
+
+function proximoNivel()       { nivel++;          carregarNivel(); }
+function reiniciarMesmoNivel(){ carregarNivel();                   }
+function reiniciar()          { carregarNivel();                   }
+function reiniciarNivel1()    { nivel=1; pontos=0; document.getElementById("pontos").textContent=0; carregarNivel(); }
+
+// ── keyboard ──────────────────────────────────────
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp"   ||e.key==="w") move(0,-1);
+  if(e.key==="ArrowDown" ||e.key==="s") move(0,1);
+  if(e.key==="ArrowLeft" ||e.key==="a") move(-1,0);
+  if(e.key==="ArrowRight"||e.key==="d") move(1,0);
+});
+
+carregarNivel();
+</script>
+</body>
+</html>

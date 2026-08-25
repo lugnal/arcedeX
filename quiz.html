@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz</title>
+  <link rel="stylesheet" href="quiz.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>🧠 Quiz Premium</h1>
+    <p class="subtitulo">Teste seus conhecimentos!</p>
+
+    <div class="caixa-quiz">
+      <h2 id="pergunta">Pergunta aqui</h2>
+      <div id="respostas" class="respostas"></div>
+      <p id="pontuacao">Pontuação: 0</p>
+    </div>
+
+    <div class="acoes">
+      <button onclick="reiniciarQuiz()">Reiniciar Quiz</button>
+      <a href="index.html" class="voltar">⬅ Voltar</a>
+    </div>
+  </div>
+
+  <script src="quiz.js"></script>
+</body>
+
+</html>
+
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at top, #1b1b3a, #0a0a16 70%);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: auto;
+  }
+
+  h1 {
+    color: #00e5ff;
+    font-size: 2.5rem;
+  }
+
+  .subtitulo {
+    color: #c9c9ff;
+    margin: 10px 0 25px;
+  }
+
+  .caixa-quiz {
+    background: rgba(31, 31, 53, 0.95);
+    padding: 25px;
+    border-radius: 16px;
+  }
+
+  #pergunta {
+    margin-bottom: 20px;
+  }
+
+  .respostas button {
+    display: block;
+    width: 100%;
+    margin: 12px 0;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #8a2be2, #00e5ff);
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+
+  .respostas button:hover {
+    transform: translateY(-3px);
+  }
+
+  #pontuacao {
+    margin-top: 20px;
+    font-weight: bold;
+  }
+
+  .acoes {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .acoes button {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #8a2be2, #00e5ff);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .voltar {
+    text-decoration: none;
+    background: #1f1f35;
+    color: #00e5ff;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+  }
+</style>
+<Script>
+  const perguntas = [
+    {
+      pergunta: "Qual linguagem é usada para estilizar páginas web?",
+      respostas: ["HTML", "CSS", "Python", "Java"],
+      correta: "CSS"
+    },
+    {
+      pergunta: "Qual comando exibe algo no console?",
+      respostas: ["print()", "console.log()", "echo()", "mostrar()"],
+      correta: "console.log()"
+    },
+    {
+      pergunta: "Qual dessas é uma linguagem de programação?",
+      respostas: ["HTML", "CSS", "JavaScript", "Photoshop"],
+      correta: "JavaScript"
+    }
+  ];
+
+  let indiceAtual = 0;
+  let pontuacao = 0;
+
+  const perguntaEl = document.getElementById("pergunta");
+  const respostasEl = document.getElementById("respostas");
+  const pontuacaoEl = document.getElementById("pontuacao");
+
+  function carregarPergunta() {
+    if (indiceAtual >= perguntas.length) {
+      perguntaEl.textContent = "Quiz finalizado!";
+      respostasEl.innerHTML = `
+      <h3>Você fez ${pontuacao} de ${perguntas.length} pontos 🎉</h3>
+      <button onclick="reiniciarQuiz()">Reiniciar</button>
+    `;
+      pontuacaoEl.textContent = "";
+      return;
+    }
+
+    const perguntaAtual = perguntas[indiceAtual];
+    perguntaEl.textContent = perguntaAtual.pergunta;
+    respostasEl.innerHTML = "";
+
+    perguntaAtual.respostas.forEach(resposta => {
+      const botao = document.createElement("button");
+      botao.textContent = resposta;
+      botao.onclick = () => verificarResposta(resposta);
+      respostasEl.appendChild(botao);
+    });
+
+    pontuacaoEl.textContent = `Pontuação: ${pontuacao}`;
+  }
+
+  function verificarResposta(respostaEscolhida) {
+    if (respostaEscolhida === perguntas[indiceAtual].correta) {
+      pontuacao++;
+    }
+
+    indiceAtual++;
+    carregarPergunta();
+  }
+
+  function reiniciarQuiz() {
+    indiceAtual = 0;
+    pontuacao = 0;
+    carregarPergunta();
+  }
+
+  carregarPergunta();
+</Script>

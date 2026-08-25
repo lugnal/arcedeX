@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Idle Kingdom</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Press Start 2P',monospace;
+  background:#0f172a;
+  color:#e2e8f0;
+  overflow-x:hidden;
+}
+
+/* ── HEADER ── */
+header{
+  background:#111827;
+  border-bottom:3px solid #facc15;
+  padding:14px 20px;
+  position:sticky;
+  top:0;
+  z-index:200;
+}
+
+h1{
+  text-align:center;
+  color:#facc15;
+  font-size:18px;
+  margin-bottom:12px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+@media(min-width:900px){.stats{grid-template-columns:repeat(8,1fr)}}
+
+.stat{
+  background:#1e293b;
+  border:1.5px solid #334155;
+  border-radius:8px;
+  padding:8px 6px;
+  text-align:center;
+  font-size:7px;
+  line-height:2;
+}
+
+.stat span{
+  color:#facc15;
+  display:block;
+  font-size:10px;
+}
+
+/* ── MAIN LAYOUT ── */
+main{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+  max-width:1400px;
+  margin:auto;
+  padding:16px;
+}
+
+@media(min-width:900px){
+  main{grid-template-columns:400px 1fr}
+}
+
+/* ── KINGDOM SCENE ── */
+#kingdom{
+  background:#111827;
+  border:2px solid #334155;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+}
+
+#scene{
+  width:100%;
+  height:180px;
+  position:relative;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.sky{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,#0c1a3a 0%,#1e3a5f 60%,#2d5a8e 100%);
+}
+
+.star{
+  position:absolute;
+  background:#fff;
+  border-radius:50%;
+  animation:twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle{0%{opacity:.2}100%{opacity:1}}
+
+.ground{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:32px;
+  background:#15803d;
+  border-radius:0 0 10px 10px;
+}
+
+.ground-detail{
+  position:absolute;
+  bottom:32px;left:0;right:0;
+  height:6px;
+  background:#166534;
+}
+
+.castle-wrap{
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+
+.tree{
+  position:absolute;
+  bottom:30px;
+  font-size:24px;
+  user-select:none;
+}
+
+.person{
+  position:absolute;
+  bottom:30px;
+  font-size:14px;
+  animation:march linear infinite;
+}
+
+@keyframes march{0%{left:-30px}100%{left:110%}}
+
+.cloud{
+  position:absolute;
+  font-size:22px;
+  animation:drift linear infinite;
+  opacity:.65;
+}
+
+@keyframes drift{0%{left:-60px}100%{left:105%}}
+
+.smoke{
+  position:absolute;
+  font-size:10px;
+  animation:rise 3s ease-out infinite;
+  opacity:.5;
+}
+
+@keyframes rise{0%{transform:translateY(0);opacity:.5}100%{transform:translateY(-30px);opacity:0}}
+
+/* ── XP BAR ── */
+.xp-wrap{
+  height:10px;
+  background:#0f172a;
+  border-radius:20px;
+  overflow:hidden;
+  margin:10px 0 4px;
+}
+
+.xp-bar{
+  height:100%;
+  background:#facc15;
+  transition:.4s ease;
+  width:0%;
+}
+
+/* ── PROD RATES ── */
+.prod-rates{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  margin-top:10px;
+}
+
+.prod-rate{
+  background:#1e293b;
+  border-radius:6px;
+  padding:6px 4px;
+  text-align:center;
+  font-size:7px;
+  line-height:2;
+  border:1px solid #334155;
+}
+
+.prod-rate span{
+  color:#4ade80;
+  display:block;
+}
+
+/* ── SPEED CONTROLS ── */
+.speed-btns{
+  display:flex;
+  gap:6px;
+  margin:10px 0;
+}
+
+.speed-btns button{
+  flex:1;
+  background:#1e293b;
+  border:1.5px solid #334155;
+  color:#94a3b8;
+  padding:7px;
+  border-radius:6px;
+  cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+  transition:.15s;
+}
+
+.speed-btns button:hover{background:#334155;color:#e2e8f0}
+.speed-btns button.active{border-color:#facc15;color:#facc15;background:#1e293b}
+
+/* ── LOG ── */
+.log{
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:8px;
+  padding:10px;
+  height:160px;
+  overflow-y:auto;
+  font-size:7px;
+  line-height:1.9;
+  margin-top:10px;
+}
+
+.log p{
+  border-bottom:1px solid #0f172a;
+  padding:2px 0;
+}
+
+.log p:last-child{border-bottom:none}
+
+/* ── RIGHT PANEL ── */
+#right-panel{
+  padding:0 0 0 16px;
+}
+
+@media(max-width:899px){
+  #right-panel{padding:0}
+}
+
+.section-title{
+  color:#facc15;
+  font-size:11px;
+  margin:16px 0 10px;
+}
+
+/* ── CARDS GRID ── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.card{
+  background:#1e293b;
+  border:1.5px solid #334155;
+  border-radius:12px;
+  padding:12px;
+  transition:.15s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+  border-color:#facc15;
+  box-shadow:0 4px 20px rgba(250,204,21,.15);
+}
+
+.card h3{
+  color:#38bdf8;
+  font-size:9px;
+  margin-bottom:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.lvl-badge{
+  background:#7c3aed;
+  color:#e9d5ff;
+  font-size:6px;
+  padding:2px 5px;
+  border-radius:4px;
+}
+
+.card p{
+  font-size:7px;
+  line-height:1.8;
+  color:#94a3b8;
+  margin-bottom:8px;
+}
+
+.card .cost{
+  color:#facc15;
+}
+
+/* ── BUTTONS ── */
+button.btn{
+  width:100%;
+  border:none;
+  background:#facc15;
+  color:#000;
+  padding:9px 6px;
+  border-radius:8px;
+  cursor:pointer;
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+  transition:.15s;
+}
+
+button.btn:hover:not(:disabled){
+  background:#fde047;
+  transform:scale(1.02);
+}
+
+button.btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+button.btn.green{background:#22c55e;color:#000}
+button.btn.green:hover:not(:disabled){background:#4ade80}
+button.btn.red{background:#ef4444;color:#fff}
+button.btn.red:hover:not(:disabled){background:#f87171}
+button.btn.purple{background:linear-gradient(90deg,#a855f7,#facc15);color:#000}
+
+/* ── ENEMY ALERT ── */
+.danger-pulse{
+  animation:danger-anim .5s infinite !important;
+}
+
+@keyframes danger-anim{
+  0%{border-color:#ef4444}
+  50%{border-color:#facc15}
+  100%{border-color:#ef4444}
+}
+
+/* ── NOTIFICATION ── */
+#notification{
+  position:fixed;
+  top:20px;right:20px;
+  background:#1e293b;
+  border:2px solid #facc15;
+  border-radius:10px;
+  padding:10px 16px;
+  font-size:9px;
+  z-index:999;
+  display:none;
+  max-width:220px;
+  line-height:1.8;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  animation:slide-in .25s ease;
+}
+
+@keyframes slide-in{
+  from{opacity:0;transform:translateY(-12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── MODAL ── */
+#modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:500;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+#backBtn{
+  position:absolute;
+  left:15px;
+  top:15px;
+
+  background:#1e293b;
+  color:#facc15;
+
+  border:2px solid #facc15;
+  border-radius:8px;
+
+  padding:8px 12px;
+
+  cursor:pointer;
+
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;
+
+  transition:.2s;
+}
+
+#backBtn:hover{
+  background:#facc15;
+  color:black;
+  transform:scale(1.05);
+}
+#modal-box{
+  background:#111827;
+  border:3px solid #facc15;
+  border-radius:16px;
+  padding:24px;
+  max-width:340px;
+  width:90%;
+  text-align:center;
+  font-size:9px;
+  line-height:2;
+}
+
+#modal-box h2{color:#facc15;font-size:13px;margin-bottom:12px}
+#modal-box p{color:#94a3b8;margin-bottom:16px}
+
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1}
+
+footer{
+  text-align:center;
+  padding:20px;
+  color:#475569;
+  font-size:7px;
+}
+</style>
+</head>
+<body>
+
+<div id="notification"></div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <h2>✨ PRESTÍGIO</h2>
+    <p>Confirmar prestígio? Seu reino reinicia, mas o bônus de produção permanece para sempre!</p>
+    <div class="modal-btns">
+      <button class="btn purple" onclick="confirmPrestige()">Confirmar</button>
+      <button class="btn red" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>👑 IDLE KINGDOM</h1>
+  <div class="stats">
+    <div class="stat">🪙 Ouro<span id="s-gold">200</span></div>
+    <div class="stat">🌾 Comida<span id="s-food">100</span></div>
+    <div class="stat">🪵 Madeira<span id="s-wood">100</span></div>
+    <div class="stat">⛏️ Pedra<span id="s-stone">100</span></div>
+    <div class="stat">👥 Pop.<span id="s-pop">5</span></div>
+    <div class="stat">⚔️ Sold.<span id="s-sol">0</span></div>
+    <div class="stat">🏆 Nível<span id="s-level">1</span></div>
+    <div class="stat">✨ Prestígio<span id="s-prestige">0</span></div>
+  </div>
+  <button id="backBtn" onclick="history.back()">⬅ Voltar</button>
+</header>
+
+<main>
+
+<!-- LEFT: SCENE + LOG -->
+<div id="left-panel">
+
+  <div id="kingdom">
+    <div id="scene">
+      <div class="sky" id="sky-bg"></div>
+      <canvas id="castleCanvas" style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);animation:float 3s ease-in-out infinite;z-index:10" width="90" height="100"></canvas>
+      <div class="ground-detail"></div>
+      <div class="ground"></div>
+    </div>
+
+    <div class="xp-wrap">
+      <div class="xp-bar" id="xp-bar"></div>
+    </div>
+    <div style="font-size:7px;color:#64748b;margin-top:2px">XP: <span id="xp-text">0/100</span></div>
+  </div>
+
+  <div class="speed-btns">
+    <button id="sp1" class="active" onclick="setSpeed(1)">▶ 1x</button>
+    <button id="sp2" onclick="setSpeed(2)">▶▶ 2x</button>
+    <button id="sp5" onclick="setSpeed(5)">▶▶▶ 5x</button>
+  </div>
+
+  <div class="prod-rates">
+    <div class="prod-rate">🌾 Comida<span id="pr-food">0/s</span></div>
+    <div class="prod-rate">🪵 Madeira<span id="pr-wood">0/s</span></div>
+    <div class="prod-rate">⛏️ Pedra<span id="pr-stone">0/s</span></div>
+    <div class="prod-rate">🪙 Ouro<span id="pr-gold">0/s</span></div>
+  </div>
+
+  <div class="log" id="log"></div>
+
+</div>
+
+<!-- RIGHT: BUILDINGS + ACTIONS -->
+<div id="right-panel">
+
+  <div class="section-title">🏗️ Construções</div>
+  <div class="grid">
+
+    <div class="card">
+      <h3>🌾 Fazenda <span class="lvl-badge" id="lv-farm">1</span></h3>
+      <p>Produz comida automaticamente.<br>
+      Custo: <span class="cost" id="cost-farm">80</span>🪙</p>
+      <button class="btn" onclick="upgrade('farm')">Melhorar</button>
+    </div>
+
+    <div class="card">
+      <h3>🪓 Serraria <span class="lvl-badge" id="lv-sawmill">1</span></h3>
+      <p>Produz madeira automaticamente.<br>
+      Custo: <span class="cost" id="cost-sawmill">90</span>🪙</p>
+      <button class="btn" onclick="upgrade('sawmill')">Melhorar</button>
+    </div>
+
+    <div class="card">
+      <h3>⛏️ Mina <span class="lvl-badge" id="lv-mine">1</span></h3>
+      <p>Produz pedra e ouro.<br>
+      Custo: <span class="cost" id="cost-mine">120</span>🪙</p>
+      <button class="btn" onclick="upgrade('mine')">Melhorar</button>
+    </div>
+
+    <div class="card">
+      <h3>⚔️ Quartel <span class="lvl-badge" id="lv-barracks">1</span></h3>
+      <p>Treina soldados para defender o reino.<br>
+      Custo: <span class="cost" id="cost-barracks">140</span>🪙</p>
+      <button class="btn" onclick="upgrade('barracks')">Melhorar</button>
+    </div>
+
+    <div class="card">
+      <h3>🏰 Muralha <span class="lvl-badge" id="lv-wall">0</span></h3>
+      <p>+3 defesa por nível contra invasões.<br>
+      Custo: <span class="cost" id="cost-wall">200</span>🪙</p>
+      <button class="btn" onclick="upgrade('wall')">Construir</button>
+    </div>
+
+    <div class="card">
+      <h3>🏪 Mercado <span class="lvl-badge" id="lv-market">0</span></h3>
+      <p>+25% ouro por imposto por nível.<br>
+      Custo: <span class="cost" id="cost-market">300</span>🪙</p>
+      <button class="btn" onclick="upgrade('market')">Construir</button>
+    </div>
+
+    <div class="card">
+      <h3>⚗️ Alquimia <span class="lvl-badge" id="lv-alchemy">0</span></h3>
+      <p>Converte recursos mais eficientemente.<br>
+      Custo: <span class="cost" id="cost-alchemy">500</span>🪙</p>
+      <button class="btn" onclick="upgrade('alchemy')">Construir</button>
+    </div>
+
+    <div class="card">
+      <h3>🔭 Torre de Vigia <span class="lvl-badge" id="lv-tower">0</span></h3>
+      <p>Aviso antecipado de invasões. +5% XP.<br>
+      Custo: <span class="cost" id="cost-tower">400</span>🪙</p>
+      <button class="btn" onclick="upgrade('tower')">Construir</button>
+    </div>
+
+  </div>
+
+  <div class="section-title">👑 Ações do Reino</div>
+  <div class="grid">
+
+    <div class="card">
+      <h3>👥 Recrutar</h3>
+      <p>+2 população.<br>
+      Custo: <span class="cost" id="cost-recruit">100</span>🌾</p>
+      <button class="btn green" onclick="recruitPeople()">Recrutar</button>
+    </div>
+
+    <div class="card">
+      <h3>⚔️ Treinar Soldado</h3>
+      <p>-1 pop., +1 soldado.<br>
+      Custo: 60🪙</p>
+      <button class="btn" onclick="trainSoldier()">Treinar</button>
+    </div>
+
+    <div class="card">
+      <h3>💰 Coletar Impostos</h3>
+      <p>Ganhe ouro instantâneo baseado na população.</p>
+      <button class="btn" onclick="collectTaxes()">Coletar</button>
+    </div>
+
+    <div class="card">
+      <h3>🌾→🪙 Comerciar</h3>
+      <p>Troca 50 comida por 30 ouro no mercado.</p>
+      <button class="btn" onclick="trade()">Comerciar</button>
+    </div>
+
+    <div class="card">
+      <h3>🪵→⛏️ Converter</h3>
+      <p>Converte 50 madeira em 30 pedra.</p>
+      <button class="btn" onclick="convert()">Converter</button>
+    </div>
+
+    <div class="card">
+      <h3>🛡️ Patrulha</h3>
+      <p>Usa soldados para coletar 10🪙 cada.</p>
+      <button class="btn" onclick="patrol()">Patrulhar</button>
+    </div>
+
+    <div class="card">
+      <h3>🎉 Festival</h3>
+      <p>-50🌾 mas atrai +3 moradores.</p>
+      <button class="btn green" onclick="festival()">Realizar</button>
+    </div>
+
+    <div class="card">
+      <h3>✨ Prestígio</h3>
+      <p>Nível 10 requerido. Reinicia com bônus permanente.</p>
+      <button class="btn purple" onclick="openPrestige()">Prestígio</button>
+    </div>
+
+  </div>
+
+</div>
+</main>
+
+<footer>Idle Kingdom &bull; Feito em HTML, CSS e JavaScript</footer>
+
+<script>
+/* ═══════════════════ GAME STATE ═══════════════════ */
+const G = {
+  gold: 200, food: 100, wood: 100, stone: 100,
+  population: 5, soldiers: 0,
+  level: 1, xp: 0, xpNeeded: 100,
+  prestigeCount: 0, prestigeBonus: 1,
+  farmLevel: 1, sawmillLevel: 1, mineLevel: 1, barracksLevel: 1,
+  wallLevel: 0, marketLevel: 0, alchemyLevel: 0, towerLevel: 0,
+  speed: 1,
+  tick: 0,
+  totalGoldEarned: 0,
+  invasionsDefeated: 0,
+  eventCooldown: 0
+};
+
+const logEntries = [];
+
+/* ═══════════════════ DOM HELPERS ═══════════════════ */
+const $ = id => document.getElementById(id);
+const fmt = n => Math.floor(n).toLocaleString('pt-BR');
+const fmtD = n => n.toFixed(1);
+
+function addLog(text) {
+  logEntries.unshift(text);
+  if (logEntries.length > 60) logEntries.pop();
+  const el = $('log');
+  el.innerHTML = logEntries.slice(0, 35).map(t => `<p>${t}</p>`).join('');
+}
+
+/* ═══════════════════ UI UPDATE ═══════════════════ */
+function updateUI() {
+  $('s-gold').textContent   = fmt(G.gold);
+  $('s-food').textContent   = fmt(G.food);
+  $('s-wood').textContent   = fmt(G.wood);
+  $('s-stone').textContent  = fmt(G.stone);
+  $('s-pop').textContent    = G.population;
+  $('s-sol').textContent    = G.soldiers;
+  $('s-level').textContent  = G.level;
+  $('s-prestige').textContent = G.prestigeCount;
+
+  $('lv-farm').textContent     = G.farmLevel;
+  $('lv-sawmill').textContent  = G.sawmillLevel;
+  $('lv-mine').textContent     = G.mineLevel;
+  $('lv-barracks').textContent = G.barracksLevel;
+  $('lv-wall').textContent     = G.wallLevel;
+  $('lv-market').textContent   = G.marketLevel;
+  $('lv-alchemy').textContent  = G.alchemyLevel;
+  $('lv-tower').textContent    = G.towerLevel;
+
+  $('cost-farm').textContent     = G.farmLevel * 80;
+  $('cost-sawmill').textContent  = G.sawmillLevel * 90;
+  $('cost-mine').textContent     = G.mineLevel * 120;
+  $('cost-barracks').textContent = G.barracksLevel * 140;
+  $('cost-wall').textContent     = (G.wallLevel + 1) * 200;
+  $('cost-market').textContent   = (G.marketLevel + 1) * 300;
+  $('cost-alchemy').textContent  = (G.alchemyLevel + 1) * 500;
+  $('cost-tower').textContent    = (G.towerLevel + 1) * 400;
+  $('cost-recruit').textContent  = Math.floor(50 + G.population * 10);
+
+  const pb = G.prestigeBonus;
+  const pf = fmtD(G.farmLevel * 1.5 * pb);
+  const pw = fmtD(G.sawmillLevel * 1.2 * pb);
+  const ps = fmtD(G.mineLevel * 0.8 * pb);
+  const pg = fmtD(G.mineLevel * 1.1 * pb);
+  $('pr-food').textContent  = pf + '/s';
+  $('pr-wood').textContent  = pw + '/s';
+  $('pr-stone').textContent = ps + '/s';
+  $('pr-gold').textContent  = pg + '/s';
+
+  const pct = (G.xp / G.xpNeeded) * 100;
+  $('xp-bar').style.width = pct + '%';
+  $('xp-text').textContent = fmt(G.xp) + ' / ' + fmt(G.xpNeeded);
+}
+
+/* ═══════════════════ XP & LEVELS ═══════════════════ */
+function gainXP(amount) {
+  const bonus = 1 + G.towerLevel * 0.05;
+  G.xp += Math.floor(amount * bonus);
+  if (G.xp >= G.xpNeeded) {
+    G.xp -= G.xpNeeded;
+    G.level++;
+    G.xpNeeded = Math.floor(G.xpNeeded * 1.3);
+    addLog('🏆 Reino subiu para nível ' + G.level + '!');
+    notify('🏆 Nível ' + G.level + '!', '#facc15');
+    drawCastle();
+  }
+}
+
+/* ═══════════════════ UPGRADE SYSTEM ═══════════════════ */
+const upgradeDefs = {
+  farm:     { key: 'farmLevel',     cost: () => G.farmLevel * 80,         xp: 20 },
+  sawmill:  { key: 'sawmillLevel',  cost: () => G.sawmillLevel * 90,      xp: 20 },
+  mine:     { key: 'mineLevel',     cost: () => G.mineLevel * 120,        xp: 30 },
+  barracks: { key: 'barracksLevel', cost: () => G.barracksLevel * 140,    xp: 35 },
+  wall:     { key: 'wallLevel',     cost: () => (G.wallLevel + 1) * 200,  xp: 25 },
+  market:   { key: 'marketLevel',   cost: () => (G.marketLevel + 1) * 300,xp: 30 },
+  alchemy:  { key: 'alchemyLevel',  cost: () => (G.alchemyLevel + 1) * 500,xp:50 },
+  tower:    { key: 'towerLevel',    cost: () => (G.towerLevel + 1) * 400, xp: 40 }
+};
+
+const upgradeLabels = {
+  farm: '🌾 Fazenda', sawmill: '🪓 Serraria', mine: '⛏️ Mina',
+  barracks: '⚔️ Quartel', wall: '🏰 Muralha', market: '🏪 Mercado',
+  alchemy: '⚗️ Alquimia', tower: '🔭 Torre de Vigia'
+};
+
+function upgrade(type) {
+  const def = upgradeDefs[type];
+  const cost = def.cost();
+  if (G.gold < cost) { notify('❌ Ouro insuficiente!'); return; }
+  G.gold -= cost;
+  G[def.key]++;
+  gainXP(def.xp);
+  addLog(upgradeLabels[type] + ' evoluiu para nível ' + G[def.key] + '!');
+  drawCastle();
+  saveGame();
+}
+
+/* ═══════════════════ ACTIONS ═══════════════════ */
+function recruitPeople() {
+  const cost = 50 + G.population * 10;
+  if (G.food < cost) { notify('❌ Comida insuficiente!'); return; }
+  G.food -= cost;
+  G.population += 2;
+  gainXP(10);
+  addLog('👥 Novos moradores chegaram ao reino!');
+  spawnSprite(['🧑','👩','🧔','👱'][Math.floor(Math.random()*4)], 8000);
+}
+
+function trainSoldier() {
+  if (G.gold < 60) { notify('❌ Ouro insuficiente!'); return; }
+  if (G.population < 1) { notify('❌ Sem população disponível!'); return; }
+  G.gold -= 60;
+  G.population--;
+  G.soldiers++;
+  gainXP(15);
+  addLog('⚔️ Soldado treinado com sucesso!');
+  spawnSprite('⚔️', 9000);
+}
+
+function collectTaxes() {
+  const marketBonus = 1 + G.marketLevel * 0.25;
+  const value = Math.floor(G.population * 12 * G.prestigeBonus * marketBonus);
+  G.gold += value;
+  G.totalGoldEarned += value;
+  gainXP(5);
+  addLog('💰 Impostos coletados: +' + value + ' ouro');
+  notify('+' + value + ' 🪙');
+}
+
+function trade() {
+  if (G.food < 50) { notify('❌ Sem comida suficiente!'); return; }
+  const alchBonus = G.alchemyLevel > 0 ? 1.5 : 1;
+  const gain = Math.floor(30 * alchBonus);
+  G.food -= 50;
+  G.gold += gain;
+  addLog('🌾→🪙 Comercializou: +' + gain + ' ouro');
+}
+
+function convert() {
+  if (G.wood < 50) { notify('❌ Sem madeira suficiente!'); return; }
+  const alchBonus = G.alchemyLevel > 0 ? 1.5 : 1;
+  const gain = Math.floor(30 * alchBonus);
+  G.wood -= 50;
+  G.stone += gain;
+  addLog('🪵→⛏️ Converteu: +' + gain + ' pedra');
+}
+
+function patrol() {
+  if (G.soldiers < 1) { notify('❌ Sem soldados!'); return; }
+  const reward = G.soldiers * 10;
+  G.gold += reward;
+  gainXP(G.soldiers * 3);
+  addLog('🛡️ Patrulha retornou com ' + reward + ' ouro!');
+  notify('+' + reward + ' 🪙');
+}
+
+function festival() {
+  if (G.food < 50) { notify('❌ Sem comida para o festival!'); return; }
+  G.food -= 50;
+  G.population += 3;
+  gainXP(25);
+  addLog('🎉 Festival realizado! +3 moradores chegaram!');
+  notify('🎉 Festival!');
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => spawnSprite(['🧑','👩','🧔','👱'][Math.floor(Math.random()*4)], 10000), i * 500);
+  }
+}
+
+function openPrestige() {
+  if (G.level < 10) { notify('❌ Precisa de nível 10!'); return; }
+  $('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+  $('modal-overlay').style.display = 'none';
+}
+
+function confirmPrestige() {
+  closeModal();
+  G.prestigeCount++;
+  G.prestigeBonus += 0.5;
+  G.gold = 200; G.food = 100; G.wood = 100; G.stone = 100;
+  G.population = 5; G.soldiers = 0;
+  G.level = 1; G.xp = 0; G.xpNeeded = 100;
+  G.farmLevel = 1; G.sawmillLevel = 1; G.mineLevel = 1; G.barracksLevel = 1;
+  G.wallLevel = 0; G.marketLevel = 0; G.alchemyLevel = 0; G.towerLevel = 0;
+  addLog('✨ Prestígio #' + G.prestigeCount + '! Bônus permanente: x' + G.prestigeBonus);
+  notify('✨ Prestígio ' + G.prestigeCount + '!', '#a855f7');
+  clearSprites();
+  drawCastle();
+  saveGame();
+}
+
+/* ═══════════════════ IDLE PRODUCTION ═══════════════════ */
+function idleProduction() {
+  const s = G.speed;
+  const pb = G.prestigeBonus;
+  G.food  += G.farmLevel    * 1.5 * pb * s;
+  G.wood  += G.sawmillLevel * 1.2 * pb * s;
+  G.stone += G.mineLevel    * 0.8 * pb * s;
+  G.gold  += G.mineLevel    * 1.1 * pb * s;
+  G.food  -= G.population   * 0.15 * s;
+  if (G.food < 0) G.food = 0;
+  G.tick++;
+  if (G.tick % 8 === 0 && G.soldiers > 0) spawnSprite('⚔️', 8000);
+  updateUI();
+}
+
+/* ═══════════════════ RANDOM EVENTS ═══════════════════ */
+function randomEvent() {
+  if (G.eventCooldown > 0) { G.eventCooldown--; return; }
+  G.eventCooldown = Math.floor(15 + Math.random() * 12);
+
+  const towerBonus = G.towerLevel > 0;
+  const r = Math.random();
+
+  if (r < 0.20) {
+    const gold = Math.floor(100 * G.prestigeBonus);
+    G.gold += gold;
+    addLog('🎁 Comerciante visitou: +' + gold + ' ouro!');
+    notify('🎁 +' + gold + ' 🪙', '#22c55e');
+  } else if (r < 0.35) {
+    G.food += 80;
+    addLog('🌾 Colheita lendária! +80 comida');
+    notify('🌾 Colheita!', '#22c55e');
+  } else if (r < 0.55) {
+    invasion(towerBonus);
+  } else if (r < 0.68) {
+    G.population++;
+    addLog('👶 Nova família chegou ao reino!');
+    spawnSprite('👶', 8000);
+  } else if (r < 0.80) {
+    const found = Math.floor(20 + Math.random() * 50);
+    G.wood += found;
+    addLog('🪓 Lenhadores encontraram madeira! +' + found);
+  } else if (r < 0.90) {
+    const gems = Math.floor(10 + Math.random() * 20);
+    G.stone += gems;
+    G.gold  += gems;
+    addLog('💎 Pedras preciosas encontradas! +' + gems + ' pedra e ouro');
+    notify('💎 +' + gems + '!', '#38bdf8');
+  } else {
+    const plague = Math.floor(G.population * 0.2);
+    if (plague > 0) {
+      G.population = Math.max(1, G.population - plague);
+      addLog('🦠 Praga! -' + plague + ' população');
+      notify('🦠 Praga!', '#ef4444');
+    }
+  }
+}
+
+function invasion(hasEarlyWarning) {
+  const enemyPower = Math.floor(Math.random() * 12) + G.level;
+  const defense    = G.soldiers + G.wallLevel * 3;
+
+  const el = $('kingdom');
+  el.classList.add('danger-pulse');
+  setTimeout(() => el.classList.remove('danger-pulse'), 3000);
+
+  if (hasEarlyWarning) {
+    addLog('🔭 Torre de Vigia detectou invasão com força ' + enemyPower + '! Defesa: ' + defense);
+    notify('⚠️ Invasão detectada!', '#f59e0b');
+  } else {
+    addLog('⚠️ Invasão com força ' + enemyPower + '! Defesa: ' + defense);
+    notify('⚔️ INVASÃO!', '#ef4444');
+  }
+
+  if (defense >= enemyPower) {
+    const reward = enemyPower * 40;
+    G.gold += reward;
+    G.invasionsDefeated++;
+    gainXP(50);
+    addLog('✅ Invasão derrotada! Recompensa: +' + reward + ' ouro');
+    notify('✅ Vitória! +' + reward + ' 🪙', '#22c55e');
+  } else {
+    const loss = enemyPower * 25;
+    G.gold = Math.max(0, G.gold - loss);
+    addLog('🔥 Derrota! Reino perdeu ' + loss + ' ouro');
+    notify('🔥 Derrota! -' + loss + ' 🪙', '#ef4444');
+  }
+}
+
+/* ═══════════════════ SPEED CONTROL ═══════════════════ */
+function setSpeed(s) {
+  G.speed = s;
+  ['sp1','sp2','sp5'].forEach(id => $(id).classList.remove('active'));
+  $('sp'+s).classList.add('active');
+}
+
+/* ═══════════════════ NOTIFICATION ═══════════════════ */
+let notifTimer = null;
+function notify(msg, color) {
+  const el = $('notification');
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (color) el.style.borderColor = color;
+  if (notifTimer) clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => { el.style.display = 'none'; el.style.borderColor = '#facc15'; }, 2800);
+}
+
+/* ═══════════════════ CASTLE CANVAS ═══════════════════ */
+const castleCanvas = $('castleCanvas');
+const ctx = castleCanvas.getContext('2d');
+
+function drawCastle() {
+  const c = ctx;
+  c.clearRect(0, 0, 90, 100);
+  const lvl = G.level;
+
+  const mainCol   = lvl >= 15 ? '#e879f9' : lvl >= 10 ? '#a855f7' : lvl >= 7 ? '#f59e0b' : lvl >= 5 ? '#38bdf8' : '#94a3b8';
+  const accentCol = lvl >= 10 ? '#facc15' : '#e2e8f0';
+
+  // Side towers (level 3+)
+  if (lvl >= 3) {
+    c.fillStyle = mainCol + 'cc';
+    c.fillRect(2, 52, 14, 30);
+    c.fillRect(74, 52, 14, 30);
+    // battlements
+    for (let i = 0; i < 3; i++) {
+      c.fillRect(2 + i*5, 46, 4, 8);
+      c.fillRect(74 + i*5, 46, 4, 8);
+    }
+  }
+
+  // Main body
+  c.fillStyle = mainCol;
+  c.fillRect(18, 55, 54, 35);
+
+  // Battlements on main
+  for (let i = 0; i < 5; i++) { c.fillRect(18 + i*11, 48, 8, 10); }
+
+  // Gate
+  c.fillStyle = '#0f172a';
+  c.fillRect(36, 68, 18, 22);
+  c.beginPath();
+  c.arc(45, 68, 9, Math.PI, 0);
+  c.fill();
+
+  // Windows
+  c.fillStyle = '#fde047aa';
+  c.fillRect(22, 62, 8, 8);
+  c.fillRect(60, 62, 8, 8);
+
+  // Central tower (level 5+)
+  if (lvl >= 5) {
+    c.fillStyle = mainCol;
+    c.fillRect(32, 30, 26, 28);
+    for (let i = 0; i < 3; i++) { c.fillRect(32 + i*9, 24, 7, 9); }
+
+    // Flag
+    c.fillStyle = '#ef4444';
+    c.fillRect(44, 8, 2, 18);
+    c.fillStyle = accentCol;
+    c.beginPath();
+    c.moveTo(46, 8);
+    c.lineTo(58, 14);
+    c.lineTo(46, 20);
+    c.fill();
+  }
+
+  // Wall (level 2+)
+  if (G.wallLevel >= 1) {
+    c.fillStyle = '#78716c';
+    c.fillRect(0, 86, 90, 14);
+    for (let i = 0; i < 7; i++) { c.fillRect(i*14, 80, 10, 8); }
+  }
+
+  // Prestige glow effect
+  if (G.prestigeCount > 0) {
+    c.shadowColor = '#a855f7';
+    c.shadowBlur = 12;
+    c.fillStyle = 'transparent';
+    c.fillRect(0, 0, 90, 100);
+    c.shadowBlur = 0;
+  }
+}
+
+/* ═══════════════════ ANIMATED SCENE ═══════════════════ */
+const sceneEl = $('scene');
+
+function makeStars() {
+  const bg = $('sky-bg');
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*65}%;width:${1+Math.random()*2.5}px;height:${1+Math.random()*2.5}px;animation-delay:${Math.random()*3}s;animation-duration:${1+Math.random()*2}s`;
+    bg.appendChild(s);
+  }
+}
+
+function addTree() {
+  const t = document.createElement('div');
+  t.className = 'tree';
+  const side = Math.random() < 0.5;
+  t.style.left = (side ? (2 + Math.random() * 18) : (75 + Math.random() * 18)) + '%';
+  t.style.zIndex = 5;
+  t.textContent = ['🌲','🌳','🌴'][Math.floor(Math.random() * 3)];
+  sceneEl.appendChild(t);
+}
+
+function spawnSprite(emoji, duration) {
+  const p = document.createElement('div');
+  p.className = 'person';
+  p.style.animationDuration = (4 + Math.random() * 5) + 's';
+  p.style.bottom = '30px';
+  p.style.zIndex = 15;
+  p.textContent = emoji;
+  sceneEl.appendChild(p);
+  setTimeout(() => p.remove(), duration || 10000);
+}
+
+function spawnCloud() {
+  const c = document.createElement('div');
+  c.className = 'cloud';
+  c.style.top = (4 + Math.random() * 35) + '%';
+  c.style.animationDuration = (20 + Math.random() * 18) + 's';
+  c.textContent = Math.random() > 0.5 ? '☁️' : '⛅';
+  c.style.zIndex = 6;
+  sceneEl.appendChild(c);
+  setTimeout(() => c.remove(), 42000);
+}
+
+function clearSprites() {
+  sceneEl.querySelectorAll('.person').forEach(e => e.remove());
+}
+
+/* ═══════════════════ SAVE / LOAD ═══════════════════ */
+function saveGame() {
+  try { localStorage.setItem('idleKingdomV2', JSON.stringify(G)); } catch(e) {}
+}
+
+function loadGame() {
+  try {
+    const save = localStorage.getItem('idleKingdomV2');
+    if (save) {
+      const parsed = JSON.parse(save);
+      Object.assign(G, parsed);
+      addLog('💾 Jogo carregado com sucesso!');
+    }
+  } catch(e) {}
+}
+
+/* ═══════════════════ INIT ═══════════════════ */
+loadGame();
+makeStars();
+for (let i = 0; i < 4; i++) addTree();
+drawCastle();
+updateUI();
+spawnCloud();
+
+setInterval(idleProduction, 1000);
+setInterval(() => { randomEvent(); }, 1000);
+setInterval(spawnCloud, 9000);
+setInterval(saveGame, 5000);
+
+addLog('👑 Bem-vindo ao Idle Kingdom!');
+addLog('💡 Dica: Construa muralhas para defender contra invasões!');
+</script>
+</body>
+</html>

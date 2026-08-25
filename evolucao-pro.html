@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolução</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background: radial-gradient(circle at center, #000014, #000);
+  color:#00ffcc;
+  font-family: 'Courier New', monospace;
+  text-align:center;
+  user-select:none;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:12px 8px;
+}
+
+/* ───── TÍTULO ARCADE ───── */
+h1{
+  font-size:clamp(18px,5vw,26px);
+  letter-spacing:6px;
+  color:#00ffff;
+  margin-bottom:10px;
+  text-shadow:
+    0 0 5px #00ffff,
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 0 40px #0088ff;
+  animation: flicker 2s infinite alternate;
+}
+
+/* efeito arcade piscando */
+@keyframes flicker{
+  0%{opacity:1}
+  50%{opacity:0.85}
+  100%{opacity:1}
+}
+
+/* ───── HUD ───── */
+.hud{
+  display:flex;
+  justify-content:center;
+  gap:25px;
+  font-size:12px;
+  letter-spacing:2px;
+  color:#00ffaa;
+  margin-bottom:5px;
+  flex-wrap:wrap;
+}
+
+.hud b{
+  color:#00ffff;
+  text-shadow:0 0 8px #00ffff;
+}
+
+/* ───── BOTÕES ───── */
+.btns{
+  display:flex;
+  gap:10px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+button{
+  padding:8px 20px;
+  border:2px solid #00ffff;
+  border-radius:25px;
+  background:transparent;
+  color:#00ffff;
+  cursor:pointer;
+  font-size:11px;
+  letter-spacing:2px;
+  font-family:'Courier New', monospace;
+  transition:all .2s;
+  box-shadow:0 0 10px #00ffff33;
+}
+
+button:hover{
+  background:#00ffff;
+  color:#000;
+  box-shadow:
+    0 0 10px #00ffff,
+    0 0 25px #00ffff,
+    0 0 40px #00ffff;
+  transform:scale(1.08);
+}
+
+/* ───── CANVAS ───── */
+canvas{
+  display:block;
+  background:#000;
+  border:2px solid #00ffff;
+  border-radius:8px;
+  cursor:none;
+  max-width:100%;
+  box-shadow:
+    0 0 10px #00ffff,
+    inset 0 0 20px #001a1a;
+}
+
+/* ───── TEXTO INFERIOR ───── */
+p.hint{
+  font-size:10px;
+  color:#006666;
+  margin-top:8px;
+  letter-spacing:2px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>EVOLUÇÃO</h1>
+
+<div class="btns">
+  <button onclick="startGame()">JOGAR</button>
+  <button onclick="togglePause()">PAUSAR</button>
+  <button onclick="Voltar()">VOLTAR</button>
+</div>
+
+<div class="hud">
+  <span>NÍVEL <b id="nivel">1</b></span>
+  <span>PONTOS <b id="pontos">0</b></span>
+  <span>XP <b id="xpbar">▰▱▱▱▱</b></span>
+</div>
+
+<canvas id="c" width="420" height="420"></canvas>
+<p class="hint">mova o mouse para jogar &nbsp;|&nbsp; toque no mobile</p>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const W = 420, H = 420;
+
+let player, orbs, enemies, particles;
+let pontos=0, nivel=1, running=false, paused=false, animId=null;
+let mouseX=210, mouseY=210;
+let xp=0, xpNeeded=5;
+let tick=0, spawnTimer=0;
+
+// ── start ─────────────────────────────────────────
+function startGame(){
+  if(animId) cancelAnimationFrame(animId);
+  pontos=0; nivel=1; xp=0; xpNeeded=5;
+  paused=false; running=true; tick=0; spawnTimer=0;
+  player = {x:210, y:210, size:14, color:"#00e5ff", trail:[]};
+  orbs=[]; enemies=[]; particles=[];
+  for(let i=0;i<3;i++) spawnOrb();
+  updateHUD();
+  loop();
+}
+
+function togglePause(){ if(running) paused=!paused; }
+
+// ── orb ──────────────────────────────────────────
+function spawnOrb(){
+  const margin=30;
+  orbs.push({
+    x: margin+Math.random()*(W-margin*2),
+    y: margin+Math.random()*(H-margin*2),
+    r: 6+Math.random()*4,
+    pulse: Math.random()*Math.PI*2,
+    color: ["#8a2be2","#ff00cc","#00ffaa","#ffcc00"][Math.floor(Math.random()*4)]
+  });
+}
+function Voltar() {
+  window.location.href = "index.html"
+}
+// ── enemy ─────────────────────────────────────────
+function spawnEnemy(){
+  const side = Math.floor(Math.random()*4);
+  let ex, ey;
+  if(side===0){ex=Math.random()*W; ey=-20;}
+  else if(side===1){ex=W+20; ey=Math.random()*H;}
+  else if(side===2){ex=Math.random()*W; ey=H+20;}
+  else{ex=-20; ey=Math.random()*H;}
+
+  const tier = Math.min(Math.floor(nivel/3), 3);
+  const spd  = 0.8 + nivel*0.15 + Math.random()*0.4;
+
+  enemies.push({
+    x:ex, y:ey,
+    size: 9+tier*3,
+    speed: spd,
+    rot: Math.random()*Math.PI*2,
+    rotSpeed: (Math.random()-0.5)*0.1,
+    tier,
+    wobble: Math.random()*Math.PI*2
+  });
+}
+
+// ── particles ─────────────────────────────────────
+function burst(x, y, col, n=10){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=1+Math.random()*4;
+    particles.push({x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:1, col, r:2+Math.random()*2});
+  }
+}
+
+// ── HUD ───────────────────────────────────────────
+function updateHUD(){
+  document.getElementById("nivel").textContent  = nivel;
+  document.getElementById("pontos").textContent = pontos;
+  const filled = Math.round((xp/xpNeeded)*5);
+  document.getElementById("xpbar").textContent  = "▰".repeat(filled)+"▱".repeat(5-filled);
+}
+
+// ── evolve ────────────────────────────────────────
+function evolve(){
+  nivel++;
+  xp=0;
+  xpNeeded = Math.floor(xpNeeded*1.4);
+  player.size = Math.min(player.size+2, 32);
+  const cols = ["#00e5ff","#8a2be2","#ff00cc","#00ffaa","#ffcc00","#ff6600"];
+  player.color = cols[nivel%cols.length];
+  burst(player.x, player.y, player.color, 20);
+  updateHUD();
+}
+
+// ── draw player ───────────────────────────────────
+function drawPlayer(){
+  const p = player;
+
+  // trail
+  p.trail.forEach((t,i)=>{
+    ctx.globalAlpha = (i/p.trail.length)*0.35;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, p.size*(i/p.trail.length)*0.8, 0, Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // glow ring
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.size+5, 0, Math.PI*2);
+  ctx.strokeStyle = p.color+"55"; ctx.lineWidth=3; ctx.stroke();
+
+  // body gradient
+  const g = ctx.createRadialGradient(p.x-p.size*0.3, p.y-p.size*0.3, 1, p.x, p.y, p.size);
+  g.addColorStop(0,"#fff"); g.addColorStop(0.4, p.color); g.addColorStop(1, p.color+"88");
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+
+  // nucleus
+  ctx.beginPath(); ctx.arc(p.x, p.y, p.size*0.25, 0, Math.PI*2);
+  ctx.fillStyle="#fff"; ctx.fill();
+
+  // orbital ring segments
+  for(let i=0;i<nivel;i++){
+    const a = (i/nivel)*Math.PI*2 + tick*0.02;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size+9, a, a+Math.PI*2/nivel-0.15);
+    ctx.strokeStyle = p.color; ctx.lineWidth=2; ctx.stroke();
+  }
+}
+
+// ── draw enemy ────────────────────────────────────
+function drawEnemy(e){
+  ctx.save();
+  ctx.translate(e.x, e.y);
+  ctx.rotate(e.rot);
+
+  const tierCols=[["#ff3333","#880000"],["#ff6600","#883300"],["#ff00cc","#880066"],["#ffcc00","#886600"]];
+  const [c1,c2] = tierCols[e.tier];
+  const s = e.size;
+  const w = e.wobble + tick*0.06;
+
+  if(e.tier===0){
+    ctx.beginPath();
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2;
+      const spike = i%2===0 ? s : s*0.55;
+      const sz = spike*(1+0.12*Math.sin(w+i));
+      const px=Math.cos(a)*sz, py=Math.sin(a)*sz;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    const g=ctx.createRadialGradient(0,0,1,0,0,s);
+    g.addColorStop(0,"#ff8888"); g.addColorStop(1,c1);
+    ctx.fillStyle=g; ctx.fill();
+  } else if(e.tier===1){
+    ctx.beginPath(); ctx.rect(-s,-s,s*2,s*2);
+    const g=ctx.createRadialGradient(0,0,1,0,0,s);
+    g.addColorStop(0,"#ffaa44"); g.addColorStop(1,c1);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle=c2; ctx.lineWidth=2; ctx.stroke();
+  } else if(e.tier===2){
+    ctx.beginPath();
+    ctx.moveTo(0,-s*1.2); ctx.lineTo(s,s*0.8); ctx.lineTo(-s,s*0.8);
+    ctx.closePath();
+    const g=ctx.createRadialGradient(0,0,1,0,0,s);
+    g.addColorStop(0,"#ff88ee"); g.addColorStop(1,c1);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle=c2; ctx.lineWidth=2; ctx.stroke();
+  } else {
+    ctx.beginPath();
+    for(let i=0;i<10;i++){
+      const a=(i/10)*Math.PI*2-Math.PI/2;
+      const r2=i%2===0?s:s*0.45;
+      const px=Math.cos(a)*r2, py=Math.sin(a)*r2;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    const g=ctx.createRadialGradient(0,0,1,0,0,s);
+    g.addColorStop(0,"#ffee88"); g.addColorStop(1,c1);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.strokeStyle=c2; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  // eye
+  ctx.beginPath(); ctx.arc(0,0,s*0.22,0,Math.PI*2);
+  ctx.fillStyle="#fff"; ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.06,0,s*0.12,0,Math.PI*2);
+  ctx.fillStyle="#000"; ctx.fill();
+
+  ctx.restore();
+}
+
+// ── draw orb ──────────────────────────────────────
+function drawOrb(o){
+  o.pulse += 0.07;
+  const r = o.r*(1+0.15*Math.sin(o.pulse));
+  ctx.shadowColor=o.color; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(o.x, o.y, r, 0, Math.PI*2);
+  const g=ctx.createRadialGradient(o.x-r*0.3,o.y-r*0.3,1,o.x,o.y,r);
+  g.addColorStop(0,"#fff"); g.addColorStop(0.5,o.color); g.addColorStop(1,o.color+"44");
+  ctx.fillStyle=g; ctx.fill();
+  ctx.shadowBlur=0;
+}
+
+// ── bg ────────────────────────────────────────────
+function drawBg(){
+  ctx.fillStyle="#050510"; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(0,229,255,0.03)"; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+// ── main loop ─────────────────────────────────────
+function loop(){
+  if(!running){animId=null; return;}
+  animId=requestAnimationFrame(loop);
+
+  if(paused){
+    ctx.fillStyle="rgba(0,0,0,0.55)"; ctx.fillRect(0,0,W,H);
+    ctx.textAlign="center"; ctx.font="bold 20px 'Courier New'";
+    ctx.fillStyle="#00e5ff"; ctx.fillText("PAUSADO",W/2,H/2);
+    ctx.textAlign="left"; return;
+  }
+
+  tick++;
+  drawBg();
+
+  // smooth follow
+  player.x += (mouseX - player.x)*0.33;
+  player.y += (mouseY - player.y)*0.33;
+  player.x = Math.max(player.size, Math.min(W-player.size, player.x));
+  player.y = Math.max(player.size, Math.min(H-player.size, player.y));
+
+  player.trail.push({x:player.x, y:player.y});
+  if(player.trail.length>18) player.trail.shift();
+
+  // spawn enemies
+  spawnTimer++;
+  const spawnRate = Math.max(80-nivel*5, 25);
+  if(spawnTimer>=spawnRate){spawnTimer=0; spawnEnemy();}
+
+  // orbs
+  orbs.forEach(o=>drawOrb(o));
+
+  // collect orbs
+  for(let i=orbs.length-1;i>=0;i--){
+    const o=orbs[i];
+    const dx=player.x-o.x, dy=player.y-o.y;
+    if(Math.sqrt(dx*dx+dy*dy) < player.size+o.r){
+      burst(o.x,o.y,o.color,8);
+      orbs.splice(i,1);
+      pontos+=nivel; xp++;
+      if(xp>=xpNeeded) evolve();
+      updateHUD();
+      spawnOrb();
+    }
+  }
+
+  // enemies
+  for(let i=enemies.length-1;i>=0;i--){
+    const e=enemies[i];
+    const dx=player.x-e.x, dy=player.y-e.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    e.x+=(dx/dist)*e.speed;
+    e.y+=(dy/dist)*e.speed;
+    e.rot+=e.rotSpeed;
+    e.wobble+=0.05;
+    drawEnemy(e);
+
+    if(dist < player.size + e.size*0.75){
+      burst(player.x,player.y,"#ff3333",25);
+      burst(e.x,e.y,["#ff3333","#ff6600","#ff00cc","#ffcc00"][e.tier],15);
+      gameOver();
+      return;
+    }
+  }
+
+  drawPlayer();
+
+  // particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.life-=0.025;
+    ctx.globalAlpha=p.life;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*p.life,0,Math.PI*2);
+    ctx.fillStyle=p.col; ctx.fill();
+    if(p.life<=0) particles.splice(i,1);
+  }
+  ctx.globalAlpha=1;
+
+  // cursor crosshair
+  ctx.strokeStyle="rgba(255,255,255,0.2)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(mouseX-8,mouseY); ctx.lineTo(mouseX+8,mouseY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mouseX,mouseY-8); ctx.lineTo(mouseX,mouseY+8); ctx.stroke();
+  ctx.beginPath(); ctx.arc(mouseX,mouseY,4,0,Math.PI*2);
+  ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.stroke();
+}
+
+// ── game over ─────────────────────────────────────
+function gameOver(){
+  running=false;
+  ctx.fillStyle="rgba(0,0,0,0.82)"; ctx.fillRect(0,0,W,H);
+  ctx.textAlign="center";
+  ctx.font="bold 28px 'Courier New'"; ctx.fillStyle="#ff3344";
+  ctx.shadowColor="#ff0033"; ctx.shadowBlur=18;
+  ctx.fillText("FIM DE JOGO", W/2, H/2-20);
+  ctx.shadowBlur=0;
+  ctx.font="14px 'Courier New'"; ctx.fillStyle="#888";
+  ctx.fillText(`Nível ${nivel}  •  Pontos: ${pontos}`, W/2, H/2+14);
+  ctx.font="11px 'Courier New'"; ctx.fillStyle="#333";
+  ctx.fillText("clique em JOGAR para tentar novamente", W/2, H/2+40);
+  ctx.textAlign="left";
+}
+
+// ── input ─────────────────────────────────────────
+canvas.addEventListener("mousemove", e=>{
+  const r=canvas.getBoundingClientRect();
+  const sx=W/r.width, sy=H/r.height;
+  mouseX=(e.clientX-r.left)*sx; mouseY=(e.clientY-r.top)*sy;
+});
+canvas.addEventListener("touchmove", e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const sx=W/r.width, sy=H/r.height;
+  mouseX=(e.touches[0].clientX-r.left)*sx; mouseY=(e.touches[0].clientY-r.top)*sy;
+},{passive:false});
+
+// ── idle screen ───────────────────────────────────
+(function(){
+  ctx.fillStyle="#050510"; ctx.fillRect(0,0,W,H);
+  ctx.textAlign="center";
+  ctx.font="bold 18px 'Courier New'"; ctx.fillStyle="#00e5ff";
+  ctx.shadowColor="#00e5ff"; ctx.shadowBlur=12;
+  ctx.fillText("EVOLUÇÃO PRO", W/2, H/2-8);
+  ctx.shadowBlur=0;
+  ctx.font="11px 'Courier New'"; ctx.fillStyle="#333";
+  ctx.fillText("clique em JOGAR para começar", W/2, H/2+18);
+  ctx.textAlign="left";
+})();
+</script>
+</body>
+</html>

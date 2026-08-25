@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz de Bandeiras</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #08090f;
+      --surface: #111219;
+      --border: rgba(255, 255, 255, 0.07);
+      --accent: #e8f0ff;
+      --cyan: #5bc8ff;
+      --green: #4ade80;
+      --red: #f87171;
+      --muted: rgba(255, 255, 255, 0.35);
+      --text: #e8eaf0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px 60px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(91, 200, 255, 0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(91, 200, 255, 0.3), transparent);
+    }
+
+    /* Setup screen */
+    #setup {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .continent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .continent-btn {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 12px 8px;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .continent-btn .icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .continent-btn:hover {
+      border-color: rgba(91, 200, 255, 0.3);
+      color: var(--text);
+      background: rgba(91, 200, 255, 0.05);
+    }
+
+    .continent-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(91, 200, 255, 0.08);
+    }
+
+    .qty-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .qty-btn {
+      flex: 1;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: center;
+    }
+
+    .qty-btn:hover {
+      border-color: rgba(91, 200, 255, 0.3);
+      color: var(--text);
+    }
+
+    .qty-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(91, 200, 255, 0.08);
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--cyan);
+      border: none;
+      border-radius: 10px;
+      color: #08090f;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.1s;
+      margin-top: 4px;
+    }
+
+    .start-btn:hover {
+      opacity: 0.88;
+    }
+
+    .start-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Game screen */
+    #game {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-bottom: 20px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .progress-meta span {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .progress-track {
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--cyan);
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Flag */
+    .flag-wrap {
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .flag-img {
+      width: 220px;
+      height: 132px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 0.5px solid var(--border);
+      display: block;
+      margin: 0 auto;
+      transition: opacity 0.2s;
+    }
+
+    .flag-img.loading {
+      opacity: 0.3;
+    }
+
+    /* Score pills */
+    .score-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .pill {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .pill-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .pill-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .pill-value.green {
+      color: var(--green);
+    }
+
+    .pill-value.red {
+      color: var(--red);
+    }
+
+    /* Options grid */
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .opt-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 14px 12px;
+      cursor: pointer;
+      transition: all 0.16s;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      border-color: rgba(91, 200, 255, 0.4);
+      background: rgba(91, 200, 255, 0.06);
+      color: var(--cyan);
+    }
+
+    .opt-btn:disabled {
+      cursor: default;
+    }
+
+    .opt-btn.correct {
+      border-color: var(--green);
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--green);
+    }
+
+    .opt-btn.wrong {
+      border-color: var(--red);
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--red);
+    }
+
+    .opt-btn.reveal {
+      border-color: var(--green);
+      background: rgba(74, 222, 128, 0.06);
+      color: var(--green);
+    }
+
+    /* Feedback toast */
+    .feedback {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 16px;
+      min-height: 20px;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s;
+    }
+
+    .feedback.correct {
+      color: var(--green);
+    }
+
+    .feedback.wrong {
+      color: var(--red);
+    }
+
+    /* End screen */
+    #end {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      text-align: center;
+    }
+
+    .end-score {
+      font-family: 'Syne', sans-serif;
+      font-size: 64px;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .end-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .end-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .stat-box .val {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .stat-box .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .end-msg {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .end-msg strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 13px;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text);
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .animate-pop {
+      animation: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>Quiz de Bandeiras</h1>
+    <p>Teste seu conhecimento geográfico</p>
+  </div>
+
+  <div class="card" id="setup-card">
+    <div id="setup">
+      <div>
+        <div class="field-label">Continente</div>
+        <div class="continent-grid">
+          <button class="continent-btn active" data-val="america" onclick="selectContinent(this)">
+            <span class="icon">🌎</span>América
+          </button>
+          <button class="continent-btn" data-val="europe" onclick="selectContinent(this)">
+            <span class="icon">🌍</span>Europa
+          </button>
+          <button class="continent-btn" data-val="asia" onclick="selectContinent(this)">
+            <span class="icon">🌏</span>Ásia
+          </button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Número de rodadas</div>
+        <div class="qty-row">
+          <button class="qty-btn" data-val="5" onclick="selectQty(this)">5</button>
+          <button class="qty-btn active" data-val="10" onclick="selectQty(this)">10</button>
+          <button class="qty-btn" data-val="15" onclick="selectQty(this)">15</button>
+          <button class="qty-btn" data-val="20" onclick="selectQty(this)">20</button>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startGame()">Começar</button>
+    </div>
+  </div>
+
+  <div class="card" id="game-card" style="display:none;">
+    <div id="game">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <div>Rodada <span id="round-cur">1</span> de <span id="round-tot">10</span></div>
+          <div id="streak-label"></div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="pill">
+          <div class="pill-label">Pontos</div>
+          <div class="pill-value" id="score-val">0</div>
+        </div>
+        <div class="pill">
+          <div class="pill-label">Acertos</div>
+          <div class="pill-value green" id="correct-val">0</div>
+        </div>
+        <div class="pill">
+          <div class="pill-label">Erros</div>
+          <div class="pill-value red" id="wrong-val">0</div>
+        </div>
+      </div>
+
+      <div class="flag-wrap">
+        <img id="flag" class="flag-img" src="" alt="Bandeira">
+      </div>
+
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card" id="end-card" style="display:none;">
+    <div id="end">
+      <div class="end-score" id="final-score">0</div>
+      <div class="end-label">pontos finais</div>
+      <div class="end-stats">
+        <div class="stat-box">
+          <div class="val" style="color:var(--green)" id="final-correct">0</div>
+          <div class="lbl">Acertos</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" style="color:var(--red)" id="final-wrong">0</div>
+          <div class="lbl">Erros</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="final-pct">0%</div>
+          <div class="lbl">Aproveitamento</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="final-streak">0</div>
+          <div class="lbl">Melhor sequência</div>
+        </div>
+      </div>
+      <div class="end-msg" id="end-msg"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goSetup()">Mudar opções</button>
+        <button class="start-btn" style="flex:1" onclick="restartGame()">Jogar novamente</button>
+        <button class="btn-secondary" onclick="window.location.href='index.html'">Voltar ao menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const countries = {
+      america: [
+        { name: "Brasil", flag: "br" }, { name: "Estados Unidos", flag: "us" }, { name: "Argentina", flag: "ar" },
+        { name: "México", flag: "mx" }, { name: "Canadá", flag: "ca" }, { name: "Colômbia", flag: "co" },
+        { name: "Chile", flag: "cl" }, { name: "Peru", flag: "pe" }, { name: "Venezuela", flag: "ve" },
+        { name: "Equador", flag: "ec" }, { name: "Bolívia", flag: "bo" }, { name: "Paraguai", flag: "py" },
+        { name: "Uruguai", flag: "uy" }, { name: "Cuba", flag: "cu" }, { name: "Nicarágua", flag: "ni" },
+        { name: "El Salvador", flag: "sv" }, { name: "Guatemala", flag: "gt" }, { name: "Suriname", flag: "sr" },
+        { name: "Barbados", flag: "bb" }, { name: "Belize", flag: "bz" }, { name: "Suriname", flag: "sr" },
+        { name: "Guiana", flag: "gy" }, { name: "Nicaragua", flag: "ni" }, { name: "Costa Rica", flag: "cr" },
+        { name: "Panamá", flag: "pa" }, { name: "Jamaica", flag: "jm" }, { name: "Trinidad e Tobago", flag: "tt" },
+        { name: "Bahamas", flag: "bs" },
+
+      ],
+      europe: [
+        { name: "França", flag: "fr" }, { name: "Alemanha", flag: "de" }, { name: "Itália", flag: "it" },
+        { name: "Espanha", flag: "es" }, { name: "Reino Unido", flag: "gb" }, { name: "Portugal", flag: "pt" },
+        { name: "Grécia", flag: "gr" }, { name: "Suécia", flag: "se" }, { name: "Noruega", flag: "no" },
+        { name: "Polônia", flag: "pl" }, { name: "Holanda", flag: "nl" }, { name: "Bélgica", flag: "be" },
+        { name: "Suíça", flag: "ch" }, { name: "Áustria", flag: "at" }, { name: "Dinamarca", flag: "dk" },
+        { name: "Finlândia", flag: "fi" }, { name: "Croácia", flag: "hr" }, { name: "República Checa", flag: "cz" },
+        { name: "Hungria", flag: "hu" }, { name: "Irlanda", flag: "ie" }, { name: "Romênia", flag: "ro" },
+        { name: "Bulgária", flag: "bg" }, { name: "Sérvia", flag: "rs" }, { name: "Eslováquia", flag: "sk" },
+        { name: "Eslovênia", flag: "si" }, { name: "Lituânia", flag: "lt" }, { name: "Letônia", flag: "lv" },
+        { name: "Estônia", flag: "ee" }, { name: "Macedônia do Norte", flag: "mk" }, { name: "Albânia", flag: "al" },
+        { name: "Bósnia e Herzegovina", flag: "ba" }, { name: "Moldávia", flag: "md" }, { name: "Montenegro", flag: "me" },
+        { name: "Liechtenstein", flag: "li" }, { name: "Andorra", flag: "ad" },
+        { name: "San Marino", flag: "sm" }, { name: "Vaticano", flag: "va" }, { name: "Islândia", flag: "is" },
+        { name: "Ucrânia", flag: "ua" }, { name: "Belarus", flag: "by" }, { name: "Geórgia", flag: "ge" },
+        { name: "Armênia", flag: "am" }, { name: "Azerbaijão", flag: "az" }, { name: "Chipre", flag: "cy" },
+        { name: "Kosovo", flag: "xk" }, { name: "Luxemburgo", flag: "lu" },
+      ],
+      asia: [
+        { name: "Japão", flag: "jp" }, { name: "China", flag: "cn" }, { name: "Coreia do Sul", flag: "kr" },
+        { name: "Índia", flag: "in" }, { name: "Arábia Saudita", flag: "sa" }, { name: "Turquia", flag: "tr" },
+        { name: "Indonésia", flag: "id" }, { name: "Irã", flag: "ir" }, { name: "Paquistão", flag: "pk" },
+        { name: "Vietnã", flag: "vn" }, { name: "Tailândia", flag: "th" }, { name: "Malásia", flag: "my" },
+        { name: "Filipinas", flag: "ph" }, { name: "Singapura", flag: "sg" }, { name: "Emirados Árabes", flag: "ae" },
+        
+      ],
+      africa: [
+        { name: "Nigéria", flag: "ng" }, { name: "Egito", flag: "eg" }, { name: "África do Sul", flag: "za" },
+        { name: "Quênia", flag: "ke" }, { name: "Gana", flag: "gh" }, { name: "Marrocos", flag: "ma" },
+        { name: "Etiópia", flag: "et" }, { name: "Uganda", flag: "ug" }, { name: "Argélia", flag: "dz" },
+        { name: "Sudão", flag: "sd" }, { name: "Tunísia", flag: "tn" }, { name: "Camarões", flag: "cm" },
+        { name: "Costa do Marfim", flag: "ci" }, { name: "Angola", flag: "ao" }, { name: "Moçambique", flag: "mz" },
+      ],
+    };
+
+    let continent = 'america';
+    let totalRounds = 10;
+    let round, score, correctCount, wrongCount, streak, bestStreak;
+    let pool, usedIndices, current;
+    let answered = false;
+
+    function flagUrl(code) {
+      return `https://flagcdn.com/w320/${code}.png`;
+    }
+
+    function selectContinent(btn) {
+      document.querySelectorAll('.continent-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      continent = btn.dataset.val;
+    }
+
+    function selectQty(btn) {
+      document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      totalRounds = parseInt(btn.dataset.val);
+    }
+
+    function startGame() {
+      pool = [...countries[continent]];
+      round = 0; score = 0; correctCount = 0; wrongCount = 0; streak = 0; bestStreak = 0;
+      usedIndices = [];
+
+      document.getElementById('setup-card').style.display = 'none';
+      document.getElementById('end-card').style.display = 'none';
+      document.getElementById('game-card').style.display = 'block';
+      document.getElementById('game').style.display = 'flex';
+      document.getElementById('end').style.display = 'none';
+      document.getElementById('round-tot').textContent = totalRounds;
+
+      updateHUD();
+      nextRound();
+    }
+
+    function restartGame() {
+      document.getElementById('end-card').style.display = 'none';
+      startGame();
+    }
+
+    function goSetup() {
+      document.getElementById('end-card').style.display = 'none';
+      document.getElementById('game-card').style.display = 'none';
+      document.getElementById('setup-card').style.display = 'block';
+    }
+
+    function updateHUD() {
+      document.getElementById('score-val').textContent = score;
+      document.getElementById('correct-val').textContent = correctCount;
+      document.getElementById('wrong-val').textContent = wrongCount;
+      document.getElementById('round-cur').textContent = Math.min(round + 1, totalRounds);
+      const pct = (round / totalRounds) * 100;
+      document.getElementById('progress').style.width = pct + '%';
+      const sl = document.getElementById('streak-label');
+      sl.textContent = streak >= 2 ? `🔥 ${streak} seguidos` : '';
+    }
+
+    function nextRound() {
+      if (round >= totalRounds) { endGame(); return; }
+      answered = false;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+
+      // Pick country not recently used
+      let available = pool.map((_, i) => i).filter(i => !usedIndices.includes(i));
+      if (available.length === 0) { usedIndices = []; available = pool.map((_, i) => i); }
+      const idx = available[Math.floor(Math.random() * available.length)];
+      usedIndices.push(idx);
+      if (usedIndices.length > Math.floor(pool.length / 2)) usedIndices.shift();
+      current = pool[idx];
+
+      // Flag
+      const flagEl = document.getElementById('flag');
+      flagEl.classList.add('loading');
+      flagEl.onload = () => flagEl.classList.remove('loading');
+      flagEl.src = flagUrl(current.flag);
+
+      // Options — 4 unique choices including correct
+      const others = pool.filter(c => c.name !== current.name);
+      shuffle(others);
+      const choices = [current, ...others.slice(0, 3)];
+      shuffle(choices);
+
+      const div = document.getElementById('options');
+      div.innerHTML = '';
+      choices.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn animate-pop';
+        btn.textContent = opt.name;
+        btn.onclick = () => answer(btn, opt);
+        div.appendChild(btn);
+      });
+
+      updateHUD();
+    }
+
+    function answer(btn, opt) {
+      if (answered) return;
+      answered = true;
+
+      const isCorrect = opt.name === current.name;
+      const allBtns = document.querySelectorAll('.opt-btn');
+
+      allBtns.forEach(b => {
+        b.disabled = true;
+        if (b.textContent === current.name && b !== btn) b.classList.add('reveal');
+      });
+
+      const fb = document.getElementById('feedback');
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        correctCount++;
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
+        const bonus = streak >= 3 ? 5 : 0;
+        score += 10 + bonus;
+        fb.textContent = streak >= 3 ? `Correto! +${10 + bonus} pts (bônus x${streak})` : 'Correto!';
+        fb.className = 'feedback correct';
+      } else {
+        btn.classList.add('wrong');
+        wrongCount++;
+        streak = 0;
+        fb.textContent = `Errado! Era ${current.name}`;
+        fb.className = 'feedback wrong';
+      }
+
+      round++;
+      updateHUD();
+      setTimeout(nextRound, 1400);
+    }
+
+    function endGame() {
+      // Hide all screens first
+      document.getElementById('game-card').style.display = 'none';
+      document.getElementById('setup-card').style.display = 'none';
+
+      // Show end card
+      const endCard = document.getElementById('end-card');
+      endCard.style.display = 'block';
+      document.getElementById('end').style.display = 'flex';
+
+      document.getElementById('final-score').textContent = score;
+      document.getElementById('final-correct').textContent = correctCount;
+      document.getElementById('final-wrong').textContent = wrongCount;
+      const pct = Math.round((correctCount / totalRounds) * 100);
+      document.getElementById('final-pct').textContent = pct + '%';
+      document.getElementById('final-streak').textContent = bestStreak;
+
+      const msgs = [
+        [90, 'Incrível! Você é um <strong>expert em geografia</strong>. Pontuação excelente!'],
+        [70, 'Muito bem! Você tem um <strong>ótimo conhecimento</strong> das bandeiras do mundo.'],
+        [50, 'Bom esforço! Com um pouco de prática você vai <strong>melhorar bastante</strong>.'],
+        [0, 'Continue praticando! As bandeiras do mundo são um <strong>desafio fascinante</strong>.'],
+      ];
+      const msg = msgs.find(([min]) => pct >= min);
+      document.getElementById('end-msg').innerHTML = msg[1];
+    }
+
+    function goSetup() {
+      document.getElementById('end-card').style.display = 'none';
+      document.getElementById('game-card').style.display = 'none';
+      document.getElementById('setup-card').style.display = 'block';
+    }
+
+    function restartGame() {
+      document.getElementById('end-card').style.display = 'none';
+      startGame();
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+  </script>
+</body>
+
+</html>

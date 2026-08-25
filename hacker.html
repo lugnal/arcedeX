@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hacker Simulator</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#020b12;
+    color:#00ff88;
+    font-family:Consolas, monospace;
+    overflow:hidden;
+}
+
+canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:-1;
+}
+
+/* BOTÃO VOLTAR */
+.back-btn{
+    position:fixed;
+    top:15px;
+    left:15px;
+    background:#00ff88;
+    color:black;
+    border:none;
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    z-index:9999;
+    box-shadow:0 0 10px #00ff88;
+    transition:0.2s;
+}
+
+.back-btn:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 15px #00ff88;
+}
+
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    padding:20px;
+}
+
+.game{
+    width:700px;
+    background:rgba(0,0,0,0.85);
+    border:2px solid #00ff88;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 0 20px #00ff88;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    text-shadow:0 0 10px #00ff88;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:#031b10;
+    padding:12px;
+    border:1px solid #00ff88;
+    border-radius:8px;
+    text-align:center;
+}
+
+.terminal{
+    background:black;
+    height:260px;
+    overflow-y:auto;
+    border:1px solid #00ff88;
+    padding:10px;
+    margin-bottom:20px;
+    border-radius:8px;
+}
+
+.line{
+    margin-bottom:8px;
+    animation:fade 0.2s linear;
+}
+
+@keyframes fade{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+.input-area{
+    display:flex;
+    gap:10px;
+}
+
+input{
+    flex:1;
+    background:#02150c;
+    border:1px solid #00ff88;
+    color:#00ff88;
+    padding:12px;
+    border-radius:8px;
+    outline:none;
+}
+
+button{
+    background:#00ff88;
+    border:none;
+    color:black;
+    padding:12px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 10px #00ff88;
+}
+
+.shop{
+    margin-top:20px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.shop button{
+    width:100%;
+}
+
+.mission{
+    background:#041c12;
+    border:1px solid #00ff88;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+
+.warning{
+    color:#00ffaa;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BOTÃO VOLTAR -->
+<button class="back-btn" onclick="goBack()">⬅ Voltar</button>
+
+<canvas id="matrix"></canvas>
+
+<div class="container">
+<div class="game">
+
+<h1>HACKER SIMULATOR</h1>
+
+<div class="stats">
+    <div class="card">
+        <h3>Coins</h3>
+        <p id="coins">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Nível</h3>
+        <p id="level">1</p>
+    </div>
+
+    <div class="card">
+        <h3>Poder</h3>
+        <p id="power">1</p>
+    </div>
+</div>
+
+<div class="mission" id="mission">
+    Missão: Digite <span class="warning">hack</span>
+</div>
+
+<div class="terminal" id="terminal"></div>
+
+<div class="input-area">
+    <input type="text" id="command" placeholder="Digite um comando hacker...">
+    <button onclick="sendCommand()">Executar</button>
+</div>
+
+<div class="shop">
+    <button onclick="buyUpgrade()">Upgrade (+ Poder) - 50 Coins</button>
+    <button onclick="buyAuto()">Auto Hack - 120 Coins</button>
+</div>
+
+</div>
+</div>
+
+<script>
+function goBack(){
+    window.history.back();
+}
+
+const terminal = document.getElementById('terminal');
+const commandInput = document.getElementById('command');
+
+let coins = 0;
+let level = 1;
+let power = 1;
+let autoHack = 0;
+
+const missions = [
+    'hack','breach','access','decrypt','override','inject','firewall','database',
+    'root','terminal','kernel','exploit','payload','cipher','hash','bypass',
+    'login','logout','script','virus','worm','trojan','backdoor','proxy',
+    'network','packet','sniff','scan','port','socket','encryption','decryption',
+    'compile','execute','debug','system','process','memory','cache','stack',
+    'overflow','patch','update','security','cypher','matrix','node','server',
+    'client','protocol','signal','trace','injector','sandbox','boot','reboot',
+    'crash','freeze','lag','sync','async','thread','task','queue','buffer',
+    'registry','firmware','hardware','software','driver','interface','api',
+    'cloud','storage','vault','key','token','session','auth','authorization',
+    'bruteforce','rainbow','table','log','event','monitor','alert','shield',
+    'breachcore','ghost','phantom','zero','alpha','beta','omega','delta'
+];
+
+let currentMission = randomMission();
+updateMission();
+
+function addLine(text){
+    const div = document.createElement('div');
+    div.classList.add('line');
+    div.innerHTML = text;
+    terminal.appendChild(div);
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function updateUI(){
+    document.getElementById('coins').innerText = Math.floor(coins);
+    document.getElementById('level').innerText = level;
+    document.getElementById('power').innerText = power;
+}
+
+function randomMission(){
+    return missions[Math.floor(Math.random()*missions.length)];
+}
+
+function updateMission(){
+    document.getElementById('mission').innerHTML =
+    `Missão: Digite <span class="warning">${currentMission}</span>`;
+}
+
+function sendCommand(){
+    const cmd = commandInput.value.trim().toLowerCase();
+
+    if(cmd === '') return;
+
+    addLine(`> ${cmd}`);
+
+    if(cmd === currentMission){
+        const reward = 10 * power;
+        coins += reward;
+
+        addLine(`✔ Sistema invadido com sucesso! +${reward} coins`);
+
+        if(coins > level * 120){
+            level++;
+            addLine(`⬆ Você subiu para o nível ${level}`);
+        }
+
+        currentMission = randomMission();
+        updateMission();
+
+    }else{
+        addLine('✖ Falha no acesso. Firewall detectado.');
+    }
+
+    updateUI();
+    commandInput.value = '';
+}
+
+function buyUpgrade(){
+    if(coins >= 50){
+        coins -= 50;
+        power++;
+        addLine('⚡ Upgrade comprado!');
+        updateUI();
+    }else{
+        addLine('❌ Coins insuficientes.');
+    }
+}
+
+function buyAuto(){
+    if(coins >= 120){
+        coins -= 120;
+        autoHack++;
+        addLine('🤖 Auto Hack ativado.');
+        updateUI();
+    }else{
+        addLine('❌ Coins insuficientes.');
+    }
+}
+
+setInterval(()=>{
+    if(autoHack > 0){
+        const gain = autoHack * power;
+        coins += gain;
+        addLine(`🤖 Auto Hack gerou ${gain} coins`);
+        updateUI();
+    }
+},3000);
+
+commandInput.addEventListener('keydown',e=>{
+    if(e.key === 'Enter'){
+        sendCommand();
+    }
+});
+
+updateUI();
+
+addLine('Sistema iniciado...');
+addLine('Conectando ao servidor...');
+addLine('Acesso liberado.');
+
+// MATRIX EFFECT
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const letters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+
+const drops = [];
+
+for(let i=0;i<columns;i++){
+    drops[i] = 1;
+}
+
+function drawMatrix(){
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = '#00ff88';
+    ctx.font = fontSize + 'px monospace';
+
+    for(let i=0;i<drops.length;i++){
+        const text = letters[Math.floor(Math.random()*letters.length)];
+        ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+
+        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975){
+            drops[i] = 0;
+        }
+
+        drops[i]++;
+    }
+}
+
+setInterval(drawMatrix,33);
+
+window.addEventListener('resize',()=>{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>

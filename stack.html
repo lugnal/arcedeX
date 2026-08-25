@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #07080f; --surface: #0e0f1a;
+    --border: rgba(255,255,255,0.07); --accent: #e8edff;
+    --cyan: #4fc3f7; --amber: #fbbf24; --green: #34d399;
+    --muted: rgba(255,255,255,0.3);
+  }
+  body {
+    background: var(--bg); color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px; overflow: hidden; padding: 16px; cursor: pointer;
+  }
+  .header { display: flex; align-items: center; gap: 12px; user-select: none; }
+  .emoji-title { width: 36px; height: 36px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+  .hud { display: flex; gap: 12px; }
+  .hud-pill {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 8px; padding: 8px 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 70px;
+  }
+  .hud-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .hud-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--cyan); line-height: 1; }
+  #best-val { color: var(--amber); }
+  .canvas-wrap {
+    position: relative; border-radius: 12px; overflow: hidden;
+    border: 0.5px solid var(--border);
+    box-shadow: 0 0 60px rgba(79,195,247,0.06);
+  }
+  canvas { display: block; background: var(--surface); }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    background: rgba(7,8,15,0.85); backdrop-filter: blur(6px);
+  }
+  .overlay.hidden { display: none; }
+  .overlay-emoji { width: 52px; height: 52px; }
+  .overlay-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; text-align: center; }
+  .overlay-sub { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.7; }
+  .overlay-score { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; color: var(--cyan); }
+  .play-btn {
+    padding: 12px 36px; background: transparent;
+    border: 1px solid var(--cyan); border-radius: 8px;
+    color: var(--cyan); font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.1em;
+    cursor: pointer; transition: background 0.18s, transform 0.1s; margin-top: 4px;
+  }
+  .play-btn:hover { background: rgba(79,195,247,0.1); }
+  .play-btn:active { transform: scale(0.97); }
+  .hint { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; user-select: none; }
+  @keyframes flash-score {
+    0%   { transform: scale(1.3); color: var(--green); }
+    100% { transform: scale(1);   color: var(--cyan);  }
+  }
+  .flash { animation: flash-score 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img class="emoji-title" id="emoji-brick" src="" alt="">
+  <h1>Stack</h1>
+</div>
+
+<div class="hud">
+  <div class="hud-pill"><div class="hud-label">Score</div><div class="hud-value" id="score-val">0</div></div>
+  <div class="hud-pill"><div class="hud-label">Best</div><div class="hud-value" id="best-val">0</div></div>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="game" width="300" height="500"></canvas>
+  <div class="overlay" id="start-overlay">
+    <img class="overlay-emoji" id="emoji-start" src="" alt="">
+    <div class="overlay-title">Stack</div>
+    <div class="overlay-sub">Clique ou pressione Espaço<br>para empilhar os blocos</div>
+    <button class="play-btn" id="play-btn">JOGAR</button>
+  </div>
+  <div class="overlay hidden" id="over-overlay">
+    <img class="overlay-emoji" id="emoji-over" src="" alt="">
+    <div class="overlay-title">Game Over</div>
+    <div class="overlay-score" id="final-score">0</div>
+    <div class="overlay-sub" id="over-msg"></div>
+    <button class="play-btn" id="retry-btn">TENTAR NOVAMENTE</button>
+  </div>
+</div>
+
+<div class="hint">clique ou espaço para soltar</div>
+<button onclick="Voltar()" class="play-btn">Voltar</button>
+
+<script>
+/* ── Twemoji ── */
+function twemojiUrl(e) {
+  const cp = [...e].map(c => c.codePointAt(0).toString(16)).join('-');
+  return `https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/${cp}.svg`;
+}
+document.getElementById('emoji-brick').src = twemojiUrl('🧱');
+document.getElementById('emoji-start').src = twemojiUrl('🎮');
+document.getElementById('emoji-over').src  = twemojiUrl('💥');
+
+/* ════════════════════════════════════════════
+   CORE DESIGN
+   ─────────────────────────────────────────
+   • No camera transform. No world coordinates.
+   • Blocks are stored as { x, w } only.
+   • Rendering uses a stack-from-bottom approach:
+     the LAST placed block is always drawn at
+     a fixed screen row (ANCHOR_ROW from bottom).
+     Every block below it is drawn further down.
+   • The moving block is always drawn one row
+     ABOVE the anchor row.
+   ════════════════════════════════════════════ */
+
+const canvas = document.getElementById('game');
+const ctx    = canvas.getContext('2d');
+const W = 300, H = 500;
+const BH = 22;                  // block height in pixels
+const ANCHOR_ROW_FROM_BOTTOM = 3; // placed top block screen row from bottom
+
+const PALETTES = [
+  { block: '#4fc3f7', moving: '#f472b6' },
+  { block: '#34d399', moving: '#fbbf24' },
+  { block: '#a78bfa', moving: '#f87171' },
+  { block: '#fb923c', moving: '#38bdf8' },
+  { block: '#e879f9', moving: '#4ade80' },
+];
+
+/* ── State ── */
+let blocks, movingX, movingW, direction, speed;
+let score, bestScore = 0, running = false, animId = null;
+let palette, particles = [];
+
+/* ── Screen Y for a block index (0 = top of stack, 1 = one below, etc.) ── */
+function blockScreenY(indexFromTop) {
+  // top of stack (index 0) sits at ANCHOR_ROW_FROM_BOTTOM rows from the canvas bottom
+  const topY = H - ANCHOR_ROW_FROM_BOTTOM * BH;
+  return topY + indexFromTop * BH;
+}
+
+/* ── Moving block is one row above the top of the stack ── */
+function movingScreenY() {
+  return blockScreenY(0) - BH;
+}
+
+/* ── Start ── */
+function start() {
+  cancelAnimationFrame(animId);
+  palette   = PALETTES[0];
+  score     = 0;
+  running   = true;
+  direction = 1;
+  speed     = 2.8;
+  particles = [];
+
+  // Start with one base block
+  blocks  = [{ x: 100, w: 100 }];   // index 0 = newest (top)
+  movingX = 0;
+  movingW = 100;
+
+  document.getElementById('score-val').textContent = '0';
+  document.getElementById('score-val').classList.remove('flash');
+  document.getElementById('start-overlay').classList.add('hidden');
+  document.getElementById('over-overlay').classList.add('hidden');
+
+  loop();
+}
+
+/* ── Loop ── */
+function loop() {
+  if (!running) return;
+  animId = requestAnimationFrame(loop);
+
+  ctx.clearRect(0, 0, W, H);
+
+  // bg grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 0.5;
+  for (let y = 0; y < H; y += 44) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  for (let x = 0; x < W; x += 44) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+
+  // draw placed blocks (index 0 = top of stack)
+  for (let i = 0; i < blocks.length; i++) {
+    const sy    = blockScreenY(i);
+    if (sy > H + BH) break;          // below screen, skip the rest
+    const alpha = Math.max(0.2, 1 - i * 0.06);
+    drawBlock(blocks[i].x, sy, blocks[i].w, palette.block, alpha);
+  }
+
+  // move & draw moving block
+  movingX += speed * direction;
+  if (movingX <= 0)           { movingX = 0;           direction =  1; }
+  if (movingX + movingW >= W) { movingX = W - movingW; direction = -1; }
+  drawBlock(movingX, movingScreenY(), movingW, palette.moving, 1);
+
+  updateParticles();
+}
+
+/* ── Draw a block at screen coords ── */
+function drawBlock(x, sy, w, color, alpha) {
+  if (w <= 0) return;
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, sy, w, BH, 3); else ctx.rect(x, sy, w, BH);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x+2, sy+2, Math.max(0,w-4), 4, 2); else ctx.rect(x+2, sy+2, w-4, 4);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(x, sy + BH - 3, w, 3);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(x, sy, 3, BH);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.07)';
+  ctx.fillRect(x + w - 3, sy, 3, BH);
+
+  ctx.globalAlpha = 1;
+}
+
+/* ── Particles ── */
+function spawnParticles(x, w, sy, color) {
+  for (let i = 0; i < 12; i++) {
+    particles.push({
+      x: x + Math.random() * w, y: sy,
+      vx: (Math.random() - 0.5) * 3,
+      vy: -(Math.random() * 3 + 1),
+      life: 1, r: Math.random() * 3 + 1.5, color,
+    });
+  }
+}
+function updateParticles() {
+  particles = particles.filter(p => p.life > 0);
+  for (const p of particles) {
+    p.life -= 0.04; p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+    ctx.globalAlpha = p.life;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.color; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ── Drop ── */
+function drop() {
+  if (!running) return;
+
+  const top     = blocks[0];                          // top placed block
+  const oStart  = Math.max(movingX, top.x);
+  const oEnd    = Math.min(movingX + movingW, top.x + top.w);
+  const overlap = oEnd - oStart;
+
+  if (overlap <= 0) { gameOver(); return; }
+
+  const isPerfect = Math.abs(movingX - top.x) < 4;
+  const newX = isPerfect ? top.x  : oStart;
+  const newW = isPerfect ? top.w  : overlap;
+
+  const msy = movingScreenY();
+  if (!isPerfect) {
+    // left trim
+    if (movingX < top.x)
+      spawnParticles(movingX, top.x - movingX, msy, palette.moving);
+    else
+      spawnParticles(top.x + top.w, (movingX + movingW) - (top.x + top.w), msy, palette.moving);
+  } else {
+    spawnParticles(newX, newW, msy, '#ffffff');
+  }
+
+  // Prepend new block as the new top (index 0)
+  // All existing blocks shift down by one visually — no data change needed,
+  // blockScreenY(i) already handles it since array length grows.
+  blocks.unshift({ x: newX, w: newW });
+
+  // Next moving block has same width as the block we just placed
+  movingX = 0;
+  movingW = newW;
+
+  // score
+  score++;
+  if (score > bestScore) bestScore = score;
+  document.getElementById('score-val').textContent = score;
+  document.getElementById('best-val').textContent  = bestScore;
+  const sv = document.getElementById('score-val');
+  sv.classList.remove('flash'); void sv.offsetWidth; sv.classList.add('flash');
+
+  if (score % 5 === 0) palette = PALETTES[Math.floor(score/5) % PALETTES.length];
+  speed = Math.min(2.8 + score * 0.18, 10);
+}
+
+/* ── Game Over ── */
+function gameOver() {
+  running = false;
+  cancelAnimationFrame(animId);
+  const msgs = [
+    [20, 'Incrível! Você é um mestre do Stack!'],
+    [10, 'Muito bom! Quase perfeito!'],
+    [5,  'Bom esforço! Continue tentando!'],
+    [0,  'Você consegue melhorar, tente novamente!'],
+  ];
+  const msg = msgs.find(([min]) => score >= min);
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('over-msg').textContent    = msg[1];
+  document.getElementById('over-overlay').classList.remove('hidden');
+}
+
+function Voltar() { window.location.href = 'index.html'; }
+
+/* ── Controls ── */
+document.getElementById('play-btn').addEventListener('click',  e => { e.stopPropagation(); start(); });
+document.getElementById('retry-btn').addEventListener('click', e => { e.stopPropagation(); start(); });
+canvas.addEventListener('click', () => { if (running) drop(); });
+document.addEventListener('keydown', e => {
+  if (e.key === ' ') { e.preventDefault(); if (running) drop(); }
+});
+document.addEventListener('touchstart', e => {
+  if (running) { e.preventDefault(); drop(); }
+}, { passive: false });
+</script>
+</body>
+</html>

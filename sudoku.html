@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Sudoku</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:radial-gradient(#0b0b1a,#050510);
+  color:white;
+  text-align:center;
+}
+
+h1{
+  color:#00e5ff;
+  margin-top:15px;
+  text-shadow:0 0 10px #00e5ff;
+}
+
+.controls{
+  margin:10px;
+}
+
+button, select{
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:8px;
+  background:#00e5ff;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+#grid{
+  display:grid;
+  grid-template-columns:repeat(9,45px);
+  justify-content:center;
+  margin:20px auto;
+  gap:2px;
+}
+
+input{
+  width:45px;
+  height:45px;
+  text-align:center;
+  font-size:20px;
+  border:none;
+  outline:none;
+  transition:0.2s;
+  background:#111;
+  color:white;
+  border-radius:4px;
+}
+
+/* blocos 3x3 */
+input:nth-child(3n){
+  margin-right:4px;
+}
+input:nth-child(27n){
+  margin-bottom:4px;
+}
+
+.fixed{
+  background:#1e1e1e;
+  color:#00e5ff;
+  font-weight:bold;
+}
+
+input:focus{
+  background:#00e5ff;
+  color:black;
+  transform:scale(1.1);
+}
+
+.error{
+  background:#ff2b5a !important;
+  animation:shake 0.2s;
+}
+
+@keyframes shake{
+  0%{transform:translateX(0);}
+  50%{transform:translateX(3px);}
+  100%{transform:translateX(0);}
+}
+
+.highlight{
+  background:#222;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧠 Sudoku</h1>
+
+<div class="controls">
+  <select id="difficulty">
+    <option value="35">Fácil</option>
+    <option value="45">Médio</option>
+    <option value="55">Difícil</option>
+  </select>
+
+  <button onclick="newGame()">Novo Jogo</button>
+  <button onclick="check()">Verificar</button>
+  <button onclick="solve()">Resolver</button>
+  <button onclick="Voltar()">Voltar</button>
+</div>
+
+<div id="grid"></div>
+
+<script>
+const grid = document.getElementById("grid");
+let board = [];
+
+function Voltar(){
+    window.location.href = "index.html";
+  }
+
+// cria grid
+function createGrid(){
+  grid.innerHTML="";
+  for(let i=0;i<81;i++){
+    let input=document.createElement("input");
+    input.maxLength=1;
+
+    input.oninput=()=>{
+      input.value=input.value.replace(/[^1-9]/g,'');
+    };
+
+    input.addEventListener("focus", ()=>highlight(i));
+
+    grid.appendChild(input);
+  }
+}
+
+// destaque linha/coluna/bloco
+function highlight(index){
+  let cells=document.querySelectorAll("input");
+
+  cells.forEach(c=>c.classList.remove("highlight"));
+
+  let row=Math.floor(index/9);
+  let col=index%9;
+
+  for(let i=0;i<81;i++){
+    let r=Math.floor(i/9);
+    let c=i%9;
+
+    if(r===row || c===col){
+      cells[i].classList.add("highlight");
+    }
+
+    let br=Math.floor(row/3)*3;
+    let bc=Math.floor(col/3)*3;
+
+    if(r>=br && r<br+3 && c>=bc && c<bc+3){
+      cells[i].classList.add("highlight");
+    }
+  }
+}
+
+// gera sudoku válido (base simples otimizada)
+function generateSolved(){
+  let arr=Array(81).fill(0);
+
+  function valid(pos,num){
+    let r=Math.floor(pos/9);
+    let c=pos%9;
+
+    for(let i=0;i<9;i++){
+      if(arr[r*9+i]===num) return false;
+      if(arr[i*9+c]===num) return false;
+    }
+
+    let br=Math.floor(r/3)*3;
+    let bc=Math.floor(c/3)*3;
+
+    for(let i=0;i<3;i++){
+      for(let j=0;j<3;j++){
+        if(arr[(br+i)*9+(bc+j)]===num) return false;
+      }
+    }
+    return true;
+  }
+
+  function backtrack(i=0){
+    if(i===81) return true;
+
+    let nums=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-0.5);
+
+    for(let n of nums){
+      if(valid(i,n)){
+        arr[i]=n;
+        if(backtrack(i+1)) return true;
+        arr[i]=0;
+      }
+    }
+    return false;
+  }
+
+  backtrack();
+  return arr;
+}
+
+// cria jogo
+function newGame(){
+  createGrid();
+
+  let solved=generateSolved();
+  let difficulty=parseInt(document.getElementById("difficulty").value);
+
+  board=[...solved];
+
+  let removed=0;
+  while(removed<difficulty){
+    let pos=Math.floor(Math.random()*81);
+    if(board[pos]!==0){
+      board[pos]=0;
+      removed++;
+    }
+  }
+
+  let cells=document.querySelectorAll("input");
+
+  cells.forEach((c,i)=>{
+    if(board[i]){
+      c.value=board[i];
+      c.disabled=true;
+      c.classList.add("fixed");
+    }else{
+      c.value="";
+      c.disabled=false;
+    }
+  });
+}
+
+// verificar erros
+function check(){
+  let cells=document.querySelectorAll("input");
+  cells.forEach(c=>c.classList.remove("error"));
+
+  for(let i=0;i<81;i++){
+    let val=cells[i].value;
+    if(!val) continue;
+
+    let r=Math.floor(i/9);
+    let c=i%9;
+
+    for(let j=0;j<9;j++){
+      let row=r*9+j;
+      let col=j*9+c;
+
+      if(row!==i && cells[row].value===val) cells[i].classList.add("error");
+      if(col!==i && cells[col].value===val) cells[i].classList.add("error");
+    }
+  }
+}
+
+// resolver
+function solve(){
+  let cells=document.querySelectorAll("input");
+  let arr=[...cells].map(c=>c.value?+c.value:0);
+
+  function valid(pos,num){
+    let r=Math.floor(pos/9);
+    let c=pos%9;
+
+    for(let i=0;i<9;i++){
+      if(arr[r*9+i]===num) return false;
+      if(arr[i*9+c]===num) return false;
+    }
+
+    let br=Math.floor(r/3)*3;
+    let bc=Math.floor(c/3)*3;
+
+    for(let i=0;i<3;i++){
+      for(let j=0;j<3;j++){
+        if(arr[(br+i)*9+(bc+j)]===num) return false;
+      }
+    }
+    return true;
+  }
+
+  function backtrack(){
+    for(let i=0;i<81;i++){
+      if(arr[i]===0){
+        for(let n=1;n<=9;n++){
+          if(valid(i,n)){
+            arr[i]=n;
+            if(backtrack()) return true;
+            arr[i]=0;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+
+
+  backtrack();
+
+  cells.forEach((c,i)=>{
+    c.value=arr[i];
+  });
+}
+
+createGrid();
+newGame();
+</script>
+
+</body>
+</html>

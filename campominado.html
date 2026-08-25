@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campo Minado - ArcadeX</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: radial-gradient(circle at top, #1b1b3a, #0a0a16);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  color: #00e5ff;
+}
+
+#game {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  justify-content: center;
+  margin: 20px auto;
+  gap: 2px;
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  background: #1c1c2b;
+  border: 1px solid #00e5ff33;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cell.open {
+  background: #2e2e4a;
+}
+
+.cell.flag {
+  background: #8a2be2;
+}
+
+#msg {
+  margin-top: 15px;
+  font-size: 18px;
+}
+
+button {
+  margin: 10px;
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(90deg, #00e5ff, #8a2be2);
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💣 Campo Minado</h1>
+
+<button onclick="init()">🔄 Reiniciar</button>
+<button onclick="voltar()">Voltar</button>
+
+<div id="game"></div>
+<div id="msg"></div>
+
+<script>
+const SIZE = 10;
+const BOMBS = 15;
+
+let grid = [];
+
+function init() {
+  const game = document.getElementById("game");
+  game.innerHTML = "";
+  document.getElementById("msg").textContent = "";
+
+  grid = [];
+
+  for (let r = 0; r < SIZE; r++) {
+    grid[r] = [];
+    for (let c = 0; c < SIZE; c++) {
+      grid[r][c] = {
+        bomb: false,
+        open: false,
+        flag: false,
+        count: 0
+      };
+    }
+  }
+
+  // colocar bombas
+  let placed = 0;
+  while (placed < BOMBS) {
+    let r = Math.floor(Math.random() * SIZE);
+    let c = Math.floor(Math.random() * SIZE);
+
+    if (!grid[r][c].bomb) {
+      grid[r][c].bomb = true;
+      placed++;
+    }
+  }
+
+  // contar bombas ao redor
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      let count = 0;
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          let nr = r + dr;
+          let nc = c + dc;
+
+          if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) {
+            if (grid[nr][nc].bomb) count++;
+          }
+        }
+      }
+
+      grid[r][c].count = count;
+    }
+  }
+
+  render();
+}
+
+function render() {
+  const game = document.getElementById("game");
+
+  game.innerHTML = "";
+
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+
+      const cell = document.createElement("div");
+      cell.className = "cell";
+
+      const data = grid[r][c];
+
+      if (data.open) {
+        cell.classList.add("open");
+
+        if (data.bomb) {
+          cell.textContent = "💣";
+        } else if (data.count > 0) {
+          cell.textContent = data.count;
+        }
+      }
+
+      if (data.flag) {
+        cell.textContent = "🚩";
+        cell.classList.add("flag");
+      }
+
+      cell.onclick = () => openCell(r, c);
+      cell.oncontextmenu = (e) => {
+        e.preventDefault();
+        toggleFlag(r, c);
+      };
+
+      game.appendChild(cell);
+    }
+  }
+}
+
+function openCell(r, c) {
+  let cell = grid[r][c];
+
+  if (cell.open || cell.flag) return;
+
+  cell.open = true;
+
+  if (cell.bomb) {
+    document.getElementById("msg").textContent = "💥 Você perdeu!";
+    revealAll();
+    return;
+  }
+
+  if (cell.count === 0) {
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        let nr = r + dr;
+        let nc = c + dc;
+
+        if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) {
+          openCell(nr, nc);
+        }
+      }
+    }
+  }
+
+  checkWin();
+  render();
+}
+
+function toggleFlag(r, c) {
+  let cell = grid[r][c];
+
+  if (!cell.open) {
+    cell.flag = !cell.flag;
+    render();
+  }
+}
+
+function revealAll() {
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      grid[r][c].open = true;
+    }
+  }
+  render();
+}
+
+function checkWin() {
+  let safeCells = SIZE * SIZE - BOMBS;
+  let opened = 0;
+
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (grid[r][c].open && !grid[r][c].bomb) {
+        opened++;
+      }
+    }
+  }
+
+  if (opened === safeCells) {
+    document.getElementById("msg").textContent = "🎉 Você venceu!";
+    revealAll();
+  }
+}
+
+function voltar() {
+  window.location.href = "index.html";
+}
+
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legends of the Abyss</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&family=IM+Fell+English&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:   #c9a84c;
+  --gold2:  #f0d080;
+  --dark:   #09090f;
+  --panel:  #0e0e1a;
+  --panel2: #13131f;
+  --border: #2a2440;
+  --red:    #e05252;
+  --green:  #4ade80;
+  --blue:   #60a5fa;
+  --mana:   #818cf8;
+  --xp:     #fb923c;
+  --text:   #ccc8e8;
+  --dim:    #6b688a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body {
+  background: var(--dark);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  color: var(--text);
+  overflow-x: hidden;
+  position: relative;
+}
+/* Starfield bg */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(80,40,140,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(40,20,80,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, rgba(10,10,30,1) 0%, transparent 100%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── LAYOUT ──────────────────────────────── */
+.shell {
+  position:relative;z-index:1;
+  width:min(900px,98vw);
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto 1fr auto;
+  gap:10px;
+  padding:14px;
+}
+
+/* ── HEADER ─────────────────────────────── */
+.hdr {
+  grid-column:1/-1;
+  text-align:center;
+  padding:10px 0 6px;
+  border-bottom:1px solid var(--border);
+}
+.hdr h1 {
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(18px,3vw,28px);
+  color:var(--gold);
+  text-shadow:0 0 30px rgba(201,168,76,.5);
+  letter-spacing:3px;
+}
+.hdr p { font-size:11px; color:var(--dim); letter-spacing:2px; margin-top:3px; }
+
+/* ── PANELS ─────────────────────────────── */
+.panel {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+}
+.panel-title {
+  font-size:10px;
+  letter-spacing:3px;
+  color:var(--gold);
+  text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+
+/* ── LEFT SIDEBAR ───────────────────────── */
+.sidebar { grid-column:1; grid-row:2/4; display:flex; flex-direction:column; gap:10px; }
+
+.hero-avatar {
+  width:64px;height:64px;
+  border-radius:50%;
+  border:2px solid var(--gold);
+  background:linear-gradient(135deg,#1e1340,#0a0920);
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+  margin:0 auto 10px;
+  box-shadow:0 0 20px rgba(201,168,76,.3);
+  position:relative;
+}
+.hero-avatar .level-badge {
+  position:absolute;bottom:-6px;right:-6px;
+  background:var(--gold);
+  color:#000;
+  font-size:9px;font-weight:700;
+  width:20px;height:20px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.hero-name {
+  text-align:center;
+  font-size:14px;color:var(--gold2);
+  margin-bottom:4px;
+}
+.hero-class {
+  text-align:center;
+  font-size:9px;color:var(--dim);
+  letter-spacing:2px;margin-bottom:14px;
+}
+
+/* stat bars */
+.stat-row { margin-bottom:8px; }
+.stat-label {
+  display:flex;justify-content:space-between;
+  font-size:10px;margin-bottom:3px;
+  color:var(--dim);letter-spacing:1px;
+}
+.stat-label span:last-child { color:var(--text); }
+.bar { height:8px; background:#1a1a2e; border-radius:4px; overflow:hidden; position:relative; }
+.bar-fill {
+  height:100%;border-radius:4px;
+  transition:width .4s ease;
+  position:relative;
+}
+.bar-fill::after {
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 70%,rgba(255,255,255,.15));
+}
+.hp-fill   { background:linear-gradient(90deg,#c0392b,#e05252); }
+.mp-fill   { background:linear-gradient(90deg,#4c51bf,#818cf8); }
+.xp-fill   { background:linear-gradient(90deg,#b45309,#fb923c); }
+
+/* stats grid */
+.stats-grid {
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  margin-top:10px;
+}
+.stat-box {
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:6px 8px;
+  text-align:center;
+}
+.stat-box .sval { font-size:14px; color:var(--gold2); font-weight:600; }
+.stat-box .skey { font-size:8px; color:var(--dim); letter-spacing:1px; margin-top:2px; }
+
+/* inventory */
+.inv-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:4px; }
+.inv-item {
+  aspect-ratio:1;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;
+  position:relative;transition:border-color .2s,transform .15s;
+}
+.inv-item:hover { border-color:var(--gold); transform:scale(1.05); }
+.inv-item .qty {
+  position:absolute;bottom:2px;right:4px;
+  font-size:9px;color:var(--gold);font-family:monospace;
+}
+.inv-item.empty { opacity:.3; cursor:default; }
+.inv-item.empty:hover { transform:none; border-color:var(--border); }
+
+/* ── MAIN AREA ──────────────────────────── */
+.main { grid-column:2; grid-row:2; display:flex; flex-direction:column; gap:10px; }
+
+/* Battle arena */
+.arena {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px;
+  position:relative;
+  min-height:220px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.arena-bg {
+  position:absolute;inset:0;border-radius:10px;overflow:hidden;pointer-events:none;
+}
+.arena-bg::before {
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 80%,rgba(40,20,80,.4),transparent 70%);
+}
+
+.combatant {
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  z-index:1;
+}
+.sprite {
+  font-size:52px;
+  filter:drop-shadow(0 0 12px rgba(201,168,76,.4));
+  transition:transform .15s;
+  line-height:1;
+}
+.sprite.shake { animation: shake .4s ease; }
+.sprite.attack-anim { animation: lunge .3s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-8px);}
+  75%{transform:translateX(8px);}
+}
+@keyframes lunge {
+  0%{transform:translateX(0);}
+  50%{transform:translateX(30px) scale(1.1);}
+  100%{transform:translateX(0);}
+}
+.combatant.enemy .sprite { animation-name: none; }
+.combatant.enemy .sprite.shake { animation-name: shake; }
+
+.c-name { font-size:11px; color:var(--gold); letter-spacing:1px; }
+.c-bar { width:100px; }
+.c-bar .bar { height:6px; }
+
+.vs-text {
+  font-family:'Cinzel Decorative',cursive;
+  font-size:22px;color:var(--border);
+  z-index:1;letter-spacing:2px;
+}
+
+/* Floating damage numbers */
+.dmg-float {
+  position:absolute;
+  font-size:20px;font-weight:700;
+  pointer-events:none;z-index:10;
+  animation:floatUp .8s ease forwards;
+}
+@keyframes floatUp {
+  0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-50px) scale(1.3);}
+}
+
+/* ── ACTIONS ────────────────────────────── */
+.actions {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+}
+.action-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.act-btn {
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 6px;
+  cursor:pointer;
+  color:var(--text);
+  font-family:'Cinzel',serif;
+  font-size:10px;
+  letter-spacing:.5px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  transition:border-color .2s,background .2s,transform .1s;
+}
+.act-btn:hover:not(:disabled) { border-color:var(--gold); background:#1a1a2e; }
+.act-btn:active:not(:disabled) { transform:scale(.96); }
+.act-btn:disabled { opacity:.4; cursor:not-allowed; }
+.act-btn .icon { font-size:22px; }
+.act-btn .cost { font-size:9px; color:var(--mana); }
+.act-btn.danger { border-color:#3f1212; }
+.act-btn.danger:hover:not(:disabled) { border-color:var(--red); }
+
+/* ── LOG ──────────────────────────────────── */
+.log-panel { grid-column:1/-1; }
+.log-inner {
+  height:130px;overflow-y:auto;
+  background:#060610;
+  border-radius:6px;
+  padding:8px 10px;
+  font-family:'IM Fell English',serif;
+  font-size:12px;line-height:1.8;
+}
+.log-inner::-webkit-scrollbar { width:4px; }
+.log-inner::-webkit-scrollbar-track { background:#0e0e1a; }
+.log-inner::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.log-line { border-bottom:1px solid rgba(255,255,255,.03); padding:1px 0; }
+.log-line.good { color:var(--green); }
+.log-line.bad  { color:var(--red); }
+.log-line.info { color:var(--gold); }
+.log-line.level{ color:var(--xp); font-weight:700; }
+.log-line.sys  { color:var(--dim); font-style:italic; }
+
+/* ── SCREEN OVERLAYS ─────────────────────── */
+.screen {
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.9);
+  backdrop-filter:blur(6px);
+}
+.screen.hidden { display:none; }
+.screen-box {
+  background:var(--panel);
+  border:2px solid var(--gold);
+  border-radius:16px;
+  padding:40px 48px;
+  text-align:center;
+  max-width:420px;width:90%;
+  box-shadow:0 0 60px rgba(201,168,76,.2);
+}
+.screen-box h2 {
+  font-family:'Cinzel Decorative',cursive;
+  font-size:clamp(18px,4vw,26px);
+  color:var(--gold);
+  text-shadow:0 0 20px rgba(201,168,76,.5);
+  margin-bottom:6px;
+}
+.screen-box p { font-size:11px; color:var(--dim); letter-spacing:1.5px; margin-bottom:28px; }
+.screen-btn {
+  display:block;width:100%;padding:13px;
+  background:linear-gradient(135deg,#2a1f08,#1a1408);
+  border:1px solid var(--gold);
+  border-radius:8px;
+  color:var(--gold);
+  font-family:'Cinzel',serif;
+  font-size:11px;letter-spacing:2px;
+  cursor:pointer;margin-bottom:10px;
+  transition:background .2s,box-shadow .2s;
+}
+.screen-btn:hover { background:linear-gradient(135deg,#3d2c0c,#2a1f08); box-shadow:0 0 16px rgba(201,168,76,.3); }
+.screen-btn.secondary {
+  border-color:var(--border);color:var(--dim);
+  background:var(--panel2);
+}
+.screen-btn.secondary:hover { border-color:var(--text); color:var(--text); box-shadow:none; }
+
+/* Class select */
+.class-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; }
+.class-card {
+  background:var(--panel2);border:1px solid var(--border);
+  border-radius:10px;padding:14px 8px;cursor:pointer;
+  transition:border-color .2s,transform .15s;text-align:center;
+}
+.class-card:hover { border-color:var(--gold); transform:translateY(-3px); }
+.class-card.selected { border-color:var(--gold); background:#1c1830; }
+.class-card .c-icon { font-size:28px; margin-bottom:6px; }
+.class-card .c-name { font-size:10px; color:var(--gold); letter-spacing:1px; margin-bottom:4px; }
+.class-card .c-desc { font-size:8px; color:var(--dim); line-height:1.5; }
+
+/* skill flash */
+@keyframes skillGlow {
+  0%,100%{box-shadow:0 0 0 rgba(201,168,76,0);}
+  50%{box-shadow:0 0 20px rgba(201,168,76,.6);}
+}
+.skill-flash { animation:skillGlow .4s ease; }
+
+/* responsive */
+@media(max-width:640px){
+  .shell { grid-template-columns:1fr; }
+  .sidebar { grid-column:1; grid-row:auto; }
+  .main { grid-column:1; }
+  .log-panel { grid-column:1; }
+  .action-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── CLASS SELECT SCREEN ── -->
+<div class="screen" id="classScreen">
+  <div class="screen-box">
+    <h2>Legends of the Abyss</h2>
+    <p>ESCOLHA SUA CLASSE</p>
+    <div class="class-grid">
+      <div class="class-card selected" data-class="warrior" onclick="selectClass(this)">
+        <div class="c-icon">⚔️</div>
+        <div class="c-name">Guerreiro</div>
+        <div class="c-desc">Alto HP<br>Forte no físico</div>
+      </div>
+      <div class="class-card" data-class="mage" onclick="selectClass(this)">
+        <div class="c-icon">🧙</div>
+        <div class="c-name">Mago</div>
+        <div class="c-desc">Alto MP<br>Magias poderosas</div>
+      </div>
+      <div class="class-card" data-class="rogue" onclick="selectClass(this)">
+        <div class="c-icon">🗡️</div>
+        <div class="c-name">Ladino</div>
+        <div class="c-desc">Alta evasão<br>Golpe crítico</div>
+      </div>
+    </div>
+    <button class="screen-btn" onclick="beginGame()">⚔️ INICIAR AVENTURA</button>
+    <button class="screen-btn" onclick="Voltar()">VOLTAR</button>
+  </div>
+</div>
+
+<!-- ── GAME OVER SCREEN ── -->
+<div class="screen hidden" id="deadScreen">
+  <div class="screen-box">
+    <h2 style="color:var(--red);text-shadow:0 0 20px rgba(224,82,82,.5)">Você Caiu</h2>
+    <p id="deadMsg">O herói sucumbiu nas trevas...</p>
+    <div style="background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">ESTATÍSTICAS FINAIS</div>
+      <div id="deadStats" style="font-size:13px;color:var(--gold);line-height:2;"></div>
+    </div>
+    <button class="screen-btn" onclick="restartGame()">↺ JOGAR NOVAMENTE</button>
+    <button class="screen-btn secondary" onclick="location.reload()">⚙ TROCAR CLASSE</button>
+  </div>
+</div>
+
+<!-- ── LEVEL UP SCREEN ── -->
+<div class="screen hidden" id="lvlScreen">
+  <div class="screen-box">
+    <h2>⬆ Nível Aumentou!</h2>
+    <p id="lvlMsg"></p>
+    <div id="lvlBonuses" style="background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:20px;font-size:12px;color:var(--green);line-height:2.2;text-align:left;"></div>
+    <button class="screen-btn" onclick="closeLvlScreen()">CONTINUAR →</button>
+  </div>
+</div>
+
+<!-- ── SHOP SCREEN ── -->
+<div class="screen hidden" id="shopScreen">
+  <div class="screen-box" style="max-width:500px;">
+    <h2>🏪 Loja</h2>
+    <p>COMPRE ITENS COM SEU OURO</p>
+    <div id="shopItems" style="display:grid;gap:8px;margin-bottom:20px;text-align:left;"></div>
+    <button class="screen-btn secondary" onclick="closeShop()">← FECHAR LOJA</button>
+  </div>
+</div>
+
+<!-- ── MAIN GAME ── -->
+<div class="shell">
+  <div class="hdr">
+    <h1>Legends of the Abyss</h1>
+    <p>TURNO <span id="turnCount">1</span> &nbsp;·&nbsp; ÁREA: <span id="areaName">Floresta das Sombras</span></p>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <!-- Hero panel -->
+    <div class="panel">
+      <div class="panel-title">Herói</div>
+      <div class="hero-avatar" id="heroAvatar">⚔️<div class="level-badge" id="lvlBadge">1</div></div>
+      <div class="hero-name" id="heroName">Guerreiro</div>
+      <div class="hero-class" id="heroClass">GUERREIRO · LV1</div>
+
+      <div class="stat-row">
+        <div class="stat-label"><span>❤ HP</span><span id="hpVal">100/100</span></div>
+        <div class="bar"><div class="bar-fill hp-fill" id="hpBar" style="width:100%"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label"><span>💙 MP</span><span id="mpVal">40/40</span></div>
+        <div class="bar"><div class="bar-fill mp-fill" id="mpBar" style="width:100%"></div></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-label"><span>✨ XP</span><span id="xpVal">0/50</span></div>
+        <div class="bar"><div class="bar-fill xp-fill" id="xpBar" style="width:0%"></div></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box"><div class="sval" id="statAtk">12</div><div class="skey">ATQ</div></div>
+        <div class="stat-box"><div class="sval" id="statDef">5</div><div class="skey">DEF</div></div>
+        <div class="stat-box"><div class="sval" id="statSpd">8</div><div class="skey">VEL</div></div>
+        <div class="stat-box"><div class="sval" id="statGold" style="color:var(--gold)">0</div><div class="skey">OURO</div></div>
+      </div>
+    </div>
+
+    <!-- Inventory -->
+    <div class="panel">
+      <div class="panel-title">Inventário</div>
+      <div class="inv-grid" id="invGrid"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Arena -->
+    <div class="arena" id="arena">
+      <div class="arena-bg"></div>
+
+      <!-- Player side -->
+      <div class="combatant" id="playerSide">
+        <div class="sprite" id="playerSprite">⚔️</div>
+        <div class="c-name" id="pcName">Guerreiro</div>
+        <div class="c-bar">
+          <div class="stat-label" style="font-size:9px;margin-bottom:2px;">
+            <span style="color:var(--dim)">HP</span>
+            <span id="pHpSmall">100</span>
+          </div>
+          <div class="bar c-bar"><div class="bar-fill hp-fill" id="pHpSmallBar" style="width:100%"></div></div>
+        </div>
+      </div>
+
+      <div class="vs-text">VS</div>
+
+      <!-- Enemy side -->
+      <div class="combatant" id="enemySide">
+        <div class="sprite" id="enemySprite">👾</div>
+        <div class="c-name" id="eName">?</div>
+        <div class="c-bar">
+          <div class="stat-label" style="font-size:9px;margin-bottom:2px;">
+            <span style="color:var(--dim)">HP</span>
+            <span id="eHpSmall">?</span>
+          </div>
+          <div class="bar c-bar"><div class="bar-fill hp-fill" id="eHpSmallBar" style="width:100%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <div class="panel-title">Ações</div>
+      <div class="action-grid">
+        <button class="act-btn" onclick="doAction('attack')" id="btnAtk">
+          <span class="icon">⚔️</span>
+          <span>Atacar</span>
+        </button>
+        <button class="act-btn" onclick="doAction('skill')" id="btnSkill">
+          <span class="icon" id="skillIcon">🔥</span>
+          <span id="skillName">Habilidade</span>
+          <span class="cost" id="skillCost">— MP</span>
+        </button>
+        <button class="act-btn" onclick="doAction('defend')" id="btnDef">
+          <span class="icon">🛡️</span>
+          <span>Defender</span>
+          <span class="cost" style="color:var(--dim)">+DEF turno</span>
+        </button>
+        <button class="act-btn" onclick="doAction('potion')" id="btnPot">
+          <span class="icon">🧪</span>
+          <span>Poção HP</span>
+          <span class="cost" id="potCount" style="color:var(--green)">x0</span>
+        </button>
+        <button class="act-btn" onclick="doAction('mpPot')" id="btnMpPot">
+          <span class="icon">💧</span>
+          <span>Poção MP</span>
+          <span class="cost" id="mpPotCount" style="color:var(--mana)">x0</span>
+        </button>
+        <button class="act-btn" onclick="openShop()" id="btnShop">
+          <span class="icon">🏪</span>
+          <span>Loja</span>
+          <span class="cost" style="color:var(--gold)" id="goldCount">0 🪙</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel panel">
+    <div class="panel-title">Registro de Batalha</div>
+    <div class="log-inner" id="logInner"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════
+var CLASSES = {
+  warrior: {
+    name:'Guerreiro', emoji:'⚔️',
+    hp:120, mp:30, atk:14, def:7, spd:7,
+    skill:{name:'Golpe Brutal',icon:'💥',mp:8,
+      desc:'Ataque devastador que ignora defesa',
+      fn:function(p,e){
+        var d=Math.floor(p.atk*1.8+rand(8));
+        return {dmg:d,heal:0,msg:'💥 Golpe Brutal causou '+d+' de dano!'};
+      }
+    }
+  },
+  mage: {
+    name:'Mago', emoji:'🧙',
+    hp:75, mp:80, atk:8, def:3, spd:9,
+    skill:{name:'Bola de Fogo',icon:'🔥',mp:15,
+      desc:'Incendeia o inimigo por 2 turnos',
+      fn:function(p,e){
+        var d=Math.floor(p.atk*2.2+rand(12));
+        e.burning=2;
+        return {dmg:d,heal:0,msg:'🔥 Bola de Fogo! '+d+' de dano e queimando!'};
+      }
+    }
+  },
+  rogue: {
+    name:'Ladino', emoji:'🗡️',
+    hp:90, mp:50, atk:11, def:4, spd:14,
+    skill:{name:'Golpe Crítico',icon:'🎯',mp:10,
+      desc:'50% de chance de dano triplo',
+      fn:function(p,e){
+        var crit=Math.random()<0.5;
+        var d=Math.floor(p.atk*(crit?3:1.5)+rand(6));
+        return {dmg:d,heal:0,msg:(crit?'🎯 CRÍTICO! ':'🗡️ Golpe Furtivo! ')+d+' de dano!'};
+      }
+    }
+  }
+};
+
+var AREAS = [
+  {name:'Floresta das Sombras', enemies:['Goblin','Slime','Lobo Sombrio']},
+  {name:'Cavernas de Pedra',    enemies:['Orc','Morcego Gigante','Trollzinho']},
+  {name:'Torre Amaldiçoada',    enemies:['Esqueleto','Mago Negro','Gárgula']},
+  {name:'Labirinto do Caos',    enemies:['Demônio Menor','Golem de Pedra','Aranha Venenosa']},
+  {name:'Fortaleza do Abismo',  enemies:['Dragão Jovem','Lich','Senhor das Trevas']}
+];
+
+var ENEMY_TEMPLATES = {
+  'Goblin':          {hp:50,  atk:6,  def:1, xp:15, gold:5,  emoji:'👺'},
+  'Slime':           {hp:40,  atk:4,  def:0, xp:10, gold:3,  emoji:'🟢'},
+  'Lobo Sombrio':    {hp:65,  atk:9,  def:2, xp:20, gold:8,  emoji:'🐺'},
+  'Orc':             {hp:90,  atk:12, def:4, xp:30, gold:12, emoji:'👹'},
+  'Morcego Gigante': {hp:55,  atk:8,  def:1, xp:22, gold:7,  emoji:'🦇'},
+  'Trollzinho':      {hp:110, atk:14, def:5, xp:38, gold:15, emoji:'🧌'},
+  'Esqueleto':       {hp:70,  atk:10, def:3, xp:28, gold:10, emoji:'💀'},
+  'Mago Negro':      {hp:80,  atk:18, def:2, xp:45, gold:20, emoji:'🧟'},
+  'Gárgula':         {hp:100, atk:13, def:7, xp:40, gold:18, emoji:'🗿'},
+  'Demônio Menor':   {hp:120, atk:20, def:6, xp:55, gold:25, emoji:'😈'},
+  'Golem de Pedra':  {hp:150, atk:16, def:12,xp:60, gold:30, emoji:'🪨'},
+  'Aranha Venenosa': {hp:90,  atk:22, def:3, xp:50, gold:22, emoji:'🕷️'},
+  'Dragão Jovem':    {hp:200, atk:28, def:10,xp:90, gold:50, emoji:'🐉'},
+  'Lich':            {hp:180, atk:30, def:8, xp:100,gold:60, emoji:'🧙‍♂️'},
+  'Senhor das Trevas':{hp:250,atk:35, def:15,xp:150,gold:100,emoji:'👑'}
+};
+
+var SHOP_ITEMS = [
+  {id:'hpot',   name:'Poção de HP',  emoji:'🧪', cost:15, desc:'Restaura 50 HP',         effect:function(p){p.hpPots++;}},
+  {id:'mpot',   name:'Poção de MP',  emoji:'💧', cost:15, desc:'Restaura 40 MP',         effect:function(p){p.mpPots++;}},
+  {id:'sword',  name:'Espada +5',    emoji:'🗡️', cost:40, desc:'Aumenta ATQ em 5',       effect:function(p){p.atk+=5;}},
+  {id:'shield', name:'Escudo +3',    emoji:'🛡️', cost:30, desc:'Aumenta DEF em 3',       effect:function(p){p.def+=3;}},
+  {id:'boots',  name:'Botas Ágeis',  emoji:'👟', cost:25, desc:'Aumenta VEL em 3',       effect:function(p){p.spd+=3;}},
+  {id:'elixir', name:'Elixir Puro',  emoji:'⚗️', cost:60, desc:'Restaura HP e MP totais',effect:function(p){p.hp=p.maxHp;p.mp=p.maxMp;}}
+];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+var P={}, E={}, G={};
+var selectedClass='warrior';
+var actionLock=false;
+
+function rand(n){return Math.floor(Math.random()*n)+1;}
+
+function selectClass(el){
+  document.querySelectorAll('.class-card').forEach(function(c){c.classList.remove('selected');});
+  el.classList.add('selected');
+  selectedClass=el.dataset.class;
+}
+
+function beginGame(){
+  var cls=CLASSES[selectedClass];
+  P={
+    name:cls.name, emoji:cls.emoji, classKey:selectedClass,
+    level:1, xp:0, xpNext:50,
+    hp:cls.hp, maxHp:cls.hp,
+    mp:cls.mp, maxMp:cls.mp,
+    atk:cls.atk, def:cls.def, spd:cls.spd,
+    hpPots:2, mpPots:1, gold:10,
+    defending:false,
+    kills:0, turns:0,
+    skill:cls.skill
+  };
+  G={area:0, turn:1, totalKills:0};
+
+  document.getElementById('classScreen').classList.add('hidden');
+  document.getElementById('heroAvatar').childNodes[0].textContent=cls.emoji;
+  document.getElementById('playerSprite').textContent=cls.emoji;
+  document.getElementById('pcName').textContent=cls.name;
+
+  spawnEnemy();
+  updateSkillBtn();
+  updateInv();
+  refreshUI();
+  log('sys','A aventura começa na '+(AREAS[G.area]||AREAS[0]).name+'...');
+  log('sys','Prepare-se, '+P.name+'!');
+}
+
+function spawnEnemy(){
+  var area=AREAS[Math.min(G.area,AREAS.length-1)];
+  document.getElementById('areaName').textContent=area.name;
+  var ename=area.enemies[rand(area.enemies.length)-1];
+  var tmpl=ENEMY_TEMPLATES[ename];
+  // scale by area
+  var scale=1+G.area*0.3;
+  E={
+    name:ename,
+    emoji:tmpl.emoji,
+    hp:   Math.floor(tmpl.hp*scale),
+    maxHp:Math.floor(tmpl.hp*scale),
+    atk:  Math.floor(tmpl.atk*scale),
+    def:  tmpl.def,
+    xp:   Math.floor(tmpl.xp*scale),
+    gold: Math.floor(tmpl.gold*(0.8+Math.random()*0.6)),
+    burning:0
+  };
+  document.getElementById('eName').textContent=E.name;
+  document.getElementById('enemySprite').textContent=E.emoji;
+}
+
+function Voltar() {
+    window.location.href="index.html"
+}
+
+// ══════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════
+function doAction(type){
+  if(actionLock||E.hp<=0) return;
+
+  P.turns++;
+  G.turn++;
+  document.getElementById('turnCount').textContent=G.turn;
+
+  var blocked=false;
+
+  if(type==='attack'){
+    playerAttack();
+  } else if(type==='skill'){
+    if(P.mp<P.skill.mp){log('bad','❌ MP insuficiente!');return;}
+    P.mp-=P.skill.mp;
+    var res=P.skill.fn(P,E);
+    E.hp=Math.max(0,E.hp-res.dmg);
+    floatDmg('enemy',res.dmg,'var(--red)');
+    shakeSprite('enemy');
+    log('good',res.msg);
+  } else if(type==='defend'){
+    P.defending=true;
+    log('info','🛡️ '+P.name+' assume postura defensiva!');
+    blocked=true;
+  } else if(type==='potion'){
+    if(P.hpPots<=0){log('bad','❌ Sem poções de HP!');return;}
+    var heal=Math.min(50,P.maxHp-P.hp);
+    P.hpPots--;P.hp+=heal;
+    log('good','🧪 Recuperou '+heal+' HP!');
+    blocked=true;
+  } else if(type==='mpPot'){
+    if(P.mpPots<=0){log('bad','❌ Sem poções de MP!');return;}
+    var mheal=Math.min(40,P.maxMp-P.mp);
+    P.mpPots--;P.mp+=mheal;
+    log('good','💧 Recuperou '+mheal+' MP!');
+    blocked=true;
+  }
+
+  checkBurning();
+
+  if(E.hp<=0){
+    enemyDead();return;
+  }
+
+  if(!blocked){enemyTurn();}
+  else{
+    // still enemy attacks on defend — just reduced
+    if(type==='defend'){enemyTurn();}
+  }
+
+  if(P.hp<=0){playerDead();return;}
+
+  P.defending=false;
+  updateInv();
+  refreshUI();
+}
+
+function playerAttack(){
+  var base=P.atk;
+  var crit=P.spd>12&&Math.random()<0.15;
+  var d=Math.floor((base+rand(base/2))*(crit?2:1));
+  d=Math.max(1,d-E.def);
+  E.hp=Math.max(0,E.hp-d);
+  shakeSprite('player'); // player lunges
+  document.getElementById('playerSprite').classList.add('attack-anim');
+  setTimeout(function(){document.getElementById('playerSprite').classList.remove('attack-anim');},350);
+  floatDmg('enemy',d,'var(--red)');
+  log('good','⚔️ '+(crit?'CRÍTICO! ':'')+'Você causou '+d+' de dano ao '+E.name+'!');
+}
+
+function enemyTurn(){
+  // Regenerate slight MP
+  P.mp=Math.min(P.maxMp,P.mp+2);
+
+  var miss=P.spd>E.atk*0.6&&Math.random()<0.08;
+  if(miss){log('info','💨 O '+E.name+' errou o ataque!');return;}
+
+  var rawD=Math.floor(E.atk+rand(E.atk/3));
+  var def=P.def+(P.defending?Math.floor(P.def*0.8):0);
+  var d=Math.max(1,rawD-def);
+  P.hp=Math.max(0,P.hp-d);
+  shakeSprite('enemy'); // enemy hits player
+  floatDmg('player',d,'var(--red)');
+  log('bad','👾 '+E.name+(P.defending?' forçou a guarda e':'')+(P.spd>10?' mas errou parcialmente':'')+' causou '+d+' de dano!');
+}
+
+function checkBurning(){
+  if(E.burning>0){
+    var bd=Math.floor(P.atk*0.4+rand(4));
+    E.hp=Math.max(0,E.hp-bd);
+    E.burning--;
+    floatDmg('enemy',bd,'#fb923c');
+    log('info','🔥 Queimando! '+E.name+' sofreu '+bd+' de dano de fogo! ('+(E.burning)+' turnos restantes)');
+  }
+}
+
+function enemyDead(){
+  G.totalKills++;P.kills++;
+  log('info','🏆 '+E.name+' foi derrotado!');
+  floatDmg('enemy','💀','var(--gold)');
+  // rewards
+  gainXP(E.xp);
+  P.gold+=E.gold;
+  P.mp=Math.min(P.maxMp,P.mp+10);
+  log('good','💰 Recebeu '+E.xp+' XP e '+E.gold+' ouro!');
+  // next area every 5 kills
+  if(G.totalKills%5===0 && G.area<AREAS.length-1){
+    G.area++;
+    log('info','🗺️ Avançando para '+AREAS[G.area].name+'!');
+  }
+  setTimeout(function(){
+    spawnEnemy();
+    refreshUI();
+    log('sys','--- Novo inimigo aparece: '+E.name+' ---');
+  },500);
+  P.defending=false;
+  updateInv();
+  refreshUI();
+}
+
+function gainXP(xp){
+  P.xp+=xp;
+  while(P.xp>=P.xpNext){
+    P.xp-=P.xpNext;
+    levelUp();
+  }
+}
+
+function levelUp(){
+  P.level++;
+  P.xpNext=Math.floor(P.xpNext*1.4);
+  var hpUp=20,mpUp=10,atkUp=3,defUp=2,spdUp=1;
+  if(P.classKey==='mage'){mpUp=20;atkUp=4;defUp=1;}
+  if(P.classKey==='rogue'){spdUp=3;atkUp=4;hpUp=12;}
+  P.maxHp+=hpUp; P.hp=P.maxHp;
+  P.maxMp+=mpUp; P.mp=P.maxMp;
+  P.atk+=atkUp; P.def+=defUp; P.spd+=spdUp;
+  document.getElementById('lvlMsg').textContent='Nível '+P.level+' alcançado!';
+  document.getElementById('lvlBonuses').innerHTML=
+    '❤ HP Máximo +'+hpUp+'<br>💙 MP Máximo +'+mpUp+'<br>⚔️ ATQ +'+atkUp+'<br>🛡️ DEF +'+defUp+'<br>💨 VEL +'+spdUp;
+  document.getElementById('lvlScreen').classList.remove('hidden');
+  actionLock=true;
+}
+
+function closeLvlScreen(){
+  document.getElementById('lvlScreen').classList.add('hidden');
+  actionLock=false;
+  refreshUI();
+}
+
+function playerDead(){
+  document.getElementById('deadMsg').textContent=
+    P.name+' sucumbiu nas profundezas do Abismo...';
+  document.getElementById('deadStats').innerHTML=
+    'Nível alcançado: '+P.level+'<br>'+
+    'Inimigos derrotados: '+P.kills+'<br>'+
+    'Turnos sobrevividos: '+P.turns+'<br>'+
+    'Ouro acumulado: '+P.gold;
+  document.getElementById('deadScreen').classList.remove('hidden');
+  actionLock=true;
+}
+
+function restartGame(){
+  document.getElementById('deadScreen').classList.add('hidden');
+  beginGame();
+  actionLock=false;
+}
+
+// ══════════════════════════════════════════════
+//  SHOP
+// ══════════════════════════════════════════════
+function openShop(){
+  var html='';
+  SHOP_ITEMS.forEach(function(item){
+    var canBuy=P.gold>=item.cost;
+    html+='<div style="display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;'+(canBuy?'':'opacity:.5')+'">';
+    html+='<span style="font-size:24px;">'+item.emoji+'</span>';
+    html+='<div style="flex:1"><div style="font-size:11px;color:var(--gold2);margin-bottom:2px;">'+item.name+'</div>';
+    html+='<div style="font-size:9px;color:var(--dim);">'+item.desc+'</div></div>';
+    html+='<button onclick="buyItem(\''+item.id+'\')" '+(canBuy?'':'disabled')+
+          ' style="padding:8px 12px;background:var(--panel);border:1px solid '+(canBuy?'var(--gold)':'var(--border)')+
+          ';border-radius:6px;color:'+(canBuy?'var(--gold)':'var(--dim)')+';font-family:Cinzel,serif;font-size:9px;cursor:'+(canBuy?'pointer':'not-allowed')+
+          ';white-space:nowrap;">'+item.cost+' 🪙</button>';
+    html+='</div>';
+  });
+  document.getElementById('shopItems').innerHTML=html;
+  document.getElementById('shopScreen').classList.remove('hidden');
+  actionLock=true;
+}
+
+function buyItem(id){
+  var item=SHOP_ITEMS.find(function(x){return x.id===id;});
+  if(!item||P.gold<item.cost) return;
+  P.gold-=item.cost;
+  item.effect(P);
+  log('info','🏪 Comprou: '+item.name+'!');
+  updateInv();refreshUI();
+  openShop(); // refresh shop display
+}
+
+function closeShop(){
+  document.getElementById('shopScreen').classList.add('hidden');
+  actionLock=false;
+}
+
+// ══════════════════════════════════════════════
+//  UI
+// ══════════════════════════════════════════════
+function pct(v,m){return Math.max(0,Math.min(100,v/m*100))+'%';}
+
+function refreshUI(){
+  // HP
+  document.getElementById('hpBar').style.width=pct(P.hp,P.maxHp);
+  document.getElementById('hpVal').textContent=P.hp+'/'+P.maxHp;
+  document.getElementById('pHpSmall').textContent=P.hp;
+  document.getElementById('pHpSmallBar').style.width=pct(P.hp,P.maxHp);
+  // MP
+  document.getElementById('mpBar').style.width=pct(P.mp,P.maxMp);
+  document.getElementById('mpVal').textContent=P.mp+'/'+P.maxMp;
+  // XP
+  document.getElementById('xpBar').style.width=pct(P.xp,P.xpNext);
+  document.getElementById('xpVal').textContent=P.xp+'/'+P.xpNext;
+  // Stats
+  document.getElementById('statAtk').textContent=P.atk;
+  document.getElementById('statDef').textContent=P.def;
+  document.getElementById('statSpd').textContent=P.spd;
+  document.getElementById('statGold').textContent=P.gold;
+  document.getElementById('goldCount').textContent=P.gold+' 🪙';
+  // Level
+  document.getElementById('lvlBadge').textContent=P.level;
+  document.getElementById('heroClass').textContent=P.name.toUpperCase()+' · LV'+P.level;
+  // Enemy
+  document.getElementById('eHpSmall').textContent=Math.max(0,E.hp);
+  document.getElementById('eHpSmallBar').style.width=pct(E.hp,E.maxHp);
+  // Buttons
+  document.getElementById('potCount').textContent='x'+P.hpPots;
+  document.getElementById('mpPotCount').textContent='x'+P.mpPots;
+  document.getElementById('btnSkill').disabled=P.mp<P.skill.mp;
+  document.getElementById('btnPot').disabled=P.hpPots<=0;
+  document.getElementById('btnMpPot').disabled=P.mpPots<=0;
+  // HP bar color warning
+  var hpb=document.getElementById('hpBar');
+  if(P.hp/P.maxHp<0.25){hpb.style.background='linear-gradient(90deg,#7f1d1d,#ef4444)';}
+  else{hpb.style.background='linear-gradient(90deg,#c0392b,#e05252)';}
+}
+
+function updateSkillBtn(){
+  document.getElementById('skillIcon').textContent=P.skill.icon;
+  document.getElementById('skillName').textContent=P.skill.name;
+  document.getElementById('skillCost').textContent=P.skill.mp+' MP';
+}
+
+function updateInv(){
+  var items=[];
+  if(P.hpPots>0) items.push({e:'🧪',q:P.hpPots});
+  if(P.mpPots>0) items.push({e:'💧',q:P.mpPots});
+  var html='';
+  for(var i=0;i<8;i++){
+    if(items[i]){
+      html+='<div class="inv-item"><span>'+items[i].e+'</span><span class="qty">x'+items[i].q+'</span></div>';
+    } else {
+      html+='<div class="inv-item empty"><span>·</span></div>';
+    }
+  }
+  document.getElementById('invGrid').innerHTML=html;
+}
+
+// ══════════════════════════════════════════════
+//  VISUAL FX
+// ══════════════════════════════════════════════
+function floatDmg(side,val,color){
+  var arena=document.getElementById('arena');
+  var rect=arena.getBoundingClientRect();
+  var arenaRect=arena.getBoundingClientRect();
+  var x= side==='enemy'? arenaRect.width*0.72 : arenaRect.width*0.28;
+  var el=document.createElement('div');
+  el.className='dmg-float';
+  el.textContent=val;
+  el.style.color=color;
+  el.style.left=x+'px';
+  el.style.top='60px';
+  el.style.fontFamily='Cinzel Decorative,cursive';
+  arena.appendChild(el);
+  setTimeout(function(){el.remove();},900);
+}
+
+function shakeSprite(target){
+  var id=target==='enemy'?'enemySprite':'playerSprite';
+  var el=document.getElementById(id);
+  el.classList.remove('shake');
+  void el.offsetWidth;
+  el.classList.add('shake');
+  setTimeout(function(){el.classList.remove('shake');},450);
+}
+
+// ══════════════════════════════════════════════
+//  LOG
+// ══════════════════════════════════════════════
+function log(type,msg){
+  var inner=document.getElementById('logInner');
+  var div=document.createElement('div');
+  div.className='log-line '+type;
+  div.textContent=msg;
+  inner.appendChild(div);
+  inner.scrollTop=inner.scrollHeight;
+  // keep max 80 lines
+  while(inner.children.length>80) inner.removeChild(inner.firstChild);
+}
+</script>
+</body>
+</html> 

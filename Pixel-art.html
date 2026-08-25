@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🎨 Pixel Utopia</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --bg:#0f0f1a;
+  --panel:#1a1a2e;
+  --panel2:#16213e;
+  --accent:#e8c840;
+  --accent2:#ff6b9d;
+  --text:#f0f0ff;
+  --muted:#8888aa;
+  --border:rgba(255,255,255,0.08);
+  --radius:18px;
+}
+
+body{
+  background:var(--bg);
+  min-height:100vh;
+  font-family:'Nunito',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(100,60,220,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 90%, rgba(232,200,64,0.10) 0%, transparent 70%);
+  pointer-events:none;
+  z-index:0;
+}
+
+header{
+  position:relative;
+  z-index:1;
+  padding:28px 20px 10px;
+  text-align:center;
+}
+
+header h1{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(28px,5vw,52px);
+  color:var(--accent);
+  letter-spacing:2px;
+  text-shadow:0 2px 30px rgba(232,200,64,0.3);
+}
+
+header p{
+  color:var(--muted);
+  font-size:15px;
+  margin-top:6px;
+}
+
+.layout{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:260px 1fr;
+  gap:20px;
+  width:min(1300px,96%);
+  margin:16px auto 40px;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+}
+
+.panel-title{
+  font-family:'Fredoka One',cursive;
+  font-size:15px;
+  letter-spacing:1px;
+  color:var(--accent);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* Palette */
+.palette{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.col-btn{
+  aspect-ratio:1/1;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+  position:relative;
+}
+
+.col-btn:hover{transform:scale(1.12);}
+.col-btn.active{
+  outline:3px solid white;
+  outline-offset:2px;
+  transform:scale(1.1);
+  box-shadow:0 0 12px rgba(255,255,255,0.4);
+}
+
+/* Tools */
+.tools{display:flex;gap:8px;}
+
+.tool-btn{
+  flex:1;
+  padding:10px 6px;
+  border:1px solid var(--border);
+  background:var(--panel2);
+  color:var(--text);
+  border-radius:12px;
+  cursor:pointer;
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:13px;
+  transition:all .15s;
+}
+
+.tool-btn:hover{background:rgba(255,255,255,0.08);}
+.tool-btn.active{background:var(--accent);color:#111;}
+
+/* Drawings list */
+.drawings-list{display:flex;flex-direction:column;gap:8px;}
+
+.draw-btn{
+  padding:12px 14px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  border-radius:14px;
+  cursor:pointer;
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  text-align:left;
+  transition:all .15s;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.draw-btn:hover{background:rgba(255,255,255,0.06);transform:translateX(4px);}
+.draw-btn.active{background:var(--accent);color:#111;border-color:var(--accent);}
+
+.draw-btn .draw-preview{
+  width:28px;height:28px;
+  border-radius:6px;
+  flex-shrink:0;
+  background:rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+
+/* ── GAME AREA ── */
+.game-area{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.game-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.drawing-title{
+  font-family:'Fredoka One',cursive;
+  font-size:26px;
+  color:var(--text);
+}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+.act-btn{
+  padding:10px 16px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-family:'Nunito',sans-serif;
+  font-weight:900;
+  font-size:13px;
+  transition:all .15s;
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
+.act-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,0.08);}
+.act-btn.primary{background:var(--accent);color:#111;border-color:transparent;}
+.act-btn.primary:hover{background:#f5d84f;}
+
+/* Progress */
+.progress-wrap{
+  width:100%;
+  height:8px;
+  background:rgba(255,255,255,0.08);
+  border-radius:999px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,#6bcb77,#4d96ff);
+  border-radius:999px;
+  transition:width .3s ease;
+  width:0%;
+}
+
+/* Canvas */
+.canvas-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:10px;
+}
+
+#pixelCanvas{
+  border-radius:16px;
+  cursor:crosshair;
+  display:block;
+  max-width:100%;
+  height:auto;
+  image-rendering:pixelated;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+}
+
+/* Legend */
+.legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--panel2);
+  padding:8px 12px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:700;
+  border:1px solid var(--border);
+}
+
+.legend-swatch{
+  width:20px;height:20px;
+  border-radius:6px;
+}
+
+/* Win overlay */
+.win-screen{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  display:flex;justify-content:center;align-items:center;
+  z-index:999;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+  backdrop-filter:blur(6px);
+}
+.win-screen.show{opacity:1;pointer-events:auto;}
+
+.win-card{
+  background:linear-gradient(135deg,#1a1a2e,#16213e);
+  border:2px solid var(--accent);
+  border-radius:28px;
+  padding:40px;
+  text-align:center;
+  width:min(420px,92%);
+  animation:pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes pop{
+  from{transform:scale(.5);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+
+.win-card .trophy{font-size:72px;margin-bottom:14px;display:block;}
+.win-card h2{font-family:'Fredoka One',cursive;font-size:32px;color:var(--accent);margin-bottom:8px;}
+.win-card p{color:var(--muted);font-size:16px;margin-bottom:24px;}
+
+/* Current color indicator */
+.current-color{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  background:var(--panel2);
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+
+.cur-swatch{
+  width:32px;height:32px;border-radius:8px;
+  border:2px solid rgba(255,255,255,0.2);
+  flex-shrink:0;
+}
+
+/* Mobile */
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr;}
+  .palette{grid-template-columns:repeat(8,1fr);}
+}
+@media(max-width:500px){
+  .palette{grid-template-columns:repeat(6,1fr);}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎨 Pixel Utopia</h1>
+  <p>Escolha um desenho e pinte os pixels com as cores corretas!</p>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+
+    <!-- Current Color -->
+    <div class="panel">
+      <div class="panel-title">🖌 Cor Selecionada</div>
+      <div class="current-color">
+        <div class="cur-swatch" id="curSwatch"></div>
+        <span id="curLabel" style="font-weight:700;font-size:14px;">Clique em uma cor</span>
+      </div>
+    </div>
+
+    <!-- Palette -->
+    <div class="panel">
+      <div class="panel-title">🎨 Paleta</div>
+      <div class="palette" id="palette"></div>
+    </div>
+
+    <!-- Tools -->
+    <div class="panel">
+      <div class="panel-title">🛠 Ferramentas</div>
+      <div class="tools">
+        <button class="tool-btn active" id="paintTool">🖌 Pintar</button>
+        <button class="tool-btn" id="eraseTool">🧽 Apagar</button>
+      </div>
+    </div>
+
+    <!-- Drawings -->
+    <div class="panel">
+      <div class="panel-title">🖼 Desenhos</div>
+      <div class="drawings-list" id="drawingsList"></div>
+    </div>
+
+  </aside>
+
+  <section class="game-area">
+
+    <div class="game-header">
+      <div>
+        <div class="drawing-title" id="drawingTitle">—</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:2px;" id="progressLabel">0% completo</div>
+      </div>
+      <div class="actions">
+        <button class="act-btn" onclick="Voltar()">Voltar</button>
+        <button class="act-btn" onclick="resetCanvas()">🔄 Reiniciar</button>
+        <button class="act-btn" onclick="showHint()">💡 Dica</button>
+        <button class="act-btn primary" onclick="autoFillOne()">⚡ Auto</button>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="pixelCanvas"></canvas>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+  </section>
+
+</div>
+
+<div class="win-screen" id="winScreen">
+  <div class="win-card">
+    <span class="trophy">🏆</span>
+    <h2>Perfeito!</h2>
+    <p>Você completou o desenho!</p>
+    <button class="act-btn primary" onclick="nextDrawing()" style="font-size:16px;padding:14px 28px;">Próximo Desenho ➜</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('pixelCanvas');
+const ctx = canvas.getContext('2d');
+
+const GRID = 20;
+let CELL = 32;
+
+let selectedColor = '#000000';
+let currentTool = 'paint';
+let isDown = false;
+let currentLevel = 0;
+let playerGrid = [];
+
+const palette = [
+  {hex:'#111111', name:'Preto'},
+  {hex:'#ffffff', name:'Branco'},
+  {hex:'#ff4d4d', name:'Vermelho'},
+  {hex:'#ff8c42', name:'Laranja'},
+  {hex:'#ffd93d', name:'Amarelo'},
+  {hex:'#6bcb77', name:'Verde'},
+  {hex:'#4d96ff', name:'Azul'},
+  {hex:'#9d4edd', name:'Roxo'},
+  {hex:'#ff66c4', name:'Rosa'},
+  {hex:'#8b5a2b', name:'Marrom'},
+  {hex:'#00c2a8', name:'Turquesa'},
+  {hex:'#aaaaaa', name:'Cinza'},
+  {hex:'#ffdbac', name:'Pele'},
+  {hex:'#ffbf00', name:'Dourado'},
+  {hex:'#222244', name:'Azul Esc.'},
+  {hex:'#c0392b', name:'Verm. Esc.'},
+];
+
+// ─────────────────────────────────────────────────
+// DRAWINGS  (20×20 grids)
+// ─────────────────────────────────────────────────
+const drawings = [
+
+// 0 – CUBO 3D ISOMÉTRICO
+{
+  name:'📦 Cubo 3D',
+  emoji:'📦',
+  colors:{
+    1:'#4d96ff',
+    2:'#222244',
+    3:'#aaaaaa',
+    4:'#ffffff',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,1,4,4,1,1,4,4,1,1,0,0,0,0,0],
+    [0,0,0,0,1,1,4,4,4,1,4,4,4,1,1,1,0,0,0,0],
+    [0,0,0,0,1,1,4,4,1,1,1,4,1,1,1,1,0,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,0,2,1,1,1,1,1,1,1,1,1,1,3,0,0,0,0],
+    [0,0,0,0,2,2,1,1,1,1,1,1,1,1,3,3,0,0,0,0],
+    [0,0,0,0,2,2,2,1,1,1,1,1,1,3,3,3,0,0,0,0],
+    [0,0,0,0,2,2,2,2,1,1,1,1,3,3,3,3,0,0,0,0],
+    [0,0,0,0,2,2,2,2,2,1,1,3,3,3,3,3,0,0,0,0],
+    [0,0,0,0,2,2,2,2,2,2,3,3,3,3,3,3,0,0,0,0],
+    [0,0,0,0,0,2,2,2,2,2,3,3,3,3,3,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,2,3,3,3,3,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 1 – DIAMANTE 3D
+{
+  name:'💎 Diamante',
+  emoji:'💎',
+  colors:{
+    1:'#4d96ff',
+    2:'#ffffff',
+    3:'#222244',
+    4:'#00c2a8',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,3,3,3,3,3,3,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,3,1,1,2,2,1,1,3,0,0,0,0,0,0],
+    [0,0,0,0,0,3,1,1,2,2,2,2,1,1,3,0,0,0,0,0],
+    [0,0,0,0,3,1,1,1,1,2,2,1,1,1,1,3,0,0,0,0],
+    [0,0,0,3,1,1,4,4,1,1,1,1,4,4,1,1,3,0,0,0],
+    [0,0,0,3,1,4,4,4,4,1,1,4,4,4,4,1,3,0,0,0],
+    [0,0,0,0,3,1,4,4,1,1,1,1,4,4,1,3,0,0,0,0],
+    [0,0,0,0,0,3,1,1,1,1,1,1,1,1,3,0,0,0,0,0],
+    [0,0,0,0,0,0,3,1,4,1,1,4,1,3,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,3,1,4,4,1,3,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,3,1,1,3,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 2 – CASA ISOMÉTRICA
+{
+  name:'🏠 Casa 3D',
+  emoji:'🏠',
+  colors:{
+    1:'#c0392b',
+    2:'#ff8c42',
+    3:'#aaaaaa',
+    4:'#8b5a2b',
+    5:'#4d96ff',
+    6:'#6bcb77',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,1,1,2,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,2,2,1,1,2,2,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,2,2,2,1,1,2,2,2,1,0,0,0,0,0],
+    [0,0,0,0,1,2,2,2,2,1,1,2,2,2,2,1,0,0,0,0],
+    [0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0],
+    [0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0],
+    [0,0,0,3,4,3,3,5,5,3,3,3,3,3,3,4,3,0,0,0],
+    [0,0,0,3,4,3,3,5,5,3,3,3,3,3,3,4,3,0,0,0],
+    [0,0,0,3,4,3,3,5,5,3,3,3,3,3,3,4,3,0,0,0],
+    [0,0,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,0,0,0],
+    [0,0,0,3,3,3,3,3,4,4,4,3,3,3,3,3,3,0,0,0],
+    [0,0,0,3,3,3,3,3,4,4,4,3,3,3,3,3,3,0,0,0],
+    [0,0,0,6,6,6,6,6,4,4,4,6,6,6,6,6,6,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 3 – FOGUETE PIXEL ART
+{
+  name:'🚀 Foguete',
+  emoji:'🚀',
+  colors:{
+    1:'#ffffff',
+    2:'#ff4d4d',
+    3:'#4d96ff',
+    4:'#ff8c42',
+    5:'#ffd93d',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0,0,0],
+    [0,0,0,0,0,2,1,1,1,3,3,1,1,1,2,0,0,0,0,0],
+    [0,0,0,0,0,2,1,1,1,3,3,1,1,1,2,0,0,0,0,0],
+    [0,0,0,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0],
+    [0,0,0,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0],
+    [0,0,0,0,2,2,2,1,1,1,1,1,1,2,2,2,0,0,0,0],
+    [0,0,0,2,2,0,2,1,1,1,1,1,1,2,0,2,2,0,0,0],
+    [0,0,0,0,0,0,2,1,1,1,1,1,1,2,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,1,1,1,1,2,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,4,1,1,4,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,4,4,5,5,4,4,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,4,4,4,5,5,4,4,4,0,0,0,0,0,0],
+    [0,0,0,0,0,4,4,4,0,5,5,0,4,4,4,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 4 – COROA 3D
+{
+  name:'👑 Coroa 3D',
+  emoji:'👑',
+  colors:{
+    1:'#ffbf00',
+    2:'#ffd93d',
+    3:'#ff4d4d',
+    4:'#ffffff',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0],
+    [0,0,0,1,1,0,0,0,1,1,1,1,0,0,0,1,1,0,0,0],
+    [0,0,0,1,1,1,0,1,1,3,3,1,1,0,1,1,1,0,0,0],
+    [0,0,0,1,2,1,1,1,2,3,3,2,1,1,1,2,1,0,0,0],
+    [0,0,0,1,2,2,1,1,2,1,1,2,1,1,2,2,1,0,0,0],
+    [0,0,0,1,2,2,2,1,2,1,1,2,1,2,2,2,1,0,0,0],
+    [0,0,0,1,2,2,2,2,2,1,1,2,2,2,2,2,1,0,0,0],
+    [0,0,0,1,1,2,2,2,2,2,2,2,2,2,2,1,1,0,0,0],
+    [0,0,0,0,1,2,2,2,4,2,2,4,2,2,2,1,0,0,0,0],
+    [0,0,0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0,0,0],
+    [0,0,0,0,0,1,1,2,2,2,2,2,2,1,1,0,0,0,0,0],
+    [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 5 – CORAÇÃO 3D
+{
+  name:'❤️ Coração 3D',
+  emoji:'❤️',
+  colors:{
+    1:'#ff4d4d',
+    2:'#c0392b',
+    3:'#ffffff',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0,0,0],
+    [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,1,3,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,1,3,3,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,2,1,1,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0],
+    [0,0,0,2,1,1,1,1,1,1,1,1,2,0,0,0,0,0,0,0],
+    [0,0,0,2,2,1,1,1,1,1,1,2,2,0,0,0,0,0,0,0],
+    [0,0,0,0,2,2,1,1,1,1,2,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,2,2,1,1,2,2,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 6 – ESTRELA 3D
+{
+  name:'⭐ Estrela 3D',
+  emoji:'⭐',
+  colors:{
+    1:'#ffd93d',
+    2:'#ffbf00',
+    3:'#ffffff',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0],
+    [0,1,1,1,1,1,1,1,3,1,1,3,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,3,3,1,1,1,1,1,1,1,1,1,0,0,0],
+    [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,0,2,1,1,1,1,1,1,1,1,1,2,0,0,0,0,0],
+    [0,0,0,0,0,2,1,1,1,1,1,1,1,2,0,0,0,0,0,0],
+    [0,0,0,0,1,1,2,1,1,1,1,1,2,1,1,0,0,0,0,0],
+    [0,0,0,1,1,1,1,2,1,1,1,2,1,1,1,1,0,0,0,0],
+    [0,0,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,0,0,0],
+    [0,0,0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+
+// 7 – PLANETA 3D
+{
+  name:'🪐 Planeta 3D',
+  emoji:'🪐',
+  colors:{
+    1:'#4d96ff',
+    2:'#9d4edd',
+    3:'#ffffff',
+    4:'#aaaaaa',
+  },
+  grid:[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0],
+    [0,0,0,4,4,4,4,4,1,1,1,1,4,4,4,4,4,0,0,0],
+    [0,0,0,4,4,4,4,1,1,3,3,1,1,4,4,4,4,0,0,0],
+    [0,0,4,4,4,4,1,1,3,3,3,3,1,1,4,4,4,4,0,0],
+    [0,0,4,4,4,1,1,1,1,3,3,1,1,1,1,4,4,4,0,0],
+    [0,0,4,4,1,1,1,2,1,1,1,1,2,1,1,1,4,4,0,0],
+    [0,0,4,4,1,1,2,2,2,1,1,2,2,2,1,1,4,4,0,0],
+    [0,0,4,4,1,2,2,2,2,1,1,2,2,2,2,1,4,4,0,0],
+    [0,0,4,4,1,1,2,2,1,1,1,1,2,2,1,1,4,4,0,0],
+    [0,0,4,4,1,1,1,1,1,1,1,1,1,1,1,1,4,4,0,0],
+    [0,0,4,4,4,1,1,1,1,1,1,1,1,1,4,4,4,0,0,0],
+    [0,0,0,4,4,4,1,1,1,1,1,1,1,4,4,4,0,0,0,0],
+    [0,0,0,0,4,4,4,4,1,1,1,4,4,4,4,0,0,0,0,0],
+    [0,0,0,0,0,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ]
+},
+];
+
+// ─────────────────────────────────────────────────
+// SETUP
+// ─────────────────────────────────────────────────
+
+function resize(){
+  const wrap = document.querySelector('.canvas-wrap');
+  const available = wrap.clientWidth - 40;
+  CELL = Math.min(32, Math.floor(available / GRID));
+  canvas.width = GRID * CELL;
+  canvas.height = GRID * CELL;
+}
+
+function buildPalette(){
+  const el = document.getElementById('palette');
+  el.innerHTML = '';
+  palette.forEach((c,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'col-btn';
+    btn.style.background = c.hex;
+    btn.title = c.name;
+    if(i===0) btn.classList.add('active');
+    btn.onclick = ()=>{
+      document.querySelectorAll('.col-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedColor = c.hex;
+      document.getElementById('curSwatch').style.background = c.hex;
+      document.getElementById('curLabel').textContent = c.name;
+    };
+    el.appendChild(btn);
+  });
+  // init display
+  document.getElementById('curSwatch').style.background = palette[0].hex;
+  document.getElementById('curLabel').textContent = palette[0].name;
+  selectedColor = palette[0].hex;
+}
+
+function buildList(){
+  const el = document.getElementById('drawingsList');
+  el.innerHTML = '';
+  drawings.forEach((d,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'draw-btn' + (i===0?' active':'');
+    btn.innerHTML = `<span class="draw-preview">${d.emoji}</span>${d.name}`;
+    btn.onclick = ()=>{
+      document.querySelectorAll('.draw-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      loadLevel(i);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function loadLevel(i){
+  currentLevel = i;
+  const d = drawings[i];
+  document.getElementById('drawingTitle').textContent = d.name;
+  playerGrid = Array.from({length:GRID},()=>Array(GRID).fill(null));
+  resize();
+  buildLegend();
+  draw();
+  updateProgress();
+}
+
+function Voltar() {
+    window.location.href="index.html"
+}
+
+function buildLegend(){
+  const d = drawings[currentLevel];
+  const el = document.getElementById('legend');
+  el.innerHTML = '';
+  Object.entries(d.colors).forEach(([num,hex])=>{
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-swatch" style="background:${hex}"></div>Cor ${num}`;
+    el.appendChild(item);
+  });
+}
+
+// ─────────────────────────────────────────────────
+// DRAW
+// ─────────────────────────────────────────────────
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const d = drawings[currentLevel];
+
+  for(let y=0;y<GRID;y++){
+    for(let x=0;x<GRID;x++){
+      const px = x*CELL, py = y*CELL;
+      const val = d.grid[y][x];
+
+      if(val === 0){
+        // empty – transparent with subtle checker
+        ctx.fillStyle = (x+y)%2===0 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)';
+        ctx.fillRect(px,py,CELL,CELL);
+        continue;
+      }
+
+      if(playerGrid[y][x]){
+        ctx.fillStyle = playerGrid[y][x];
+        ctx.fillRect(px,py,CELL,CELL);
+        // subtle inner bevel
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.fillRect(px,py,CELL,2);
+        ctx.fillRect(px,py,2,CELL);
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(px,py+CELL-2,CELL,2);
+        ctx.fillRect(px+CELL-2,py,2,CELL);
+      } else {
+        // unpainted – show number hint
+        ctx.fillStyle = '#1e1e30';
+        ctx.fillRect(px,py,CELL,CELL);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(px,py,CELL,2);
+        ctx.fillRect(px,py,2,CELL);
+
+        // color hint tint
+        const targetHex = d.colors[val];
+        ctx.fillStyle = targetHex+'33';
+        ctx.fillRect(px+2,py+2,CELL-4,CELL-4);
+
+        // number
+        const fs = Math.max(9, CELL*0.38);
+        ctx.font = `bold ${fs}px 'Nunito',sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(val, px+CELL/2, py+CELL/2);
+      }
+
+      // grid line
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(px,py,CELL,CELL);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────
+// INTERACTION
+// ─────────────────────────────────────────────────
+
+function getCell(cx, cy){
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = Math.floor((cx - rect.left) * scaleX / CELL);
+  const y = Math.floor((cy - rect.top) * scaleY / CELL);
+  return {x,y};
+}
+
+function paintAt(cx, cy){
+  const {x,y} = getCell(cx,cy);
+  if(x<0||y<0||x>=GRID||y>=GRID) return;
+  const d = drawings[currentLevel];
+  const val = d.grid[y][x];
+  if(val === 0) return;
+
+  if(currentTool === 'erase'){
+    playerGrid[y][x] = null;
+    draw(); updateProgress(); return;
+  }
+
+  const correct = d.colors[val];
+  if(selectedColor === correct && playerGrid[y][x] !== correct){
+    playerGrid[y][x] = correct;
+    draw();
+    updateProgress();
+    checkWin();
+  } else if(selectedColor !== correct){
+    // shake
+    canvas.style.transition='transform .05s';
+    canvas.style.transform='translateX(6px)';
+    setTimeout(()=>canvas.style.transform='translateX(-6px)',50);
+    setTimeout(()=>canvas.style.transform='translateX(0)',100);
+  }
+}
+
+canvas.addEventListener('mousedown',e=>{isDown=true;paintAt(e.clientX,e.clientY);});
+canvas.addEventListener('mousemove',e=>{if(isDown)paintAt(e.clientX,e.clientY);});
+window.addEventListener('mouseup',()=>isDown=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();paintAt(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();paintAt(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+
+// ─────────────────────────────────────────────────
+// TOOLS
+// ─────────────────────────────────────────────────
+
+document.getElementById('paintTool').onclick = ()=>{
+  currentTool='paint';
+  document.getElementById('paintTool').classList.add('active');
+  document.getElementById('eraseTool').classList.remove('active');
+};
+document.getElementById('eraseTool').onclick = ()=>{
+  currentTool='erase';
+  document.getElementById('eraseTool').classList.add('active');
+  document.getElementById('paintTool').classList.remove('active');
+};
+
+// ─────────────────────────────────────────────────
+// ACTIONS
+// ─────────────────────────────────────────────────
+
+function resetCanvas(){
+  playerGrid = Array.from({length:GRID},()=>Array(GRID).fill(null));
+  draw(); updateProgress();
+}
+
+function showHint(){
+  const d = drawings[currentLevel];
+  for(let y=0;y<GRID;y++){
+    for(let x=0;x<GRID;x++){
+      const val = d.grid[y][x];
+      if(val!==0 && playerGrid[y][x]!==d.colors[val]){
+        const px=x*CELL, py=y*CELL;
+        ctx.save();
+        ctx.globalAlpha=0.55;
+        ctx.fillStyle=d.colors[val];
+        ctx.fillRect(px,py,CELL,CELL);
+        ctx.restore();
+        return;
+      }
+    }
+  }
+}
+
+function autoFillOne(){
+  const d = drawings[currentLevel];
+  for(let y=0;y<GRID;y++){
+    for(let x=0;x<GRID;x++){
+      const val = d.grid[y][x];
+      if(val!==0 && playerGrid[y][x]!==d.colors[val]){
+        playerGrid[y][x]=d.colors[val];
+        draw(); updateProgress(); checkWin(); return;
+      }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────
+// PROGRESS & WIN
+// ─────────────────────────────────────────────────
+
+function updateProgress(){
+  const d = drawings[currentLevel];
+  let total=0, done=0;
+  for(let y=0;y<GRID;y++){
+    for(let x=0;x<GRID;x++){
+      const val=d.grid[y][x];
+      if(val!==0){total++;if(playerGrid[y][x]===d.colors[val])done++;}
+    }
+  }
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressLabel').textContent=pct+'% completo';
+}
+
+function checkWin(){
+  const d = drawings[currentLevel];
+  for(let y=0;y<GRID;y++)
+    for(let x=0;x<GRID;x++){
+      const val=d.grid[y][x];
+      if(val!==0 && playerGrid[y][x]!==d.colors[val]) return;
+    }
+  document.getElementById('winScreen').classList.add('show');
+}
+
+function nextDrawing(){
+  document.getElementById('winScreen').classList.remove('show');
+  const next = (currentLevel+1) % drawings.length;
+  const btns = document.querySelectorAll('.draw-btn');
+  btns.forEach((b,i)=>b.classList.toggle('active',i===next));
+  loadLevel(next);
+}
+
+// ─────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────
+
+buildPalette();
+buildList();
+loadLevel(0);
+window.addEventListener('resize',()=>{resize();draw();updateProgress();});
+</script>
+</body>
+</html>
