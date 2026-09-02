@@ -151,9 +151,20 @@ function startGame(){
   paused=false; running=true; tick=0; spawnTimer=0;
   player = {x:210, y:210, size:14, color:"#00e5ff", trail:[]};
   orbs=[]; enemies=[]; particles=[];
+  mouseX=210; mouseY=210;
   for(let i=0;i<3;i++) spawnOrb();
   updateHUD();
   loop();
+  // trava o cursor dentro do canvas assim que a partida começa
+  lockPointer();
+}
+
+// tenta travar o cursor; em alguns ambientes (iframes/sandbox) o navegador
+// recusa a permissão — nesse caso o jogo continua funcionando normalmente,
+// só sem a trava visual do cursor do sistema
+function lockPointer(){
+  const p = canvas.requestPointerLock();
+  if(p && p.catch) p.catch(()=>{});
 }
 
 function togglePause(){ if(running) paused=!paused; }
@@ -431,6 +442,10 @@ function loop(){
 // ── game over ─────────────────────────────────────
 function gameOver(){
   running=false;
+  // libera o cursor apenas quando o jogador perde
+  if(document.pointerLockElement === canvas){
+    document.exitPointerLock();
+  }
   ctx.fillStyle="rgba(0,0,0,0.82)"; ctx.fillRect(0,0,W,H);
   ctx.textAlign="center";
   ctx.font="bold 28px 'Courier New'"; ctx.fillStyle="#ff3344";
@@ -446,10 +461,33 @@ function gameOver(){
 
 // ── input ─────────────────────────────────────────
 canvas.addEventListener("mousemove", e=>{
-  const r=canvas.getBoundingClientRect();
-  const sx=W/r.width, sy=H/r.height;
-  mouseX=(e.clientX-r.left)*sx; mouseY=(e.clientY-r.top)*sy;
+  if(document.pointerLockElement === canvas){
+    // partida em andamento: cursor travado, usa movimento relativo
+    mouseX += e.movementX;
+    mouseY += e.movementY;
+    mouseX = Math.max(0, Math.min(W, mouseX));
+    mouseY = Math.max(0, Math.min(H, mouseY));
+  } else {
+    // fora de partida (tela inicial / fim de jogo): segue o mouse normalmente
+    const r=canvas.getBoundingClientRect();
+    const sx=W/r.width, sy=H/r.height;
+    mouseX=(e.clientX-r.left)*sx; mouseY=(e.clientY-r.top)*sy;
+  }
 });
+
+// se o navegador soltar a trava (ex: usuário aperta ESC) durante a partida,
+// um clique no canvas trava o cursor de novo
+canvas.addEventListener("click", ()=>{
+  if(running && !paused && document.pointerLockElement !== canvas){
+    lockPointer();
+  }
+});
+
+document.addEventListener("pointerlockerror", ()=>{
+  // ambiente recusou a trava (comum em sandboxes/iframes); o jogo segue
+  // funcionando com o mouse normal, só sem prender o cursor do sistema
+});
+
 canvas.addEventListener("touchmove", e=>{
   e.preventDefault();
   const r=canvas.getBoundingClientRect();

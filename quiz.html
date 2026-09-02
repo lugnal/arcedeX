@@ -118,22 +118,203 @@
 </style>
 <Script>
   const perguntas = [
-    {
-      pergunta: "Qual linguagem é usada para estilizar páginas web?",
-      respostas: ["HTML", "CSS", "Python", "Java"],
-      correta: "CSS"
-    },
-    {
-      pergunta: "Qual comando exibe algo no console?",
-      respostas: ["print()", "console.log()", "echo()", "mostrar()"],
-      correta: "console.log()"
-    },
-    {
-      pergunta: "Qual dessas é uma linguagem de programação?",
-      respostas: ["HTML", "CSS", "JavaScript", "Photoshop"],
-      correta: "JavaScript"
-    }
-  ];
+
+  {
+    pergunta: "Qual linguagem é usada para estilizar páginas web?",
+    respostas: ["HTML", "CSS", "Python", "Java"],
+    correta: "CSS"
+  },
+
+  {
+    pergunta: "Qual comando exibe algo no console?",
+    respostas: ["print()", "console.log()", "echo()", "mostrar()"],
+    correta: "console.log()"
+  },
+
+  {
+    pergunta: "Qual dessas é uma linguagem de programação?",
+    respostas: ["HTML", "CSS", "JavaScript", "Photoshop"],
+    correta: "JavaScript"
+  },
+
+  {
+    pergunta: "Qual linguagem é usada para criar a estrutura de uma página web?",
+    respostas: ["CSS", "HTML", "JavaScript", "Python"],
+    correta: "HTML"
+  },
+
+  {
+    pergunta: "Qual símbolo é usado para declarar uma variável constante em JavaScript?",
+    respostas: ["var", "let", "const", "static"],
+    correta: "const"
+  },
+
+  {
+    pergunta: "Qual comando é usado para criar uma função em JavaScript?",
+    respostas: ["function", "create", "func", "method"],
+    correta: "function"
+  },
+
+  {
+    pergunta: "Qual destes é usado para selecionar um elemento pelo ID?",
+    respostas: [
+      "document.getElementById()",
+      "document.getElementsByClassName()",
+      "document.createElement()",
+      "document.write()"
+    ],
+    correta: "document.getElementById()"
+  },
+
+  {
+    pergunta: "Qual propriedade CSS muda a cor do texto?",
+    respostas: ["background", "color", "font-size", "border"],
+    correta: "color"
+  },
+
+  {
+    pergunta: "Qual propriedade CSS muda a cor de fundo?",
+    respostas: ["color", "background-color", "font-color", "text-color"],
+    correta: "background-color"
+  },
+
+  {
+    pergunta: "Qual tag HTML é usada para criar um link?",
+    respostas: ["<link>", "<a>", "<href>", "<url>"],
+    correta: "<a>"
+  },
+
+  {
+    pergunta: "Qual tag HTML é usada para inserir uma imagem?",
+    respostas: ["<image>", "<img>", "<picture>", "<src>"],
+    correta: "<img>"
+  },
+
+  {
+    pergunta: "Qual operador verifica se dois valores são iguais em JavaScript?",
+    respostas: ["=", "===", "+", "!="],
+    correta: "==="
+  },
+
+  {
+    pergunta: "Qual estrutura é usada para repetir um bloco de código?",
+    respostas: ["if", "for", "switch", "try"],
+    correta: "for"
+  },
+
+  {
+    pergunta: "Qual palavra é usada para criar uma condição em JavaScript?",
+    respostas: ["for", "if", "loop", "function"],
+    correta: "if"
+  },
+
+  {
+    pergunta: "Qual método adiciona um item ao final de um array?",
+    respostas: ["push()", "pop()", "shift()", "slice()"],
+    correta: "push()"
+  },
+
+  {
+    pergunta: "Qual método remove o último item de um array?",
+    respostas: ["push()", "pop()", "shift()", "add()"],
+    correta: "pop()"
+  },
+
+  {
+    pergunta: "Qual símbolo inicia um comentário de uma linha em JavaScript?",
+    respostas: ["//", "<!--", "#", "**"],
+    correta: "//"
+  },
+
+  {
+    pergunta: "Qual tecnologia é usada principalmente para tornar páginas web interativas?",
+    respostas: ["HTML", "CSS", "JavaScript", "SQL"],
+    correta: "JavaScript"
+  },
+
+  {
+    pergunta: "O que significa HTML?",
+    respostas: [
+      "HyperText Markup Language",
+      "HighText Machine Language",
+      "Hyper Tool Modern Language",
+      "Home Text Markup Language"
+    ],
+    correta: "HyperText Markup Language"
+  },
+
+  {
+    pergunta: "O que significa CSS?",
+    respostas: [
+      "Computer Style System",
+      "Cascading Style Sheets",
+      "Creative Style Sheet",
+      "Color System Style"
+    ],
+    correta: "Cascading Style Sheets"
+  },
+
+  {
+    pergunta: "Qual tag HTML é usada para criar um botão?",
+    respostas: ["<input>", "<button>", "<click>", "<btn>"],
+    correta: "<button>"
+  },
+
+  {
+    pergunta: "Qual evento JavaScript acontece quando um botão é clicado?",
+    respostas: ["onload", "onclick", "onchange", "onstart"],
+    correta: "onclick"
+  },
+
+  {
+    pergunta: "Qual função converte um texto em número inteiro?",
+    respostas: ["parseInt()", "toString()", "NumberText()", "convert()"],
+    correta: "parseInt()"
+  },
+
+  {
+    pergunta: "Qual estrutura armazena vários valores em JavaScript?",
+    respostas: ["Array", "String", "Boolean", "Number"],
+    correta: "Array"
+  },
+
+  {
+    pergunta: "Qual valor representa verdadeiro em JavaScript?",
+    respostas: ["1", "yes", "true", "verdadeiro"],
+    correta: "true"
+  },
+
+  {
+    pergunta: "Qual valor representa falso em JavaScript?",
+    respostas: ["0", "false", "no", "null"],
+    correta: "false"
+  },
+
+  {
+    pergunta: "Qual tag HTML representa o título principal de uma página?",
+    respostas: ["<title>", "<h1>", "<header>", "<p>"],
+    correta: "<h1>"
+  },
+
+  {
+    pergunta: "Qual propriedade CSS altera o tamanho da fonte?",
+    respostas: ["font-size", "text-size", "size", "font-width"],
+    correta: "font-size"
+  },
+
+  {
+    pergunta: "Qual propriedade CSS centraliza elementos usando Flexbox?",
+    respostas: ["justify-content", "font-align", "position", "float"],
+    correta: "justify-content"
+  },
+
+  {
+    pergunta: "Qual comando JavaScript mostra uma janela de alerta?",
+    respostas: ["console.log()", "alert()", "print()", "message()"],
+    correta: "alert()"
+  }
+
+];
 
   let indiceAtual = 0;
   let pontuacao = 0;
