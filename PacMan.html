@@ -312,7 +312,7 @@ button:active {
             </button>
 
             <button id="back" class="small-btn">
-                ⏮ VOLTAR
+                RECOMEÇA
             </button>
 
             <button onclick="voltar()" class="small-btn">VOLTAR</button>
@@ -380,14 +380,14 @@ const soundButton = document.getElementById("sound");
 
 const BASE_MAP_ROWS = [
 "1111111111111111111111111111",
-"1222222222222111222222222221",
+"1222222222222112222222222221",
 "1211112111112112111111211121",
 "1311112111112112111111211131",
 "1211112111112112111111211121",
 "1222222222222222222222222221",
 "1211112112111111112112111121",
 "1211112112111111112112111121",
-"1222222122222111222222122221",
+"1222222222222112222222122221",
 "1111112121112112111212111111",
 "0000012121112112111212100000",
 "0000012121112112111212100000",
@@ -399,12 +399,12 @@ const BASE_MAP_ROWS = [
 "0000012122222222222212100000",
 "0000012121112112111212100000",
 "1111112121112112111212111111",
-"1222222222222111222222222221",
+"1222222222222112222222222221",
 "1211112111112112111111211121",
 "1311112111112112111111211131",
 "1211122222222222222222211121",
 "1211121121111111111211211121",
-"1222222122222111222222122221",
+"1222222222222112222222222221",
 "1111112112112112112112111111",
 "1222222222222222222222222221",
 "1211111111111111111111111121",
@@ -609,31 +609,64 @@ class AudioSystem {
     constructor() {
         this.enabled = true;
         this.context = null;
+        this.masterGain = null;
+        this.compressor = null;
     }
 
     init() {
-
         if (!this.enabled) return;
 
         if (!this.context) {
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
 
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
 
             this.context = new AudioContext();
 
+            // Compressor para deixar o som mais forte
+            // sem estourar tanto o áudio
+            this.compressor = this.context.createDynamicsCompressor();
+
+            this.compressor.threshold.setValueAtTime(-18, this.context.currentTime);
+            this.compressor.knee.setValueAtTime(12, this.context.currentTime);
+            this.compressor.ratio.setValueAtTime(8, this.context.currentTime);
+            this.compressor.attack.setValueAtTime(0.003, this.context.currentTime);
+            this.compressor.release.setValueAtTime(0.15, this.context.currentTime);
+
+            // Volume geral
+            this.masterGain = this.context.createGain();
+
+            // 1 = 100% de ganho
+            // 1.5 deixa o áudio mais forte
+            this.masterGain.gain.setValueAtTime(
+                1.5,
+                this.context.currentTime
+            );
+
+            this.masterGain
+                .connect(this.compressor)
+                .connect(this.context.destination);
         }
 
-        if (this.context.state === "suspended") this.context.resume();
-
+        if (this.context.state === "suspended") {
+            this.context.resume();
+        }
     }
 
-    tone(frequency, duration = .06, type = "square", volume = .03, delay = 0) {
-
+    tone(
+        frequency,
+        duration = 0.06,
+        type = "square",
+        volume = 0.8,
+        delay = 0
+    ) {
         if (!this.enabled) return;
 
         this.init();
-        if (!this.context) return;
+
+        if (!this.context || !this.masterGain) return;
 
         const now = this.context.currentTime + delay;
 
@@ -641,53 +674,147 @@ class AudioSystem {
         const gain = this.context.createGain();
 
         oscillator.type = type;
-        oscillator.frequency.setValueAtTime(frequency, now);
 
-        gain.gain.setValueAtTime(volume, now);
-        gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+        oscillator.frequency.setValueAtTime(
+            frequency,
+            now
+        );
 
-        oscillator.connect(gain).connect(this.context.destination);
+        // Volume correto: entre 0 e 1
+        gain.gain.setValueAtTime(
+            volume,
+            now
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            now + duration
+        );
+
+        oscillator
+            .connect(gain)
+            .connect(this.masterGain);
 
         oscillator.start(now);
         oscillator.stop(now + duration);
-
     }
 
     intro() {
-        [261.6, 329.6, 392, 523.2, 392, 329.6, 261.6].forEach(
-            (f, i) => this.tone(f, .11, "square", .025, i * .12)
+        [
+            261.6,
+            329.6,
+            392,
+            523.2,
+            392,
+            329.6,
+            261.6
+        ].forEach((f, i) => {
+            this.tone(
+                f,
+                0.11,
+                "square",
+                0.9,
+                i * 0.12
+            );
+        });
+    }
+
+    pellet() {
+        this.tone(
+            650,
+            0.035,
+            "square",
+            0.8
         );
     }
 
-    pellet() { this.tone(650, .035, "square", .025); }
-
     power() {
-        this.tone(180, .12, "square", .04);
-        this.tone(360, .14, "square", .035, .10);
+        this.tone(
+            180,
+            0.12,
+            "square",
+            0.9
+        );
+
+        this.tone(
+            360,
+            0.14,
+            "square",
+            0.9,
+            0.10
+        );
     }
 
     ghostEaten() {
-        this.tone(900, .05, "square", .045);
-        this.tone(1400, .09, "square", .04, .05);
+        this.tone(
+            900,
+            0.05,
+            "square",
+            0.95
+        );
+
+        this.tone(
+            1400,
+            0.09,
+            "square",
+            0.95,
+            0.05
+        );
     }
 
     fruit() {
-        this.tone(600, .08, "triangle", .04);
-        this.tone(900, .12, "triangle", .035, .08);
+        this.tone(
+            600,
+            0.08,
+            "triangle",
+            0.9
+        );
+
+        this.tone(
+            900,
+            0.12,
+            "triangle",
+            0.9,
+            0.08
+        );
     }
 
     death() {
-        [500, 450, 400, 350, 300, 250, 200].forEach(
-            (f, i) => this.tone(f, .10, "sawtooth", .025, i * .07)
-        );
+        [
+            500,
+            450,
+            400,
+            350,
+            300,
+            250,
+            200
+        ].forEach((f, i) => {
+            this.tone(
+                f,
+                0.10,
+                "sawtooth",
+                0.9,
+                i * 0.07
+            );
+        });
     }
 
     extraLife() {
-        [400, 500, 600, 800].forEach(
-            (f, i) => this.tone(f, .10, "triangle", .04, i * .09)
-        );
+        [
+            400,
+            500,
+            600,
+            800
+        ].forEach((f, i) => {
+            this.tone(
+                f,
+                0.10,
+                "triangle",
+                0.9,
+                i * 0.09
+            );
+        });
     }
-
 }
 
 const audio = new AudioSystem();
