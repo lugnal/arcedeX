@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autodromo Drift</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #071009;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+}
+
+body {
+    user-select: none;
+}
+
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    background: #142516;
+}
+
+#hud {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(125px, 1fr));
+    gap: 8px;
+    width: 300px;
+    pointer-events: none;
+}
+
+.panel {
+    background: rgba(5, 9, 14, .82);
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 10px;
+    padding: 10px 13px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+    backdrop-filter: blur(7px);
+}
+
+.label {
+    color: #8f9ba6;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.value {
+    font-size: 22px;
+    font-weight: 800;
+    margin-top: 3px;
+}
+
+#speed {
+    font-size: 27px;
+}
+
+#driftPanel {
+    grid-column: 1 / 3;
+    text-align: center;
+    transition: .15s;
+}
+
+#driftText {
+    color: #77838d;
+    font-weight: 900;
+    letter-spacing: 3px;
+    font-size: 14px;
+}
+
+#driftPanel.active {
+    border-color: rgba(255, 177, 0, .7);
+    box-shadow: 0 0 30px rgba(255, 157, 0, .22);
+}
+
+#driftPanel.active #driftText {
+    color: #ffbd24;
+}
+
+#controls {
+    position: fixed;
+    bottom: 18px;
+    left: 18px;
+    z-index: 10;
+    padding: 11px 15px;
+    background: rgba(5,9,14,.78);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    color: #c7d0d7;
+    font-size: 12px;
+    line-height: 1.7;
+    pointer-events: none;
+}
+
+kbd {
+    background: #202a31;
+    border: 1px solid #39464f;
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: white;
+    font-weight: bold;
+}
+
+#minimap {
+    position: fixed;
+    right: 18px;
+    top: 18px;
+    width: 220px;
+    height: 145px;
+    border-radius: 12px;
+    background: rgba(4,8,11,.82);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+}
+
+#message {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    width: min(90vw, 520px);
+    text-align: center;
+    padding: 32px;
+    border-radius: 18px;
+    background: rgba(5,9,14,.92);
+    border: 1px solid rgba(255,255,255,.15);
+    box-shadow: 0 25px 80px rgba(0,0,0,.6);
+}
+
+#message.hidden {
+    display: none;
+}
+
+#message h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+}
+
+#message h1 span {
+    color: #ffb400;
+}
+
+#message p {
+    color: #aeb8c0;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+button {
+    border: 0;
+    border-radius: 9px;
+    background: #ffb400;
+    color: #111;
+    padding: 13px 25px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .15s, background .15s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    background: #ffc53d;
+}
+
+#pause {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 10;
+    background: rgba(5,9,14,.8);
+    color: white;
+    border: 1px solid rgba(255,255,255,.15);
+    padding: 9px 15px;
+}
+
+#lapFlash {
+    position: fixed;
+    left: 50%;
+    top: 18%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    font-size: clamp(30px, 6vw, 70px);
+    font-weight: 900;
+    font-style: italic;
+    text-shadow: 0 5px 30px #000;
+    transition: opacity .2s, transform .2s;
+}
+
+#lapFlash.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* =========================================================
+   TELA DE CONFIGURAÇÃO DA CORRIDA
+========================================================= */
+#setupScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(255,180,0,.12), transparent 35%),
+        rgba(3,6,9,.96);
+    padding: 20px;
+}
+
+#setupScreen.hidden {
+    display: none;
+}
+
+.setupBox {
+    width: min(950px, 96vw);
+    max-height: 92vh;
+    overflow: auto;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(10,15,20,.96);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 25px 100px rgba(0,0,0,.65);
+}
+
+.setupTitle {
+    text-align: center;
+    font-size: clamp(30px, 5vw, 52px);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: -2px;
+    margin-bottom: 5px;
+}
+
+.setupTitle span {
+    color: #ffb400;
+}
+
+.setupSubtitle {
+    text-align: center;
+    color: #8f9ba6;
+    margin-bottom: 28px;
+}
+
+.setupSection {
+    margin-top: 22px;
+}
+
+.setupSection h2 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #cbd3d9;
+    margin-bottom: 12px;
+}
+
+.trackOptions,
+.colorOptions {
+    display: grid;
+    gap: 12px;
+}
+
+.trackOptions {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.colorOptions {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.trackOption {
+    min-height: 115px;
+    padding: 15px;
+    border-radius: 13px;
+    border: 2px solid rgba(255,255,255,.1);
+    background: #151c21;
+    color: white;
+    cursor: pointer;
+    text-align: left;
+    transition: .18s;
+}
+
+.trackOption:hover,
+.trackOption.selected {
+    border-color: #ffb400;
+    background: #20282f;
+    transform: translateY(-2px);
+}
+
+.trackPreview {
+    height: 48px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.trackPreview.gp {
+    background:
+        linear-gradient(90deg, transparent 42%, #fff 42%, #fff 58%, transparent 58%),
+        #343b40;
+}
+
+.trackPreview.green {
+    background:
+        radial-gradient(ellipse at 50% 50%, transparent 25%, #384148 26%, #384148 55%, #18371e 56%);
+}
+
+.trackPreview.night {
+    background:
+        radial-gradient(circle at 25% 40%, #526b85 0 2px, transparent 3px),
+        radial-gradient(circle at 70% 60%, #526b85 0 2px, transparent 3px),
+        #101722;
+}
+
+.trackName {
+    font-weight: 900;
+    font-size: 15px;
+}
+
+.trackDesc {
+    color: #8f9ba6;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.colorOption {
+    height: 58px;
+    border-radius: 12px;
+    border: 3px solid rgba(255,255,255,.12);
+    cursor: pointer;
+    transition: .18s;
+    position: relative;
+}
+
+.colorOption:hover,
+.colorOption.selected {
+    border-color: white;
+    transform: scale(1.06);
+    box-shadow: 0 0 20px rgba(255,255,255,.18);
+}
+
+.colorOption.selected::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-size: 25px;
+    font-weight: 900;
+    text-shadow: 0 2px 5px #000;
+}
+
+.color-red { background: #f21f35; }
+.color-blue { background: #1687ff; }
+.color-green { background: #20b866; }
+.color-yellow { background: #ffbf24; }
+.color-purple { background: #9b45ff; }
+.color-white { background: #e9eef2; }
+
+#backToChoices {
+    width: 100%;
+    margin-top: 10px;
+    background: transparent;
+    color: #c7d0d7;
+    border: 1px solid rgba(255,255,255,.15);
+}
+
+#backToChoices:hover {
+    background: rgba(255,255,255,.08);
+    color: white;
+}
+
+#startConfiguredRace {
+    width: 100%;
+    margin-top: 28px;
+    font-size: 16px;
+    padding: 16px;
+}
+
+#selectedInfo {
+    text-align: center;
+    color: #8f9ba6;
+    font-size: 12px;
+    margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+    .trackOptions {
+        grid-template-columns: 1fr;
+    }
+
+    .colorOptions {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .setupBox {
+        padding: 20px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="game"></canvas> <canvas id="minimap"></canvas>
+
+<div id="hud">
+    <div class="panel">
+        <div class="label">Velocidade</div>
+        <div class="value"><span id="speed">0</span> km/h</div>
+    </div>
+
+<div class="panel">
+    <div class="label">Volta</div>
+    <div class="value"><span id="lap">1</span>/5</div>
+</div>
+
+<div class="panel">
+    <div class="label">Tempo</div>
+    <div class="value" id="timer">00:00.000</div>
+</div>
+
+<div class="panel">
+    <div class="label">Melhor volta</div>
+    <div class="value" id="best">--:--.---</div>
+</div>
+
+<div class="panel" id="driftPanel">
+    <div id="driftText">ADERÊNCIA NORMAL</div>
+</div>
+
+</div>
+
+<div id="controls">
+    <kbd>↑</kbd> acelerar &nbsp;
+    <kbd>↓</kbd> frear &nbsp;
+    <kbd>←</kbd><kbd>→</kbd> direção &nbsp;
+    <kbd>ESPAÇO</kbd> drift<br>
+    <kbd>P</kbd> pausar &nbsp;
+    <kbd>R</kbd> reiniciar
+</div>
+
+<button id="pause">PAUSAR</button>
+
+<div id="lapFlash">VOLTA COMPLETA!</div>
+
+
+<div id="setupScreen">
+    <div class="setupBox">
+        <div class="setupTitle">AUTODROMO <span>DRIFT</span></div>
+        <div class="setupSubtitle">Configure sua corrida antes de acelerar</div>
+
+        <div class="setupSection">
+            <h2>Escolha a pista</h2>
+
+            <div class="trackOptions">
+                <button class="trackOption selected" data-track="gp">
+                    <div class="trackPreview gp"></div>
+                    <div class="trackName">Autódromo GP</div>
+                    <div class="trackDesc">Circuito principal</div>
+                </button>
+
+                <button class="trackOption" data-track="green">
+                    <div class="trackPreview green"></div>
+                    <div class="trackName">Circuito Verde</div>
+                    <div class="trackDesc">Traçado com curvas fechadas</div>
+                </button>
+
+                <button class="trackOption" data-track="night">
+                    <div class="trackPreview night"></div>
+                    <div class="trackName">Circuito Noturno</div>
+                    <div class="trackDesc">Uma corrida sob as luzes</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="setupSection">
+            <h2>Escolha a cor do carro</h2>
+
+            <div class="colorOptions">
+                <button class="colorOption color-red selected" data-color="#f21f35" aria-label="Vermelho"></button>
+                <button class="colorOption color-blue" data-color="#1687ff" aria-label="Azul"></button>
+                <button class="colorOption color-green" data-color="#20b866" aria-label="Verde"></button>
+                <button class="colorOption color-yellow" data-color="#ffbf24" aria-label="Amarelo"></button>
+                <button class="colorOption color-purple" data-color="#9b45ff" aria-label="Roxo"></button>
+                <button class="colorOption color-white" data-color="#e9eef2" aria-label="Branco"></button>
+            </div>
+        </div>
+
+        <div id="selectedInfo">Pista: Autódromo GP • Carro: Vermelho</div>
+
+        <button id="startConfiguredRace">COMEÇAR CORRIDA</button>
+        <button id="backToChoices" onclick="window.location.href='index.html'">VOLTAR</button>
+    </div>
+</div>
+
+<div id="message" class="hidden">
+    <h1>AUTODROMO <span>DRIFT</span></h1>
+    <p>
+        Controle o carro em um circuito inspirado nos autódromos de Fórmula 1.
+        Use o freio de mão para provocar derrapagens nas curvas.
+    </p>
+    <button id="start">INICIAR CORRIDA</button>
+    <button onclick="voltar()">VOLTAR</button>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   CONFIGURAÇÕES
+========================================================= */
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const mini = document.getElementById("minimap");
+const mctx = mini.getContext("2d");
+
+const speedEl = document.getElementById("speed");
+const lapEl = document.getElementById("lap");
+const timerEl = document.getElementById("timer");
+const bestEl = document.getElementById("best");
+const driftPanel = document.getElementById("driftPanel");
+const driftText = document.getElementById("driftText");
+
+let W = innerWidth;
+let H = innerHeight;
+
+canvas.width = W;
+canvas.height = H;
+
+const WORLD_W = 3600;
+const WORLD_H = 2600;
+
+const TOTAL_LAPS = 5;
+
+let selectedTrack = "gp";
+let selectedCarColor = "#f21f35";
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const keys = {};
+
+window.addEventListener("keydown", e => {
+    keys[e.code] = true;
+
+    if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft",
+         "ArrowRight", "Space"].includes(e.code)
+    ) {
+        e.preventDefault();
+    }
+
+    if (e.code === "KeyP") togglePause();
+    if (e.code === "KeyR") resetRace();
+});
+
+window.addEventListener("keyup", e => {
+    keys[e.code] = false;
+});
+
+function isDown(code) {
+    return !!keys[code];
+}
+
+/* =========================================================
+   PISTA
+   A pista é representada por uma sequência de pontos
+   formando um circuito fechado.
+========================================================= */
+
+let track = [
+    {x: 430,  y: 1570},
+    {x: 470,  y: 1160},
+    {x: 650,  y: 820},
+    {x: 1000, y: 600},
+    {x: 1430, y: 520},
+    {x: 1830, y: 600},
+    {x: 2140, y: 780},
+    {x: 2450, y: 710},
+    {x: 2760, y: 560},
+    {x: 3100, y: 680},
+    {x: 3270, y: 980},
+    {x: 3200, y: 1280},
+    {x: 2990, y: 1450},
+    {x: 2750, y: 1530},
+    {x: 2540, y: 1660},
+    {x: 2440, y: 1940},
+    {x: 2250, y: 2110},
+    {x: 1900, y: 2170},
+    {x: 1570, y: 2100},
+    {x: 1350, y: 1940},
+    {x: 1120, y: 2020},
+    {x: 800,  y: 2050},
+    {x: 550,  y: 1920},
+    {x: 420,  y: 1700}
+];
+
+
+const trackVariants = {
+    gp: track,
+
+    green: [
+        {x: 430,y:1570},{x:500,y:1200},{x:760,y:850},{x:1150,y:650},
+        {x:1600,y:600},{x:2050,y:720},{x:2450,y:600},{x:2850,y:720},
+        {x:3150,y:1050},{x:3050,y:1400},{x:2700,y:1580},{x:2500,y:1900},
+        {x:2150,y:2150},{x:1750,y:2050},{x:1450,y:1850},{x:1100,y:2050},
+        {x:700,y:2000},{x:470,y:1800}
+    ],
+
+    night: [
+        {x:430,y:1570},{x:520,y:1100},{x:900,y:700},{x:1450,y:520},
+        {x:2050,y:620},{x:2500,y:850},{x:3000,y:650},{x:3250,y:1050},
+        {x:3000,y:1450},{x:2550,y:1600},{x:2400,y:2050},{x:1900,y:2200},
+        {x:1400,y:2050},{x:1050,y:1800},{x:700,y:2050},{x:450,y:1750}
+    ]
+};
+
+const TRACK_WIDTH = 240;
+const SAFE_WIDTH = TRACK_WIDTH * 0.46;
+
+/* =========================================================
+   UTILITÁRIOS GEOMÉTRICOS
+========================================================= */
+
+function dist(a,b) {
+    return Math.hypot(a.x-b.x, a.y-b.y);
+}
+
+function lerp(a,b,t) {
+    return a + (b-a)*t;
+}
+
+function clamp(v,a,b) {
+    return Math.max(a, Math.min(b,v));
+}
+
+
+function voltarParaEscolhasAutomaticamente() {
+    running = false;
+    paused = false;
+
+    const pauseBtn = document.getElementById("pause");
+    if (pauseBtn) pauseBtn.textContent = "PAUSAR";
+
+    const messageEl = document.getElementById("message");
+    if (messageEl) messageEl.classList.add("hidden");
+
+    setupScreen.classList.remove("hidden");
+}
+
+function voltar() {
+    if (running) {
+        running = false;
+        paused = false;
+        document.getElementById("pause").textContent = "PAUSAR";
+        setupScreen.classList.remove("hidden");
+        document.getElementById("message").classList.add("hidden");
+        return;
+    }
+
+    window.location.href = "index.html";
+}
+
+function normalizeAngle(a) {
+    while (a > Math.PI) a -= Math.PI*2;
+    while (a < -Math.PI) a += Math.PI*2;
+    return a;
+}
+
+function formatTime(ms) {
+    if (!isFinite(ms)) return "--:--.---";
+
+    const total = Math.max(0, ms);
+    const min = Math.floor(total / 60000);
+    const sec = Math.floor((total % 60000) / 1000);
+    const mil = Math.floor(total % 1000);
+
+    return String(min).padStart(2,"0") + ":" +
+           String(sec).padStart(2,"0") + "." +
+           String(mil).padStart(3,"0");
+}
+
+/* =========================================================
+   SEGMENTOS DA PISTA
+========================================================= */
+
+let segments = [];
+
+for (let i = 0; i < track.length; i++) {
+    const a = track[i];
+    const b = track[(i+1) % track.length];
+
+    segments.push({
+        a,
+        b,
+        len: dist(a,b)
+    });
+}
+
+let totalTrackLength = segments.reduce((s,x) => s+x.len,0);
+
+function rebuildTrack() {
+    segments = [];
+    for (let i = 0; i < track.length; i++) {
+        const a = track[i];
+        const b = track[(i + 1) % track.length];
+        segments.push({ a, b, len: dist(a,b) });
+    }
+    totalTrackLength = segments.reduce((s,x) => s+x.len,0);
+}
+
+/* Retorna o ponto mais próximo da linha central da pista. */
+
+function closestTrackPoint(x,y) {
+    let best = {
+        distance: Infinity,
+        x: 0,
+        y: 0,
+        segment: 0,
+        progress: 0
+    };
+
+    let accumulated = 0;
+
+    for (let i = 0; i < segments.length; i++) {
+        const s = segments[i];
+
+        const vx = s.b.x - s.a.x;
+        const vy = s.b.y - s.a.y;
+
+        const wx = x - s.a.x;
+        const wy = y - s.a.y;
+
+        const len2 = vx*vx + vy*vy;
+
+        let t = len2 ? (wx*vx + wy*vy) / len2 : 0;
+
+        t = clamp(t,0,1);
+
+        const px = s.a.x + vx*t;
+        const py = s.a.y + vy*t;
+
+        const d = Math.hypot(x-px,y-py);
+
+        if (d < best.distance) {
+            best.distance = d;
+            best.x = px;
+            best.y = py;
+            best.segment = i;
+            best.progress = accumulated + s.len*t;
+        }
+
+        accumulated += s.len;
+    }
+
+    return best;
+}
+
+/* =========================================================
+   CARRO
+========================================================= */
+
+const car = {
+    x: track[0].x,
+    y: track[0].y,
+    angle: 0,
+
+    vx: 0,
+    vy: 0,
+
+    width: 30,
+    length: 66,
+
+    steer: 0,
+
+    trailTimer: 0
+};
+
+/* Orientação inicial do carro */
+
+{
+    const p = track[0];
+    const n = track[1];
+
+    car.angle = Math.atan2(n.y-p.y,n.x-p.x);
+}
+
+/* =========================================================
+   PARTÍCULAS
+========================================================= */
+
+const particles = [];
+
+function createSmoke(x,y,amount=1) {
+    for (let i=0; i<amount; i++) {
+        particles.push({
+            x: x + (Math.random()-.5)*15,
+            y: y + (Math.random()-.5)*15,
+            vx: (Math.random()-.5)*18,
+            vy: (Math.random()-.5)*18,
+            life: .45 + Math.random()*.5,
+            max: .9,
+            size: 4 + Math.random()*7
+        });
+    }
+}
+
+function updateParticles(dt) {
+    for (let i=particles.length-1;i>=0;i--) {
+        const p = particles[i];
+
+        p.x += p.vx*dt;
+        p.y += p.vy*dt;
+
+        p.vx *= .97;
+        p.vy *= .97;
+
+        p.life -= dt;
+
+        if (p.life <= 0) {
+            particles.splice(i,1);
+        }
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        const alpha = clamp(p.life/p.max,0,1);
+
+        ctx.save();
+        ctx.globalAlpha = alpha*.35;
+        ctx.fillStyle = "#dce1e4";
+        ctx.beginPath();
+        ctx.arc(
+            p.x-camera.x,
+            p.y-camera.y,
+            p.size*(1+(1-alpha)),
+            0,
+            Math.PI*2
+        );
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+/* =========================================================
+   ESTADO DA CORRIDA
+========================================================= */
+
+let running = false;
+let paused = false;
+
+let raceStart = 0;
+let lapStart = 0;
+
+let currentLap = 1;
+let bestLap = Infinity;
+let previousProgress = 0;
+let checkpointPassed = false;
+
+let raceTime = 0;
+let lapTime = 0;
+
+/* =========================================================
+   CÂMERA
+========================================================= */
+
+const camera = {
+    x: 0,
+    y: 0
+};
+
+/* =========================================================
+   FÍSICA DO CARRO
+========================================================= */
+
+function updateCar(dt) {
+
+    const forwardX = Math.cos(car.angle);
+    const forwardY = Math.sin(car.angle);
+
+    const rightX = -forwardY;
+    const rightY = forwardX;
+
+    /* velocidade atual dividida em longitudinal/lateral */
+
+    let forwardVelocity =
+        car.vx*forwardX +
+        car.vy*forwardY;
+
+    let lateralVelocity =
+        car.vx*rightX +
+        car.vy*rightY;
+
+    const throttle = isDown("ArrowUp");
+    const brake = isDown("ArrowDown");
+    const handbrake = isDown("Space");
+
+    const steering =
+        (isDown("ArrowRight") ? 1 : 0) -
+        (isDown("ArrowLeft") ? 1 : 0);
+
+    car.steer = lerp(car.steer,steering,.2);
+
+    /* Aceleração */
+
+    if (throttle) {
+        forwardVelocity += 520 * dt;
+    }
+
+    /* Freio */
+
+    if (brake) {
+        if (forwardVelocity > 0) {
+            forwardVelocity -= 900 * dt;
+        } else {
+            forwardVelocity -= 250 * dt;
+        }
+    }
+
+    /* Limite de velocidade */
+
+    const MAX_SPEED = 820;
+
+    forwardVelocity = clamp(
+        forwardVelocity,
+        -180,
+        MAX_SPEED
+    );
+
+    /* Resistência do ar e rolamento */
+
+    forwardVelocity *= Math.pow(
+        throttle ? .992 : .975,
+        dt*60
+    );
+
+    /* Física lateral */
+
+    let grip = handbrake ? .075 : .27;
+
+    /*
+       Em alta velocidade a aderência diminui.
+       Isso permite que o carro comece a deslizar
+       naturalmente ao entrar rapidamente em uma curva.
+    */
+
+    const speedAbs = Math.abs(forwardVelocity);
+
+    if (speedAbs > 300) {
+        grip *= clamp(
+            1 - (speedAbs-300)/800,
+            .48,
+            1
+        );
+    }
+
+    lateralVelocity *= Math.pow(grip,dt*60);
+
+    /*
+       Direção baseada na velocidade.
+       Quanto maior a velocidade, menor o ângulo efetivo
+       instantâneo, tornando o controle mais parecido com um carro.
+    */
+
+    const speedFactor =
+        clamp(Math.abs(forwardVelocity)/180,0,1);
+
+    const steeringRate =
+        (handbrake ? 2.7 : 2.15) *
+        speedFactor;
+
+    car.angle +=
+        car.steer *
+        steeringRate *
+        dt *
+        (forwardVelocity >= 0 ? 1 : -1);
+
+    /*
+       Em drift, o carro mantém bastante velocidade lateral.
+       Isso gera o efeito visual de traseira saindo da trajetória.
+    */
+
+    const newForwardX = Math.cos(car.angle);
+    const newForwardY = Math.sin(car.angle);
+
+    const newRightX = -newForwardY;
+    const newRightY = newForwardX;
+
+    car.vx =
+        newForwardX*forwardVelocity +
+        newRightX*lateralVelocity;
+
+    car.vy =
+        newForwardY*forwardVelocity +
+        newRightY*lateralVelocity;
+
+    car.x += car.vx*dt;
+    car.y += car.vy*dt;
+
+    /* =====================================================
+       COLISÃO COM A PISTA
+    ===================================================== */
+
+    const nearest = closestTrackPoint(car.x,car.y);
+
+    if (nearest.distance > SAFE_WIDTH) {
+
+        /*
+           Reduz a velocidade ao sair da pista.
+        */
+
+        car.vx *= .82;
+        car.vy *= .82;
+
+        /*
+           Empurra o carro de volta para a linha central.
+        */
+
+        const dx = nearest.x-car.x;
+        const dy = nearest.y-car.y;
+
+        const d = Math.max(1,Math.hypot(dx,dy));
+
+        const push =
+            clamp((nearest.distance-SAFE_WIDTH)*3,0,700);
+
+        car.vx += dx/d * push * dt;
+        car.vy += dy/d * push * dt;
+    }
+
+    /* =====================================================
+       DETECÇÃO DE DRIFT
+    ===================================================== */
+
+    const actualSpeed = Math.hypot(car.vx,car.vy);
+
+    const sideSpeed =
+        Math.abs(
+            car.vx*(-Math.sin(car.angle)) +
+            car.vy*Math.cos(car.angle)
+        );
+
+    const drifting =
+        actualSpeed > 230 &&
+        sideSpeed > 55;
+
+    if (drifting) {
+        driftPanel.classList.add("active");
+        driftText.textContent = "DRIFT • ADERÊNCIA BAIXA";
+
+        car.trailTimer -= dt;
+
+        if (car.trailTimer <= 0) {
+            const rearX =
+                car.x - Math.cos(car.angle)*28;
+
+            const rearY =
+                car.y - Math.sin(car.angle)*28;
+
+            createSmoke(rearX,rearY,2);
+            car.trailTimer = .035;
+        }
+
+    } else {
+        driftPanel.classList.remove("active");
+        driftText.textContent = "ADERÊNCIA NORMAL";
+        car.trailTimer = 0;
+    }
+
+    updateLap(nearest);
+}
+
+/* =========================================================
+   VOLTAS
+========================================================= */
+
+function updateLap(nearest) {
+
+    const progress = nearest.progress;
+
+    /*
+       O circuito começa próximo à linha de largada.
+       Exigimos que o carro tenha avançado bastante antes
+       de permitir uma nova volta.
+    */
+
+    if (progress > totalTrackLength*.18) {
+        checkpointPassed = true;
+    }
+
+    if (
+        checkpointPassed &&
+        previousProgress > totalTrackLength*.78 &&
+        progress < totalTrackLength*.12
+    ) {
+        const now = performance.now();
+
+        const completedLapTime = now - lapStart;
+
+        if (completedLapTime > 8000) {
+
+            if (completedLapTime < bestLap) {
+                bestLap = completedLapTime;
+            }
+
+            currentLap++;
+
+            showLapFlash();
+
+            lapStart = now;
+            checkpointPassed = false;
+
+            if (currentLap > TOTAL_LAPS) {
+                finishRace();
+            }
+        }
+    }
+
+    previousProgress = progress;
+}
+
+/* =========================================================
+   CRONÔMETRO
+========================================================= */
+
+function updateTimers(now) {
+
+    if (!running || paused) return;
+
+    raceTime = now-raceStart;
+    lapTime = now-lapStart;
+
+    timerEl.textContent = formatTime(raceTime);
+
+    bestEl.textContent =
+        bestLap === Infinity
+        ? "--:--.---"
+        : formatTime(bestLap);
+
+    lapEl.textContent =
+        Math.min(currentLap,TOTAL_LAPS);
+}
+
+/* =========================================================
+   FINALIZAÇÃO
+========================================================= */
+
+function finishRace() {
+    running = false;
+
+    document.getElementById("message").classList.remove("hidden");
+
+    document.querySelector("#message h1").innerHTML =
+        "CORRIDA <span>FINALIZADA</span>";
+
+    document.querySelector("#message p").innerHTML =
+        "Tempo total: <strong>" +
+        formatTime(raceTime) +
+        "</strong><br>Melhor volta: <strong>" +
+        formatTime(bestLap) +
+        "</strong>";
+
+    document.getElementById("start").textContent =
+        "CORRER NOVAMENTE";
+}
+
+function showLapFlash() {
+    const el = document.getElementById("lapFlash");
+
+    el.textContent =
+        currentLap > TOTAL_LAPS
+        ? "BANDEIRADA!"
+        : "VOLTA " + (currentLap-1) + " COMPLETA!";
+
+    el.classList.add("show");
+
+    setTimeout(() => {
+        el.classList.remove("show");
+    },900);
+}
+
+/* =========================================================
+   RESET
+========================================================= */
+
+
+/* =========================================================
+   CONFIGURAÇÃO DA CORRIDA
+========================================================= */
+
+const setupScreen = document.getElementById("setupScreen");
+const selectedInfo = document.getElementById("selectedInfo");
+
+const trackLabels = {
+    gp: "Autódromo GP",
+    green: "Circuito Verde",
+    night: "Circuito Noturno"
+};
+
+const colorLabels = {
+    "#f21f35": "Vermelho",
+    "#1687ff": "Azul",
+    "#20b866": "Verde",
+    "#ffbf24": "Amarelo",
+    "#9b45ff": "Roxo",
+    "#e9eef2": "Branco"
+};
+
+function updateSelectedInfo() {
+    selectedInfo.textContent =
+        "Pista: " + trackLabels[selectedTrack] +
+        " • Carro: " + colorLabels[selectedCarColor];
+}
+
+document.querySelectorAll(".trackOption").forEach(button => {
+    button.addEventListener("click", () => {
+        document.querySelectorAll(".trackOption")
+            .forEach(b => b.classList.remove("selected"));
+
+        button.classList.add("selected");
+        selectedTrack = button.dataset.track;
+        updateSelectedInfo();
+    });
+});
+
+document.querySelectorAll(".colorOption").forEach(button => {
+    button.addEventListener("click", () => {
+        document.querySelectorAll(".colorOption")
+            .forEach(b => b.classList.remove("selected"));
+
+        button.classList.add("selected");
+        selectedCarColor = button.dataset.color;
+        updateSelectedInfo();
+    });
+});
+
+document.getElementById("backToChoices").addEventListener("click", () => {
+    setupScreen.classList.remove("hidden");
+    document.getElementById("message").classList.add("hidden");
+});
+
+document.getElementById("startConfiguredRace").addEventListener("click", () => {
+    track = trackVariants[selectedTrack];
+
+    rebuildTrack();
+
+    car.x = track[0].x;
+    car.y = track[0].y;
+    car.angle = Math.atan2(
+        track[1].y - track[0].y,
+        track[1].x - track[0].x
+    );
+
+    setupScreen.classList.add("hidden");
+    resetRace();
+});
+
+
+function resetRace() {
+
+    const p = track[0];
+    const n = track[1];
+
+    car.x = p.x;
+    car.y = p.y;
+    car.angle = Math.atan2(n.y-p.y,n.x-p.x);
+
+    car.vx = 0;
+    car.vy = 0;
+    car.steer = 0;
+
+    currentLap = 1;
+    checkpointPassed = false;
+    previousProgress = 0;
+
+    raceTime = 0;
+    lapTime = 0;
+
+    particles.length = 0;
+
+    document.getElementById("message").classList.add("hidden");
+    document.querySelector("#message h1").innerHTML =
+        "AUTODROME <span>DRIFT</span> GP";
+
+    document.querySelector("#message p").innerHTML =
+        "Controle o carro em um circuito inspirado nos autódromos de Fórmula 1. Use o freio de mão para provocar derrapagens nas curvas.";
+
+    document.getElementById("start").textContent =
+        "INICIAR CORRIDA";
+
+    running = true;
+    paused = false;
+
+    const now = performance.now();
+
+    raceStart = now;
+    lapStart = now;
+
+    camera.x = car.x-W/2;
+    camera.y = car.y-H/2;
+}
+
+function togglePause() {
+
+    if (!running) return;
+
+    paused = !paused;
+
+    document.getElementById("pause").textContent =
+        paused ? "CONTINUAR" : "PAUSAR";
+
+    if (!paused) {
+        const now = performance.now();
+
+        /*
+           Compensa o tempo em que o jogo ficou pausado.
+        */
+
+        raceStart += now-lastFrame;
+        lapStart += now-lastFrame;
+    }
+}
+
+document.getElementById("start").addEventListener("click", () => {
+    document.getElementById("message").classList.add("hidden");
+    setupScreen.classList.remove("hidden");
+});
+
+document.getElementById("pause").addEventListener("click", () => {
+    togglePause();
+});
+
+/* =========================================================
+   DESENHO DO MUNDO
+========================================================= */
+
+function drawGrass() {
+
+    ctx.fillStyle = "#18371e";
+    ctx.fillRect(
+        -camera.x,
+        -camera.y,
+        WORLD_W,
+        WORLD_H
+    );
+
+    /*
+       Textura simples de grama.
+    */
+
+    ctx.save();
+
+    ctx.globalAlpha = .13;
+    ctx.strokeStyle = "#6ba456";
+    ctx.lineWidth = 1;
+
+    const startX =
+        Math.floor(camera.x/70)*70;
+
+    const startY =
+        Math.floor(camera.y/70)*70;
+
+    for (let x=startX;x<camera.x+W+70;x+=70) {
+        for (let y=startY;y<camera.y+H+70;y+=70) {
+
+            const sx=x-camera.x;
+            const sy=y-camera.y;
+
+            ctx.beginPath();
+            ctx.moveTo(sx,sy);
+            ctx.lineTo(sx+5,sy-8);
+            ctx.stroke();
+        }
+    }
+
+    ctx.restore();
+}
+
+/* Cria uma linha paralela aproximada da pista */
+
+function offsetTrack(amount) {
+
+    const result = [];
+
+    for (let i=0;i<track.length;i++) {
+
+        const prev =
+            track[(i-1+track.length)%track.length];
+
+        const curr = track[i];
+
+        const next =
+            track[(i+1)%track.length];
+
+        const dx = next.x-prev.x;
+        const dy = next.y-prev.y;
+
+        const len = Math.max(1,Math.hypot(dx,dy));
+
+        const nx = -dy/len;
+        const ny = dx/len;
+
+        result.push({
+            x: curr.x+nx*amount,
+            y: curr.y+ny*amount
+        });
+    }
+
+    return result;
+}
+
+function drawClosedPath(points) {
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        points[0].x-camera.x,
+        points[0].y-camera.y
+    );
+
+    for (let i=1;i<points.length;i++) {
+        ctx.lineTo(
+            points[i].x-camera.x,
+            points[i].y-camera.y
+        );
+    }
+
+    ctx.closePath();
+}
+
+/* =========================================================
+   PISTA / ASFALTO
+========================================================= */
+
+function drawTrack() {
+
+    const outer = offsetTrack(TRACK_WIDTH/2);
+    const inner = offsetTrack(-TRACK_WIDTH/2);
+
+    /*
+       Primeiro uma área escura maior para representar
+       o espaço de escape.
+    */
+
+    ctx.save();
+
+    ctx.strokeStyle = "#0a0d0e";
+    ctx.lineWidth = TRACK_WIDTH+45;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        track[0].x-camera.x,
+        track[0].y-camera.y
+    );
+
+    for (let i=1;i<track.length;i++) {
+        ctx.lineTo(
+            track[i].x-camera.x,
+            track[i].y-camera.y
+        );
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    /* Asfalto */
+
+    ctx.strokeStyle = "#30363a";
+    ctx.lineWidth = TRACK_WIDTH;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        track[0].x-camera.x,
+        track[0].y-camera.y
+    );
+
+    for (let i=1;i<track.length;i++) {
+        ctx.lineTo(
+            track[i].x-camera.x,
+            track[i].y-camera.y
+        );
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    /* Faixa central */
+
+    ctx.strokeStyle = "rgba(255,255,255,.09)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([25,30]);
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        track[0].x-camera.x,
+        track[0].y-camera.y
+    );
+
+    for (let i=1;i<track.length;i++) {
+        ctx.lineTo(
+            track[i].x-camera.x,
+            track[i].y-camera.y
+        );
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    ctx.restore();
+
+    drawKerbs();
+}
+
+/* =========================================================
+   ZEBRAS
+========================================================= */
+
+function drawKerbs() {
+
+    for (let i=0;i<track.length;i++) {
+
+        const a=track[i];
+        const b=track[(i+1)%track.length];
+
+        const dx=b.x-a.x;
+        const dy=b.y-a.y;
+
+        const len=Math.hypot(dx,dy);
+
+        if (len < 1) continue;
+
+        const nx=-dy/len;
+        const ny=dx/len;
+
+        const sections=Math.floor(len/28);
+
+        for(let j=0;j<sections;j++) {
+
+            const t1=j/sections;
+            const t2=(j+1)/sections;
+
+            const x1=lerp(a.x,b.x,t1);
+            const y1=lerp(a.y,b.y,t1);
+
+            const x2=lerp(a.x,b.x,t2);
+            const y2=lerp(a.y,b.y,t2);
+
+            ctx.save();
+
+            ctx.lineWidth=13;
+            ctx.strokeStyle =
+                j%2===0 ? "#e7e7e7" : "#d52c2c";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x1+nx*(TRACK_WIDTH/2-3)-camera.x,
+                y1+ny*(TRACK_WIDTH/2-3)-camera.y
+            );
+
+            ctx.lineTo(
+                x2+nx*(TRACK_WIDTH/2-3)-camera.x,
+                y2+ny*(TRACK_WIDTH/2-3)-camera.y
+            );
+
+            ctx.stroke();
+
+            ctx.strokeStyle =
+                j%2===0 ? "#d52c2c" : "#e7e7e7";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x1-nx*(TRACK_WIDTH/2-3)-camera.x,
+                y1-ny*(TRACK_WIDTH/2-3)-camera.y
+            );
+
+            ctx.lineTo(
+                x2-nx*(TRACK_WIDTH/2-3)-camera.x,
+                y2-ny*(TRACK_WIDTH/2-3)-camera.y
+            );
+
+            ctx.stroke();
+
+            ctx.restore();
+        }
+    }
+}
+
+/* =========================================================
+   LINHA DE LARGADA
+========================================================= */
+
+function drawStartLine() {
+
+    const p=track[0];
+    const n=track[1];
+
+    const dx=n.x-p.x;
+    const dy=n.y-p.y;
+
+    const len=Math.max(1,Math.hypot(dx,dy));
+
+    const nx=-dy/len;
+    const ny=dx/len;
+
+    const segmentsCount=10;
+    const stripeWidth=TRACK_WIDTH/segmentsCount;
+
+    for(let i=0;i<segmentsCount;i++) {
+
+        ctx.fillStyle =
+            i%2===0 ? "#fff" : "#111";
+
+        const x1=p.x+nx*(-TRACK_WIDTH/2+i*stripeWidth);
+        const y1=p.y+ny*(-TRACK_WIDTH/2+i*stripeWidth);
+
+        const x2=p.x+nx*(-TRACK_WIDTH/2+(i+1)*stripeWidth);
+        const y2=p.y+ny*(-TRACK_WIDTH/2+(i+1)*stripeWidth);
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x1-dx/len*25-camera.x,
+            y1-dy/len*25-camera.y
+        );
+
+        ctx.lineTo(
+            x2-dx/len*25-camera.x,
+            y2-dy/len*25-camera.y
+        );
+
+        ctx.lineTo(
+            x2+dx/len*25-camera.x,
+            y2+dy/len*25-camera.y
+        );
+
+        ctx.lineTo(
+            x1+dx/len*25-camera.x,
+            y1+dy/len*25-camera.y
+        );
+
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+/* =========================================================
+   ARQUIBANCADAS
+========================================================= */
+
+const stands = [
+    {x:850,y:420,w:520,h:110},
+    {x:1720,y:400,w:480,h:110},
+    {x:2780,y:390,w:370,h:110},
+    {x:3050,y:1570,w:130,h:430},
+    {x:650,y:2150,w:460,h:100}
+];
+
+function drawGrandstands() {
+
+    for(const s of stands) {
+
+        const x=s.x-camera.x;
+        const y=s.y-camera.y;
+
+        ctx.save();
+
+        /* estrutura */
+
+        ctx.fillStyle="#51585e";
+        ctx.fillRect(x,y,s.w,s.h);
+
+        /* cobertura */
+
+        ctx.fillStyle="#20252a";
+        ctx.fillRect(x-8,y-18,s.w+16,18);
+
+        /* fileiras */
+
+        for(let row=0;row<5;row++) {
+
+            ctx.fillStyle =
+                row%2===0 ? "#b5bec5" : "#727c84";
+
+            for(let col=0;col<12;col++) {
+
+                const px =
+                    x+18+col*(s.w-36)/12;
+
+                const py =
+                    y+18+row*17;
+
+                ctx.fillRect(px,py,10,8);
+            }
+        }
+
+        ctx.restore();
+    }
+}
+
+/* =========================================================
+   ÁRVORES E ELEMENTOS DECORATIVOS
+========================================================= */
+
+const trees=[];
+
+for(let i=0;i<90;i++) {
+
+    trees.push({
+        x:100+Math.random()*(WORLD_W-200),
+        y:100+Math.random()*(WORLD_H-200),
+        r:10+Math.random()*13
+    });
+}
+
+function drawTrees() {
+
+    for(const t of trees) {
+
+        if(
+            t.x-camera.x < -50 ||
+            t.x-camera.x > W+50 ||
+            t.y-camera.y < -50 ||
+            t.y-camera.y > H+50
+        ) continue;
+
+        const x=t.x-camera.x;
+        const y=t.y-camera.y;
+
+        ctx.fillStyle="rgba(0,0,0,.25)";
+        ctx.beginPath();
+        ctx.ellipse(x+5,y+8,t.r,t.r*.45,0,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#633e26";
+        ctx.fillRect(x-3,y,t.r*.25,t.r);
+
+        ctx.fillStyle="#1c5728";
+        ctx.beginPath();
+        ctx.arc(x,y,t.r,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="#28753a";
+        ctx.beginPath();
+        ctx.arc(x-4,y-5,t.r*.65,0,Math.PI*2);
+        ctx.fill();
+    }
+}
+
+/* =========================================================
+   PLACAS
+========================================================= */
+
+function drawSigns() {
+
+    const signs=[
+        {x:540,y:1050,text:"DRIFT"},
+        {x:2380,y:680,text:"GP"},
+        {x:2870,y:1820,text:"100"},
+        {x:1120,y:1780,text:"50"}
+    ];
+
+    for(const s of signs) {
+
+        const x=s.x-camera.x;
+        const y=s.y-camera.y;
+
+        ctx.save();
+
+        ctx.fillStyle="#777";
+        ctx.fillRect(x-2,y,4,40);
+
+        ctx.fillStyle="#101418";
+        ctx.strokeStyle="#e5e5e5";
+        ctx.lineWidth=2;
+
+        ctx.fillRect(x-25,y-28,50,30);
+        ctx.strokeRect(x-25,y-28,50,30);
+
+        ctx.fillStyle="#fff";
+        ctx.font="bold 12px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(s.text,x,y-9);
+
+        ctx.restore();
+    }
+}
+
+/* =========================================================
+   CARRO
+========================================================= */
+
+function darkenColor(hex, factor) {
+    const clean = hex.replace("#", "");
+    const r = Math.round(parseInt(clean.slice(0,2),16) * factor);
+    const g = Math.round(parseInt(clean.slice(2,4),16) * factor);
+    const b = Math.round(parseInt(clean.slice(4,6),16) * factor);
+    return "#" + [r,g,b].map(v => v.toString(16).padStart(2,"0")).join("");
+}
+
+function drawCar() {
+
+    const x=car.x-camera.x;
+    const y=car.y-camera.y;
+
+    ctx.save();
+
+    ctx.translate(x,y);
+    ctx.rotate(car.angle);
+
+    /* sombra */
+
+    ctx.fillStyle="rgba(0,0,0,.42)";
+    ctx.beginPath();
+    ctx.roundRect(-31,-15,65,30,7);
+    ctx.fill();
+
+    /* pneus */
+
+    ctx.fillStyle="#090b0d";
+
+    ctx.fillRect(-24,-19,16,7);
+    ctx.fillRect(8,-19,16,7);
+    ctx.fillRect(-24,12,16,7);
+    ctx.fillRect(8,12,16,7);
+
+    /* corpo principal */
+
+    const bodyGrad=ctx.createLinearGradient(-34,0,34,0);
+    bodyGrad.addColorStop(0, darkenColor(selectedCarColor, .55));
+    bodyGrad.addColorStop(.5, selectedCarColor);
+    bodyGrad.addColorStop(1, darkenColor(selectedCarColor, .55));
+
+    ctx.fillStyle=bodyGrad;
+
+    ctx.beginPath();
+    ctx.moveTo(34,0);
+    ctx.lineTo(19,-9);
+    ctx.lineTo(-8,-12);
+    ctx.lineTo(-31,-7);
+    ctx.lineTo(-34,0);
+    ctx.lineTo(-31,7);
+    ctx.lineTo(-8,12);
+    ctx.lineTo(19,9);
+    ctx.closePath();
+    ctx.fill();
+
+    /* asa dianteira */
+
+    ctx.fillStyle="#171a1d";
+    ctx.fillRect(28,-15,8,30);
+
+    /* cockpit */
+
+    ctx.fillStyle="#101b28";
+    ctx.beginPath();
+    ctx.ellipse(0,0,12,7,0,0,Math.PI*2);
+    ctx.fill();
+
+    /* capacete */
+
+    ctx.fillStyle="#ffcb42";
+    ctx.beginPath();
+    ctx.arc(2,0,4,0,Math.PI*2);
+    ctx.fill();
+
+    /* asa traseira */
+
+    ctx.fillStyle="#171a1d";
+    ctx.fillRect(-29,-13,6,26);
+
+    /* luz traseira */
+
+    ctx.fillStyle="#ff2739";
+    ctx.fillRect(-32,-3,4,6);
+
+    ctx.restore();
+}
+
+/* =========================================================
+   CÂMERA
+========================================================= */
+
+function updateCamera(dt) {
+
+    const targetX =
+        car.x-W/2;
+
+    const targetY =
+        car.y-H/2;
+
+    camera.x = lerp(
+        camera.x,
+        targetX,
+        1-Math.pow(.0005,dt)
+    );
+
+    camera.y = lerp(
+        camera.y,
+        targetY,
+        1-Math.pow(.0005,dt)
+    );
+
+    camera.x=clamp(camera.x,0,WORLD_W-W);
+    camera.y=clamp(camera.y,0,WORLD_H-H);
+}
+
+/* =========================================================
+   MINIMAPA
+========================================================= */
+
+function drawMinimap() {
+
+    const mw=mini.width;
+    const mh=mini.height;
+
+    mctx.clearRect(0,0,mw,mh);
+
+    mctx.fillStyle="#08100a";
+    mctx.fillRect(0,0,mw,mh);
+
+    const scale=
+        Math.min(
+            (mw-30)/WORLD_W,
+            (mh-30)/WORLD_H
+        );
+
+    const ox=(mw-WORLD_W*scale)/2;
+    const oy=(mh-WORLD_H*scale)/2;
+
+    mctx.save();
+    mctx.translate(ox,oy);
+    mctx.scale(scale,scale);
+
+    /* pista */
+
+    mctx.strokeStyle="#121719";
+    mctx.lineWidth=TRACK_WIDTH+50;
+
+    mctx.beginPath();
+    mctx.moveTo(track[0].x,track[0].y);
+
+    for(let i=1;i<track.length;i++) {
+        mctx.lineTo(track[i].x,track[i].y);
+    }
+
+    mctx.closePath();
+    mctx.stroke();
+
+    mctx.strokeStyle="#555d61";
+    mctx.lineWidth=TRACK_WIDTH;
+
+    mctx.beginPath();
+    mctx.moveTo(track[0].x,track[0].y);
+
+    for(let i=1;i<track.length;i++) {
+        mctx.lineTo(track[i].x,track[i].y);
+    }
+
+    mctx.closePath();
+    mctx.stroke();
+
+    /* carro */
+
+    mctx.save();
+
+    mctx.translate(car.x,car.y);
+    mctx.rotate(car.angle);
+
+    mctx.fillStyle=selectedCarColor;
+    mctx.fillRect(-22,-8,44,16);
+
+    mctx.fillStyle="#fff";
+    mctx.fillRect(9,-6,6,12);
+
+    mctx.restore();
+
+    mctx.restore();
+
+    mctx.fillStyle="rgba(255,255,255,.7)";
+    mctx.font="bold 9px Arial";
+    mctx.fillText("MAPA",8,13);
+}
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render() {
+
+    ctx.clearRect(0,0,W,H);
+
+    drawGrass();
+    drawTrees();
+    drawGrandstands();
+    drawSigns();
+    drawTrack();
+    drawStartLine();
+    drawParticles();
+    drawCar();
+
+    drawMinimap();
+
+    const actualSpeed =
+        Math.hypot(car.vx,car.vy);
+
+    speedEl.textContent =
+        Math.round(actualSpeed*.55);
+}
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+let lastFrame=performance.now();
+
+function gameLoop(now) {
+
+    const dt =
+        Math.min((now-lastFrame)/1000,.033);
+
+    lastFrame=now;
+
+    if (running && !paused) {
+
+        updateCar(dt);
+        updateParticles(dt);
+        updateCamera(dt);
+        updateTimers(now);
+    }
+
+    render();
+
+    requestAnimationFrame(gameLoop);
+}
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener("resize",() => {
+
+    W=innerWidth;
+    H=innerHeight;
+
+    canvas.width=W;
+    canvas.height=H;
+});
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
+const initial=closestTrackPoint(car.x,car.y);
+
+camera.x=car.x-W/2;
+camera.y=car.y-H/2;
+
+camera.x=clamp(camera.x,0,WORLD_W-W);
+camera.y=clamp(camera.y,0,WORLD_H-H);
+
+requestAnimationFrame(gameLoop);
+
+</script>
+
+</body>
+</html>

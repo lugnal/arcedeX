@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conecte os Pontos</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#07060f;--fg:#e9e6ff;--dim:#8a85b5;--accent:#00f0ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(circle at 50% 30%,#14102b,var(--bg) 70%);color:var(--fg);font-family:'Chakra Petch','Trebuchet MS',sans-serif;display:flex;flex-direction:column;align-items:center;padding:14px;touch-action:none;user-select:none;-webkit-user-select:none}
+header{width:100%;max-width:560px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.back{font:inherit;color:var(--fg);text-decoration:none;border:1.5px solid var(--accent);border-radius:999px;padding:8px 16px;box-shadow:0 0 10px var(--accent),inset 0 0 8px rgba(0,240,255,.25);transition:background .2s}
+.back:hover,.back:focus-visible{background:rgba(0,240,255,.18);outline:none}
+h1{margin:0;font-size:1.3rem;font-weight:700;letter-spacing:.04em;text-shadow:0 0 12px var(--accent)}
+.info{color:var(--dim);font-size:.95rem;text-align:right;min-width:70px}
+canvas{width:100%;max-width:560px;aspect-ratio:1;border-radius:14px;background:#0b0918;box-shadow:0 0 30px rgba(120,80,255,.25);cursor:pointer}
+#msg{margin-top:14px;min-height:1.6em;color:var(--dim);text-align:center}
+#msg.win{color:#fff;text-shadow:0 0 12px var(--accent)}
+@media (prefers-reduced-motion:reduce){.back{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">← Voltar</a>
+  <h1>Conecte os Pontos</h1>
+  <div class="info" id="info"></div>
+</header>
+<canvas id="c"></canvas>
+<div id="msg">Arraste de um ponto até o outro da mesma cor e preencha todo o tabuleiro.</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),msg=document.getElementById('msg'),info=document.getElementById('info');
+let N,dots,paths,pal,active=-1,locked=false,games=0,W=0;
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const D=[[1,0],[-1,0],[0,1],[0,-1]];
+
+function makePalette(n){
+  const h0=R(0,359),step=360/n;
+  return Array.from({length:n},(_,i)=>`hsl(${(h0+i*step+R(-8,8)+360)%360},100%,${R(55,62)}%)`);
+}
+function gen(){
+  N=R(5,7);
+  let path;
+  for(;;){
+    const vis=Array.from({length:N},()=>Array(N).fill(false));
+    path=[];let steps=0;
+    const dfs=(r,c)=>{
+      if(++steps>30000)return false;
+      vis[r][c]=true;path.push([r,c]);
+      if(path.length===N*N)return true;
+      for(const [dr,dc] of shuf(D.slice())){
+        const a=r+dr,b=c+dc;
+        if(a>=0&&b>=0&&a<N&&b<N&&!vis[a][b]&&dfs(a,b))return true;
+      }
+      vis[r][c]=false;path.pop();return false;
+    };
+    if(dfs(R(0,N-1),R(0,N-1)))break;
+  }
+  const k=Math.min(N+R(-1,1),Math.floor(N*N/3));
+  const lens=Array(k).fill(2);
+  for(let rest=N*N-2*k;rest>0;rest--)lens[R(0,k-1)]++;
+  dots=[];let p=0;
+  lens.forEach(L=>{dots.push({a:path[p],b:path[p+L-1]});p+=L});
+  pal=makePalette(k);
+  paths=dots.map(d=>[d.a]);
+  active=-1;locked=false;games++;
+  info.textContent=`${N}×${N} · #${games}`;
+  msg.className='';msg.textContent='Arraste de um ponto até o outro da mesma cor e preencha todo o tabuleiro.';
+  draw();
+}
+function dotAt(r,c){
+  for(let i=0;i<dots.length;i++){
+    const d=dots[i];
+    if(d.a[0]===r&&d.a[1]===c)return {i,end:0};
+    if(d.b[0]===r&&d.b[1]===c)return {i,end:1};
+  }return null;
+}
+function owner(r,c){
+  for(let i=0;i<paths.length;i++){
+    const idx=paths[i].findIndex(q=>q[0]===r&&q[1]===c);
+    if(idx>=0)return {i,idx};
+  }return null;
+}
+const complete=i=>{const p=paths[i],d=dots[i],l=p[p.length-1];return p.length>1&&l[0]===d.b[0]&&l[1]===d.b[1]};
+
+function resize(){
+  const s=Math.min(cv.parentElement.clientWidth-28,560),dpr=window.devicePixelRatio||1;
+  W=s;cv.width=cv.height=Math.round(s*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw();
+}
+function draw(){
+  if(!N||!W)return;
+  const s=W/N;
+  ctx.clearRect(0,0,W,W);
+  ctx.strokeStyle='rgba(150,130,255,.16)';ctx.lineWidth=1;
+  for(let i=0;i<=N;i++){
+    ctx.beginPath();ctx.moveTo(i*s,0);ctx.lineTo(i*s,W);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,i*s);ctx.lineTo(W,i*s);ctx.stroke();
+  }
+  paths.forEach((p,i)=>{
+    const col=pal[i];
+    ctx.save();ctx.globalAlpha=.13;ctx.fillStyle=col;
+    p.forEach(([r,c])=>ctx.fillRect(c*s+1,r*s+1,s-2,s-2));
+    ctx.restore();
+    if(p.length>1){
+      ctx.save();ctx.strokeStyle=col;ctx.lineWidth=s*.3;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.shadowColor=col;ctx.shadowBlur=16;
+      ctx.beginPath();
+      p.forEach(([r,c],j)=>{const x=c*s+s/2,y=r*s+s/2;j?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+      ctx.stroke();ctx.restore();
+    }
+  });
+  dots.forEach((d,i)=>{
+    [d.a,d.b].forEach(([r,c])=>{
+      ctx.save();ctx.fillStyle=pal[i];ctx.shadowColor=pal[i];ctx.shadowBlur=22;
+      ctx.beginPath();ctx.arc(c*s+s/2,r*s+s/2,s*.27,0,7);ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.7)';ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(c*s+s/2,r*s+s/2,s*.1,0,7);ctx.fill();
+      ctx.restore();
+    });
+  });
+}
+function cellOf(e){
+  const b=cv.getBoundingClientRect(),s=b.width/N;
+  const c=Math.floor((e.clientX-b.left)/s),r=Math.floor((e.clientY-b.top)/s);
+  return (r<0||c<0||r>=N||c>=N)?null:[r,c];
+}
+function start(r,c){
+  const d=dotAt(r,c);
+  if(d){active=d.i;paths[d.i]=[dots[d.i][d.end?'b':'a']];
+    if(d.end)dots[d.i]={a:dots[d.i].b,b:dots[d.i].a};  // troca origem, mantém solução
+    return;}
+  const o=owner(r,c);
+  if(o){active=o.i;paths[o.i]=paths[o.i].slice(0,o.idx+1)}
+}
+function step(r,c){
+  const p=paths[active],h=p[p.length-1];
+  if(Math.abs(h[0]-r)+Math.abs(h[1]-c)!==1)return;
+  if(p.length>1&&p[p.length-2][0]===r&&p[p.length-2][1]===c){p.pop();return}
+  const mine=p.findIndex(q=>q[0]===r&&q[1]===c);
+  if(mine>=0){paths[active]=p.slice(0,mine+1);return}
+  if(complete(active))return;
+  const d=dotAt(r,c);
+  if(d&&d.i!==active)return;
+  if(d&&d.i===active&&!(dots[active].b[0]===r&&dots[active].b[1]===c))return;
+  const o=owner(r,c);
+  if(o&&o.i!==active)paths[o.i]=paths[o.i].slice(0,o.idx);
+  p.push([r,c]);
+}
+function check(){
+  if(!paths.every((_,i)=>complete(i)))return;
+  if(paths.reduce((s,p)=>s+p.length,0)!==N*N)return;
+  locked=true;msg.className='win';msg.textContent='Tudo conectado! Gerando novo tabuleiro…';
+  setTimeout(gen,1300);
+}
+cv.addEventListener('pointerdown',e=>{
+  if(locked)return;cv.setPointerCapture(e.pointerId);
+  const c=cellOf(e);if(c){start(...c);draw()}
+});
+cv.addEventListener('pointermove',e=>{
+  if(locked||active<0)return;
+  const c=cellOf(e);if(c){step(...c);draw()}
+});
+const up=()=>{if(active>=0){active=-1;check();draw()}};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+window.addEventListener('resize',resize);
+gen();resize();
+</script>
+</body>
+</html>
