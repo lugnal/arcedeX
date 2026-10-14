@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050510">
+<title>Zombie Survival | ArcadeX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cyan:#00e5ff;--purple:#8a2be2;--pink:#ff006e;--bg:#050510}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#fff;font-family:'Exo 2',system-ui,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 5%;border-bottom:1px solid #222442;background:#080817}
+.logo{font:900 22px Orbitron,sans-serif;color:var(--cyan);text-shadow:0 0 15px #00e5ff77}
+.logo span{color:#fff}
+button{cursor:pointer;font:700 13px Orbitron,sans-serif;transition:.2s}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.back{background:transparent;color:#fff;border:1px solid #343451;padding:11px 16px;border-radius:7px}
+.back:hover{border-color:var(--cyan);color:var(--cyan)}
+main{max-width:1150px;margin:25px auto;padding:0 16px}
+.heading{text-align:center;margin-bottom:20px}
+.heading h1{font:900 clamp(25px,5vw,42px) Orbitron,sans-serif;margin:0 0 8px;text-shadow:0 0 22px #ff006e55}
+.heading h1 span{color:var(--pink)}
+.heading p{color:#999bb8;margin:0}
+.hud{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.stat{padding:13px;background:#101024;border:1px solid #292943;border-radius:8px}
+.stat label{color:#9294b3;font-size:11px;letter-spacing:1px;display:block;margin-bottom:5px}
+.stat strong{font:700 20px Orbitron,sans-serif}
+#healthText{color:#ff5277}#waveText{color:var(--cyan)}#scoreText{color:#c58aff}#bestText{color:#ffd24d}
+.health-track{height:5px;margin-top:8px;background:#302033;border-radius:8px;overflow:hidden}
+#healthBar{width:100%;height:100%;background:#ff426d;transition:width .15s,background .2s}
+.game-wrap{position:relative;overflow:hidden;border:1px solid #353551;border-radius:12px;background:#070713;box-shadow:0 0 35px #00e5ff0d,0 0 50px #8a2be215;aspect-ratio:16/10}
+canvas{width:100%;height:100%;display:block;cursor:crosshair;touch-action:none;user-select:none}
+.overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;padding:20px;background:#050510dc;backdrop-filter:blur(5px);z-index:2}
+.overlay.hidden{display:none}
+.panel{width:min(440px,100%);padding:28px 24px;text-align:center;border:1px solid #454568;background:#0d0d20;border-radius:15px;box-shadow:0 0 35px #8a2be222}
+.panel .emoji{font-size:46px}
+.panel h2{font:900 24px Orbitron,sans-serif;margin:10px 0}
+.panel p{color:#b4b5cd;line-height:1.6;font-size:14px;margin:8px 0 16px}
+.panel small{display:block;margin-top:14px;color:#7c7e9c;font-size:12px}
+.primary{padding:15px 22px;border:0;border-radius:7px;color:#050510;background:var(--cyan);box-shadow:0 0 18px #00e5ff44}
+.primary:hover{transform:translateY(-2px);box-shadow:0 0 28px #00e5ff88}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.tip{padding:15px;background:#0c0c1d;border:1px solid #22223d;border-radius:8px;color:#b7b8ce;font-size:13px;line-height:1.7}
+.tip b{color:var(--cyan)}
+footer{text-align:center;color:#62637f;padding:24px 10px;font-size:12px}
+@media(max-width:700px){.hud{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}header{padding:15px}.logo{font-size:17px}main{margin-top:20px}.stat:last-child{grid-column:span 2}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ARCADE<span>X</span></div>
+  <button class="back" id="backBtn">← VOLTAR</button>
+</header>
+
+<main>
+  <section class="heading">
+    <h1>ZOMBIE <span>SURVIVAL</span></h1>
+    <p>Sobreviva às ondas. Não deixe os infectados chegarem até você.</p>
+  </section>
+
+  <section class="hud" aria-live="off">
+    <div class="stat"><label>VIDA</label><strong id="healthText">100 HP</strong><div class="health-track"><div id="healthBar"></div></div></div>
+    <div class="stat"><label>ONDA</label><strong id="waveText">01</strong></div>
+    <div class="stat"><label>PONTUAÇÃO</label><strong id="scoreText">0</strong></div>
+    <div class="stat"><label>ELIMINADOS</label><strong id="killText">0</strong></div>
+    <div class="stat"><label>RECORDE</label><strong id="bestText">0</strong></div>
+  </section>
+
+  <div class="game-wrap">
+    <canvas id="game" width="960" height="600" aria-label="Área do jogo Zombie Survival"></canvas>
+
+    <div class="overlay" id="startScreen">
+      <div class="panel">
+        <div class="emoji">🧟</div>
+        <h2>ZOMBIE SURVIVAL</h2>
+        <p>A cidade foi tomada! Sobreviva às ondas, encadeie combos, enfrente chefes e bata o recorde.</p>
+        <button class="primary" id="startBtn">INICIAR JOGO</button>
+        <small>Enter para começar</small>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="pauseScreen">
+      <div class="panel">
+        <div class="emoji">⏸️</div>
+        <h2>PAUSADO</h2>
+        <p>Respire fundo. Os zumbis esperam.</p>
+        <button class="primary" id="resumeBtn">CONTINUAR</button>
+        <small>P ou Esc para continuar</small>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="gameOverScreen">
+      <div class="panel">
+        <div class="emoji">☠️</div>
+        <h2>FIM DE JOGO</h2>
+        <p id="resultText">Você foi derrotado!</p>
+        <button class="primary" id="restartBtn">JOGAR NOVAMENTE</button>
+        <small>Enter para reiniciar</small>
+      </div>
+    </div>
+  </div>
+
+  <section class="controls">
+    <div class="tip"><b>⌨ MOVIMENTAÇÃO</b><br>W A S D ou setas. <b>Shift</b> para dar um dash (invulnerável por instantes).</div>
+    <div class="tip"><b>🎯 COMBATE</b><br>Mire com o mouse e clique ou segure <b>Espaço</b>. No celular: joystick à esquerda, tiro automático mirado à direita.</div>
+    <div class="tip"><b>✨ EXTRAS</b><br>Colete 💚 vida e ⚡ tiro rápido. <b>P</b> pausa, <b>M</b> silencia.</div>
+  </section>
+</main>
+
+<footer>ARCADEX © 2026 — SOBREVIVA SE PUDER</footer>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const cv = $("game"), ctx = cv.getContext("2d");
+const W = 960, H = 600;
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+
+const el = { hp: $("healthText"), bar: $("healthBar"), wave: $("waveText"), score: $("scoreText"),
+  kill: $("killText"), best: $("bestText"), start: $("startScreen"), pause: $("pauseScreen"),
+  over: $("gameOverScreen"), result: $("resultText") };
+const coarse = matchMedia("(pointer: coarse)").matches;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FONT = "Orbitron, system-ui, sans-serif";
+
+const TYPES = {
+  walker: { r: 13, hp: 1, dmg: 9,  pts: 10,  sp: [35, 55],  col: "#65ff8c", fill: "#173c2b" },
+  runner: { r: 10, hp: 1, dmg: 7,  pts: 15,  sp: [95, 125], col: "#ffd24d", fill: "#3d3414" },
+  tough:  { r: 18, hp: 3, dmg: 14, pts: 30,  sp: [35, 55],  col: "#c58aff", fill: "#392050" },
+  boss:   { r: 32, hp: 14, dmg: 25, pts: 200, sp: [28, 36], col: "#ff426d", fill: "#4a1426" }
+};
+
+let best = 0;
+try { best = +localStorage.getItem("zs_best") || 0; } catch {}
+const saveBest = () => { try { localStorage.setItem("zs_best", best); } catch {} };
+
+// ---------- Áudio ----------
+let ac, muted = false;
+function sfx(f, d = .08, type = "square", v = .03, slide = 0) {
+  if (muted) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
+  } catch {}
+}
+
+// ---------- Estado ----------
+let st = "menu"; // menu | play | pause | over
+let player, zs = [], bs = [], ps = [], pk = [];
+let score, kills, wave, waveKills, spawnT, shotCd, flash, msg, shake, combo, comboT, lastTime = 0;
+const keys = {};
+const mouse = { x: W / 2, y: H / 2, down: false };
+let aimMouse = !coarse, joy = null, fireId = null, touchMove = null;
+
+const rand = (a, b) => Math.random() * (b - a) + a;
+const quota = () => 8 + wave * 4;
+const mult = () => Math.min(5, 1 + (combo / 5 | 0));
+
+function reset() {
+  score = kills = waveKills = combo = 0; comboT = 0;
+  wave = 1; spawnT = .8; shotCd = 0; flash = 0; shake = 0; msg = 2;
+  zs = []; bs = []; ps = []; pk = [];
+  player = { x: W / 2, y: H / 2, r: 15, speed: 235, hp: 100, maxHp: 100, angle: 0, inv: 0, dash: 0, dashCd: 0, dx: 1, dy: 0, rapid: 0 };
+  joy = fireId = touchMove = null;
+  hud(true);
+}
+
+function show(s) {
+  st = s;
+  el.start.classList.toggle("hidden", s !== "menu");
+  el.pause.classList.toggle("hidden", s !== "pause");
+  el.over.classList.toggle("hidden", s !== "over");
+}
+
+function startGame() {
+  reset(); lastTime = performance.now(); show("play");
+  if (ac && ac.state === "suspended") ac.resume();
+  sfx(440, .15, "triangle", .04, 300);
+}
+function togglePause(force) {
+  if (st === "play" && force !== false) { show("pause"); keys.shift = false; mouse.down = false; }
+  else if (st === "pause" && force !== true) { lastTime = performance.now(); show("play"); }
+}
+function endGame() {
+  const record = score > best;
+  if (record) { best = score; saveBest(); }
+  el.result.textContent = `Pontuação: ${score} | Eliminados: ${kills} | Onda: ${wave}` + (record ? " — 🏆 NOVO RECORDE!" : "");
+  sfx(200, .6, "sawtooth", .05, -150);
+  show("over"); hud(true);
+}
+
+// ---------- HUD (só escreve no DOM se mudou) ----------
+const cache = {};
+function setText(k, node, v) { if (cache[k] !== v) { node.textContent = v; cache[k] = v; } }
+function hud() {
+  const hp = Math.ceil(player.hp);
+  setText("hp", el.hp, `${hp} HP`);
+  setText("wave", el.wave, String(wave).padStart(2, "0"));
+  setText("score", el.score, score);
+  setText("kill", el.kill, kills);
+  setText("best", el.best, Math.max(best, score));
+  const w = Math.max(0, player.hp) / player.maxHp * 100 + "%";
+  if (cache.bar !== w) {
+    el.bar.style.width = w; cache.bar = w;
+    el.bar.style.background = player.hp < 30 ? "#ff1744" : "#ff426d";
+  }
+}
+
+// ---------- Mecânicas ----------
+function burst(x, y, color, n = 8) {
+  if (reduceMotion) n = Math.ceil(n / 2);
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.283, s = rand(35, 150);
+    ps.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(.15, .5), max: .5, color, size: rand(2, 4) });
+  }
+}
+
+function spawn(type) {
+  const side = Math.random() * 4 | 0;
+  let x, y;
+  if (side === 0) { x = rand(0, W); y = -35; }
+  else if (side === 1) { x = W + 35; y = rand(0, H); }
+  else if (side === 2) { x = rand(0, W); y = H + 35; }
+  else { x = -35; y = rand(0, H); }
+  const T = TYPES[type];
+  const add = Math.min(wave * 3, 45) * (type === "boss" ? .2 : type === "runner" ? .5 : 1);
+  zs.push({ ...T, type, x, y, maxHp: T.hp + (type === "boss" ? wave : 0), hpNow: 0, speed: rand(...T.sp) + add, atk: 0 });
+  const z = zs[zs.length - 1]; z.hp = z.maxHp;
+}
+function pickType() {
+  const r = Math.random();
+  if (wave >= 3 && r < .2) return "tough";
+  if (wave >= 2 && r < .4) return "runner";
+  return "walker";
+}
+
+function nearest() {
+  let b = null, bd = 1e9;
+  for (const z of zs) { const d = Math.hypot(z.x - player.x, z.y - player.y); if (d < bd) { bd = d; b = z; } }
+  return b;
+}
+
+function shoot() {
+  if (shotCd > 0) return;
+  const a = player.angle, p = player;
+  bs.push({ x: p.x + Math.cos(a) * 22, y: p.y + Math.sin(a) * 22, vx: Math.cos(a) * 590, vy: Math.sin(a) * 590, life: 1.1 });
+  shotCd = p.rapid > 0 ? .09 : .19;
+  burst(p.x + Math.cos(a) * 23, p.y + Math.sin(a) * 23, "#00e5ff", 2);
+  sfx(p.rapid > 0 ? 820 : 640, .06, "square", .02, -300);
+}
+
+function getMove() {
+  let dx = 0, dy = 0;
+  if (keys.w || keys.arrowup) dy--;
+  if (keys.s || keys.arrowdown) dy++;
+  if (keys.a || keys.arrowleft) dx--;
+  if (keys.d || keys.arrowright) dx++;
+  if (touchMove) { dx += touchMove.x; dy += touchMove.y; }
+  const l = Math.hypot(dx, dy);
+  return l > 1 ? [dx / l, dy / l] : l > 0 ? [dx, dy] : [0, 0];
+}
+
+function tryDash() {
+  if (st !== "play" || player.dashCd > 0) return;
+  let [dx, dy] = getMove();
+  if (!dx && !dy) { dx = Math.cos(player.angle); dy = Math.sin(player.angle); }
+  const l = Math.hypot(dx, dy) || 1;
+  player.dx = dx / l; player.dy = dy / l;
+  player.dash = .16; player.dashCd = 1.4; player.inv = Math.max(player.inv, .22);
+  burst(player.x, player.y, "#8a2be2", 10);
+  sfx(300, .15, "sawtooth", .03, 400);
+}
+
+function killZombie(z) {
+  kills++; waveKills++; combo++; comboT = 2.5;
+  score += z.pts * mult();
+  burst(z.x, z.y, z.col, z.type === "boss" ? 40 : 12);
+  sfx(z.type === "boss" ? 120 : 180, .15, "sawtooth", .03, -80);
+  if (z.type === "boss") shake = .5;
+  if (z.type === "boss" || Math.random() < .08) {
+    pk.push({ x: z.x, y: z.y, kind: Math.random() < .55 ? "hp" : "rapid", life: 9 });
+  }
+}
+
+function nextWave() {
+  wave++; waveKills = 0; msg = 2.2;
+  player.hp = Math.min(player.maxHp, player.hp + 15);
+  burst(W / 2, H / 2, "#00e5ff", 24);
+  sfx(520, .25, "triangle", .04, 400);
+  if (wave % 5 === 0) spawn("boss");
+}
+
+function update(dt) {
+  shotCd = Math.max(0, shotCd - dt);
+  flash = Math.max(0, flash - dt);
+  msg = Math.max(0, msg - dt);
+  shake = Math.max(0, shake - dt);
+  const p = player;
+  p.inv = Math.max(0, p.inv - dt);
+  p.dash = Math.max(0, p.dash - dt);
+  p.dashCd = Math.max(0, p.dashCd - dt);
+  p.rapid = Math.max(0, p.rapid - dt);
+  if (comboT > 0 && (comboT -= dt) <= 0) combo = 0;
+
+  // movimento
+  const [mx, my] = getMove();
+  if (p.dash > 0) {
+    p.x += p.dx * 650 * dt; p.y += p.dy * 650 * dt;
+    if (Math.random() < .8) burst(p.x, p.y, "#00e5ff", 1);
+  } else {
+    p.x += mx * p.speed * dt; p.y += my * p.speed * dt;
+  }
+  p.x = Math.max(p.r, Math.min(W - p.r, p.x));
+  p.y = Math.max(p.r, Math.min(H - p.r, p.y));
+
+  // mira
+  const auto = fireId !== null ? nearest() : null;
+  if (auto) p.angle = Math.atan2(auto.y - p.y, auto.x - p.x);
+  else if (aimMouse) p.angle = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+  else if (mx || my) p.angle = Math.atan2(my, mx);
+
+  if (mouse.down || keys[" "] || fireId !== null) shoot();
+
+  // spawn
+  spawnT -= dt;
+  if (spawnT <= 0) {
+    if (zs.length < Math.min(5 + wave * 2, 30)) spawn(pickType());
+    spawnT = Math.max(.28, 1.05 - wave * .045);
+  }
+
+  // zumbis
+  for (const z of zs) {
+    const a = Math.atan2(p.y - z.y, p.x - z.x);
+    z.x += Math.cos(a) * z.speed * dt;
+    z.y += Math.sin(a) * z.speed * dt;
+    z.atk -= dt;
+    if (Math.hypot(p.x - z.x, p.y - z.y) < p.r + z.r && z.atk <= 0) {
+      if (p.inv <= 0) {
+        p.hp = Math.max(0, p.hp - z.dmg);
+        p.inv = .5; flash = .18; shake = .2; combo = 0; comboT = 0;
+        burst(p.x, p.y, "#ff426d", 9);
+        sfx(150, .15, "sawtooth", .04, -60);
+      }
+      z.atk = .7;
+      z.x -= Math.cos(a) * 14; z.y -= Math.sin(a) * 14;
+    }
+  }
+  // separação entre zumbis
+  for (let i = 0; i < zs.length; i++) for (let j = i + 1; j < zs.length; j++) {
+    const a = zs[i], b = zs[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), m = a.r + b.r;
+    if (d > 0 && d < m) { const k = (m - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; }
+  }
+  if (p.hp <= 0) { hud(); endGame(); return; }
+
+  // projéteis
+  for (const b of bs) {
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    for (const z of zs) {
+      if (z.hp <= 0 || Math.hypot(b.x - z.x, b.y - z.y) >= z.r + 4) continue;
+      z.hp--; b.life = 0; burst(b.x, b.y, "#ffbd59", 4);
+      sfx(260, .04, "square", .015);
+      if (z.hp <= 0) killZombie(z);
+      break;
+    }
+  }
+  bs = bs.filter(b => b.life > 0 && b.x >= 0 && b.x <= W && b.y >= 0 && b.y <= H);
+  zs = zs.filter(z => z.hp > 0);
+
+  // itens
+  for (const it of pk) {
+    it.life -= dt;
+    if (Math.hypot(p.x - it.x, p.y - it.y) < p.r + 12) {
+      it.life = 0;
+      if (it.kind === "hp") p.hp = Math.min(p.maxHp, p.hp + 25); else p.rapid = 8;
+      burst(it.x, it.y, it.kind === "hp" ? "#66ff99" : "#00e5ff", 14);
+      sfx(700, .2, "triangle", .04, 500);
+    }
+  }
+  pk = pk.filter(i => i.life > 0);
+
+  if (waveKills >= quota()) nextWave();
+
+  for (const q of ps) {
+    q.x += q.vx * dt; q.y += q.vy * dt; q.life -= dt;
+    const f = Math.pow(.08, dt); q.vx *= f; q.vy *= f;
+  }
+  ps = ps.filter(q => q.life > 0);
+  hud();
+}
+
+// ---------- Desenho ----------
+function drawBackground() {
+  ctx.fillStyle = "#080812"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#17172b"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+  ctx.strokeStyle = "#27213d"; ctx.lineWidth = 2;
+  for (let x = 80; x < W; x += 240) { ctx.strokeRect(x, 90, 65, 45); ctx.strokeRect(x + 90, 420, 85, 45); }
+  const px = player ? player.x : W / 2, py = player ? player.y : H / 2;
+  const g = ctx.createRadialGradient(px, py, 20, px, py, 300);
+  g.addColorStop(0, "#18213b44"); g.addColorStop(1, "#00000000");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+function drawPlayer() {
+  const p = player;
+  ctx.save(); ctx.translate(p.x, p.y);
+  if ((p.inv > 0 && p.dash <= 0 && Math.floor(performance.now() / 70) % 2 === 0)) ctx.globalAlpha = .35;
+  ctx.shadowBlur = 18; ctx.shadowColor = p.rapid > 0 ? "#ffd24d" : "#00e5ff";
+  ctx.fillStyle = "#0b2637"; ctx.strokeStyle = p.rapid > 0 ? "#ffd24d" : "#00e5ff"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, p.r, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0; ctx.fillStyle = "#54edff";
+  ctx.beginPath(); ctx.arc(0, 0, 7, 0, 6.283); ctx.fill();
+  ctx.rotate(p.angle);
+  ctx.fillStyle = "#e6faff"; ctx.fillRect(5, -4, 23, 8);
+  ctx.fillStyle = "#8a2be2"; ctx.fillRect(13, -2, 12, 4);
+  ctx.restore();
+}
+
+function drawZombie(z) {
+  ctx.save(); ctx.translate(z.x, z.y);
+  ctx.shadowBlur = z.r > 16 ? 18 : 10; ctx.shadowColor = z.col;
+  ctx.fillStyle = z.fill; ctx.strokeStyle = z.col; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, z.r, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0;
+  const s = z.r / 13, e = Math.atan2(player.y - z.y, player.x - z.x);
+  ctx.fillStyle = "#ff426d";
+  ctx.beginPath();
+  ctx.arc(-5 * s + Math.cos(e) * 1.5, -3 * s + Math.sin(e) * 1.5, 2.5 * s, 0, 6.283);
+  ctx.arc(5 * s + Math.cos(e) * 1.5, -3 * s + Math.sin(e) * 1.5, 2.5 * s, 0, 6.283);
+  ctx.fill();
+  ctx.strokeStyle = "#b4ffbe"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-5 * s, 5 * s); ctx.lineTo(5 * s, 5 * s); ctx.stroke();
+  if (z.maxHp > 1) {
+    const w = z.r * 2;
+    ctx.fillStyle = "#30203e"; ctx.fillRect(-w / 2, -z.r - 9, w, 4);
+    ctx.fillStyle = z.col; ctx.fillRect(-w / 2, -z.r - 9, w * z.hp / z.maxHp, 4);
+  }
+  ctx.restore();
+}
+
+function drawItem(it) {
+  const pulse = 1 + Math.sin(performance.now() / 150) * .12;
+  ctx.save(); ctx.translate(it.x, it.y); ctx.scale(pulse, pulse);
+  if (it.life < 3 && Math.floor(it.life * 6) % 2) ctx.globalAlpha = .3;
+  const c = it.kind === "hp" ? "#66ff99" : "#00e5ff";
+  ctx.shadowBlur = 14; ctx.shadowColor = c; ctx.strokeStyle = c; ctx.fillStyle = "#0d0d20"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 11, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = c; ctx.shadowBlur = 0;
+  if (it.kind === "hp") { ctx.fillRect(-2, -6, 4, 12); ctx.fillRect(-6, -2, 12, 4); }
+  else { ctx.beginPath(); ctx.moveTo(2, -7); ctx.lineTo(-5, 1); ctx.lineTo(0, 1); ctx.lineTo(-2, 7); ctx.lineTo(5, -1); ctx.lineTo(0, -1); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawTouchUI() {
+  ctx.save(); ctx.textAlign = "center";
+  const bx = joy ? joy.bx : 82, by = joy ? joy.by : H - 82;
+  ctx.globalAlpha = joy ? .7 : .4; ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(bx, by, 43, 0, 6.283); ctx.stroke();
+  if (touchMove) { ctx.fillStyle = "#00e5ff"; ctx.beginPath(); ctx.arc(bx + touchMove.x * 30, by + touchMove.y * 30, 13, 0, 6.283); ctx.fill(); }
+  ctx.globalAlpha = fireId !== null ? .9 : .55;
+  ctx.fillStyle = "#ff006e"; ctx.strokeStyle = "#ff8bb9"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(W - 78, H - 82, 39, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = `700 12px ${FONT}`; ctx.fillText("FIRE", W - 78, H - 78);
+  ctx.globalAlpha = player.dashCd > 0 ? .3 : .75;
+  ctx.fillStyle = "#8a2be2"; ctx.strokeStyle = "#c58aff";
+  ctx.beginPath(); ctx.arc(W - 78, H - 175, 28, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = `700 10px ${FONT}`; ctx.fillText("DASH", W - 78, H - 171);
+  ctx.restore();
+}
+
+function draw() {
+  ctx.save();
+  if (shake > 0 && !reduceMotion) ctx.translate(rand(-1, 1) * shake * 14, rand(-1, 1) * shake * 14);
+  drawBackground();
+  if (!player) { ctx.restore(); return; }
+
+  for (const it of pk) drawItem(it);
+  for (const b of bs) {
+    ctx.save(); ctx.shadowBlur = 14; ctx.shadowColor = "#00e5ff"; ctx.fillStyle = "#b9fbff";
+    ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, 6.283); ctx.fill(); ctx.restore();
+  }
+  for (const z of zs) drawZombie(z);
+  drawPlayer();
+  for (const q of ps) { ctx.globalAlpha = Math.max(0, q.life / q.max); ctx.fillStyle = q.color; ctx.fillRect(q.x, q.y, q.size, q.size); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  if (st === "play" || st === "pause") {
+    // mira
+    if (!coarse && st === "play") {
+      ctx.save(); ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 1.5; ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 9, 0, 6.283);
+      ctx.moveTo(mouse.x - 14, mouse.y); ctx.lineTo(mouse.x - 5, mouse.y);
+      ctx.moveTo(mouse.x + 5, mouse.y); ctx.lineTo(mouse.x + 14, mouse.y);
+      ctx.moveTo(mouse.x, mouse.y - 14); ctx.lineTo(mouse.x, mouse.y - 5);
+      ctx.moveTo(mouse.x, mouse.y + 5); ctx.lineTo(mouse.x, mouse.y + 14);
+      ctx.stroke(); ctx.restore();
+    }
+
+    ctx.save(); ctx.textAlign = "center";
+    if (msg > 0) {
+      ctx.globalAlpha = Math.min(1, msg * 2); ctx.shadowBlur = 20; ctx.shadowColor = "#00e5ff";
+      ctx.fillStyle = "#fff"; ctx.font = `900 32px ${FONT}`; ctx.fillText(`ONDA ${wave}`, W / 2, 65);
+      const boss = wave % 5 === 0;
+      ctx.font = `600 14px ${FONT}`; ctx.fillStyle = boss ? "#ff426d" : "#00e5ff";
+      ctx.fillText(boss ? "⚠ CHEFE CHEGANDO!" : "PREPARE-SE!", W / 2, 91);
+    }
+    ctx.restore();
+
+    // progresso da onda, combo e dash
+    ctx.save();
+    ctx.fillStyle = "#1a1a33"; ctx.fillRect(W / 2 - 100, H - 22, 200, 6);
+    ctx.fillStyle = "#00e5ff"; ctx.fillRect(W / 2 - 100, H - 22, 200 * Math.min(1, waveKills / quota()), 6);
+    ctx.fillStyle = "#1a1a33"; ctx.fillRect(W / 2 - 100, H - 12, 200, 4);
+    ctx.fillStyle = player.dashCd > 0 ? "#6a3fa8" : "#c58aff"; ctx.fillRect(W / 2 - 100, H - 12, 200 * (1 - player.dashCd / 1.4), 4);
+    ctx.textAlign = "right"; ctx.font = `700 13px ${FONT}`;
+    let y = 28;
+    if (combo >= 2) { ctx.fillStyle = "#ffd24d"; ctx.fillText(`COMBO ${combo}  x${mult()}`, W - 16, y); ctx.fillRect(W - 16 - 90 * comboT / 2.5, y + 6, 90 * comboT / 2.5, 3); y += 28; }
+    if (player.rapid > 0) { ctx.fillStyle = "#00e5ff"; ctx.fillText(`⚡ ${player.rapid.toFixed(1)}s`, W - 16, y); }
+    ctx.restore();
+
+    if (flash > 0) { ctx.fillStyle = `rgba(255,0,70,${flash * .45})`; ctx.fillRect(0, 0, W, H); }
+    if (player.hp < 30) { ctx.fillStyle = `rgba(255,0,60,${.06 + Math.sin(performance.now() / 180) * .03})`; ctx.fillRect(0, 0, W, H); }
+    if (coarse && st === "play") drawTouchUI();
+  }
+}
+
+function loop(t) {
+  const dt = Math.min((t - lastTime) / 1000 || 0, .033);
+  lastTime = t;
+  if (st === "play") update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ---------- Entrada ----------
+const toCanvas = e => {
+  const r = cv.getBoundingClientRect();
+  return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height];
+};
+
+cv.addEventListener("contextmenu", e => e.preventDefault());
+
+cv.addEventListener("pointerdown", e => {
+  if (st !== "play") return;
+  const [x, y] = toCanvas(e);
+  if (e.pointerType === "mouse") {
+    if (e.button !== 0) return;
+    aimMouse = true; mouse.x = x; mouse.y = y; mouse.down = true;
+  } else {
+    e.preventDefault(); aimMouse = false;
+    if (Math.hypot(x - (W - 78), y - (H - 175)) < 40) tryDash();
+    else if (x < W * .5 && joy === null) { joy = { id: e.pointerId, bx: x, by: y }; touchMove = { x: 0, y: 0 }; }
+    else if (x >= W * .5 && fireId === null) fireId = e.pointerId;
+  }
+  try { cv.setPointerCapture(e.pointerId); } catch {}
+});
+
+cv.addEventListener("pointermove", e => {
+  const [x, y] = toCanvas(e);
+  if (e.pointerType === "mouse") { aimMouse = true; mouse.x = x; mouse.y = y; return; }
+  if (joy && e.pointerId === joy.id) {
+    let dx = x - joy.bx, dy = y - joy.by; const l = Math.hypot(dx, dy);
+    if (l > 40) { dx *= 40 / l; dy *= 40 / l; }
+    touchMove = { x: dx / 40, y: dy / 40 };
+  }
+});
+
+function release(e) {
+  if (e.pointerType === "mouse") mouse.down = false;
+  if (joy && e.pointerId === joy.id) { joy = null; touchMove = null; }
+  if (e.pointerId === fireId) fireId = null;
+}
+cv.addEventListener("pointerup", release);
+cv.addEventListener("pointercancel", release);
+window.addEventListener("pointerup", e => { if (e.pointerType === "mouse") mouse.down = false; });
+
+window.addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(k) && st === "play") e.preventDefault();
+  if (e.repeat) { keys[k] = true; return; }
+  keys[k] = true;
+  if (k === "enter" && (st === "menu" || st === "over")) startGame();
+  else if (k === "p" || k === "escape") togglePause();
+  else if (k === "m") muted = !muted;
+  else if (k === "shift") tryDash();
+});
+window.addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+
+function releaseAll() { Object.keys(keys).forEach(k => keys[k] = false); mouse.down = false; fireId = null; joy = null; touchMove = null; }
+window.addEventListener("blur", () => { releaseAll(); if (st === "play") togglePause(true); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) { releaseAll(); if (st === "play") togglePause(true); } });
+
+$("startBtn").addEventListener("click", startGame);
+$("restartBtn").addEventListener("click", startGame);
+$("resumeBtn").addEventListener("click", () => togglePause(false));
+$("backBtn").addEventListener("click", () => { window.location.href = "index.html"; });
+
+reset();
+hud();
+requestAnimationFrame(t => { lastTime = t; loop(t); });
+})();
+</script>
+</body>
+</html>
